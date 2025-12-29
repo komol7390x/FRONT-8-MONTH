@@ -14,6 +14,7 @@ function App() {
       <Routes>
         <Route path='/' element={<MainPage />} />
         <Route path='/privacy-policy' element={<PrivacyPolicy />} />
+        
         {/* ADMIN */}
         <Route path='/admin'>
           <Route index element={<LoginAdmin />} />

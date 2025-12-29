@@ -1,8 +1,6 @@
 
 export const LoginAdmin = () => {
     return (
-        <div
-            className=""
-        >LoginAdmin</div>
+        <div className="">LoginAdmin</div >
     )
 }
