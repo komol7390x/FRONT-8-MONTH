@@ -6,6 +6,7 @@ import { RegisterAdmin } from './page/admin/auth/register/register';
 import { LoginTeacher } from './page/teacher/auth/login/login';
 import { RegisterTeacher } from './page/teacher/auth/register/register';
 import { MainStudent } from './page/student/main';
+import Dashboard from './page/admin/main/dashboard';
 
 function App() {
 
@@ -14,11 +15,12 @@ function App() {
       <Routes>
         <Route path='/' element={<MainPage />} />
         <Route path='/privacy-policy' element={<PrivacyPolicy />} />
-        
+
         {/* ADMIN */}
         <Route path='/admin'>
           <Route index element={<LoginAdmin />} />
           <Route path='register' element={<RegisterAdmin />} />
+          <Route path='dashboard' element={<Dashboard />} />
         </Route>
 
         {/* TEACHER */}
