@@ -1,12 +1,12 @@
 import { z } from 'zod';
+import { useForm, Controller } from 'react-hook-form';
+import { Button, Card, Form, Input, message, Typography } from "antd";
 import { useLogin } from './service/use-login';
 import { useNavigate } from 'react-router-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, Controller } from 'react-hook-form';
-import { Form, Input, Button, Card, Typography, message } from 'antd';
-import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import Cookies from 'js-cookie'
-import { TokenName } from '../../../../config/enum';
+import { TokenName } from '../../../config/enum';
+import { UserOutlined, LockOutlined } from '@ant-design/icons';
 const { Title } = Typography;
 
 const formSchema = z.object({
@@ -109,10 +109,7 @@ export const LoginAdmin = () => {
                     </Form.Item>
 
                     <div className="relative my-6 text-center">
-                        <div className="absolute inset-0 flex items-center">
-                            <span className="w-full border-t border-gray-300"></span>
-                        </div>
-                        <span className="relative px-2 bg-white text-gray-500 text-sm italic">yoki</span>
+                        <p className='text-[12px]'>Admin panel - Faqat ruxsat etilgan foydalanuvchilar uchun</p>
                     </div>
 
                 </Form>
