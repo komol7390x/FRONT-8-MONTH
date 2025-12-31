@@ -35,7 +35,7 @@ export const MainStudent = () => {
         >
             {/* Profil qismi */}
             <div className="flex items-center space-x-4 mb-6 bg-white dark:bg-[#2c2c2e] p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
-                <div className="w-14 h-14 bg-gradient-to-tr from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white shadow-md font-bold">
+                <div className="w-14 h-14 bg-linear-to-tr from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white shadow-md font-bold">
                     {tgObject?.initDataUnsafe?.user?.photo_url ? (
                         <img src={tgObject.initDataUnsafe.user.photo_url} className="rounded-full" alt="" />
                     ) : <User size={28} />}
