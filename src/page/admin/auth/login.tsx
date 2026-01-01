@@ -34,7 +34,7 @@ export const LoginAdmin = () => {
             onSuccess: (res) => {
                 Cookies.set(TokenName.TOKEN_NAME, res.data.token)
                 if (res.data.user.role == Roles.SUPER_ADMIN) {
-                    navigate('/super-admin/dashboard')
+                    navigate('/super-admin/admin/statistics')
                 }
                 else if (res.data.user.role == Roles.ADMIN) {
                     navigate('/admin/dashboard')

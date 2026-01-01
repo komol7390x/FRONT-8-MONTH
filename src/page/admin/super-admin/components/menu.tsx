@@ -12,23 +12,23 @@ export const items: MenuItem[] = [
         icon: <ShieldUser size={20} />,
         children: [
             {
-                key: 'admin-stats', 
-                label: <Link to={'/app/admin/statistics'} className="font-medium">Statistics</Link>,
+                key: 'admin-stats',
+                label: <Link to={'/super-admin/admin/statistics'} className="font-medium">Statistics</Link>,
                 icon: <BarChart3 size={16} />
             },
             {
-                key: 'admin-list', 
-                label: <Link to={'/app/admin/analytics'} className="font-medium">List</Link>,
+                key: 'admin-list',
+                label: <Link to={'/super-admin/admin/list'} className="font-medium">List</Link>,
                 icon: <Users size={16} />
             },
             {
-                key: 'admin-inactive',
-                label: <Link to={'/app/admin/analytics'} className="font-medium">Inactive</Link>,
+                key: 'admin-blocked',
+                label: <Link to={'/super-admin/admin/blocked'} className="font-medium">Blocked</Link>,
                 icon: <UserLock size={16} />
             },
             {
-                key: 'admin-blocked',
-                label: <Link to={'/app/admin/analytics'} className="font-medium">List</Link>,
+                key: 'admin-delete',
+                label: <Link to={'/super-admin/admin/delete'} className="font-medium">Delete</Link>,
                 icon: <UserRoundX size={16} />
             },
         ],
@@ -46,12 +46,12 @@ export const items: MenuItem[] = [
         icon: <Users size={20} />,
         children: [
             {
-                key: 'teacher-users', // '3' o'rniga yangi key
-                label: <Link to={'/admin/users'} className="font-medium">All Users</Link>,
+                key: 'teacher-users',
+                label: <Link to={'/super-admin/users'} className="font-medium">All Users</Link>,
             },
             {
-                key: 'teacher-roles', // '4' o'rniga yangi key
-                label: <Link to={'/admin/roles'} className="font-medium">Roles & Permissions</Link>,
+                key: 'teacher-roles',
+                label: <Link to={'/super-admin/roles'} className="font-medium">Roles & Permissions</Link>,
             },
         ],
     },
@@ -63,12 +63,12 @@ export const items: MenuItem[] = [
         icon: <FileText size={20} />,
         children: [
             {
-                key: 'content-posts', // '5' o'rniga yangi key
-                label: <Link to={'/admin/posts'} className="font-medium">Posts</Link>,
+                key: 'content-posts',
+                label: <Link to={'/super-admin/posts'} className="font-medium">Posts</Link>,
             },
             {
-                key: 'content-media', // '6' o'rniga yangi key
-                label: <Link to={'/admin/media'} className="font-medium">Media Library</Link>,
+                key: 'content-media',
+                label: <Link to={'/super-admin/media'} className="font-medium">Media Library</Link>,
             },
         ],
     },

@@ -4,9 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"npm run vite-dev\" \"npm run ngrok\"",
-    "vite-dev": "vite --port 5050 --host",
-    "ngrok": "ngrok http --domain=cataractal-unperiphrastic-catherina.ngrok-free.dev 5050",
+    "dev": "vite --port 5050 --host",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -20,6 +18,7 @@
     "axios": "^1.13.2",
     "dotenv": "^17.2.3",
     "js-cookie": "^3.0.5",
+    "jwt-decode": "^4.0.0",
     "lucide-react": "^0.562.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.3",
@@ -35,7 +34,6 @@
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",
-    "concurrently": "^9.2.1",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",

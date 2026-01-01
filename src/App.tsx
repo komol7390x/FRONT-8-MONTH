@@ -6,6 +6,10 @@ import { RegisterTeacher } from './page/teacher/auth/register/register';
 import { LoginAdmin } from './page/admin/auth/login';
 import { SuperAdminDashboard } from './page/admin/super-admin/dashboard';
 import { AdminDashboard } from './page/admin/admin/dashboard';
+import { StatisticsAdmin } from './page/admin/super-admin/admin/statistics-admin';
+import { ListAdmin } from './page/admin/super-admin/admin/list-admin';
+import { BlockedAdmin } from './page/admin/super-admin/admin/blocked-admin';
+import { DeleteAdmin } from './page/admin/super-admin/admin/delete-admin';
 
 function App() {
   return (
@@ -17,10 +21,12 @@ function App() {
       <Route path="/teacher/register" element={<RegisterTeacher />} />
 
       <Route path="/super-admin" element={<SuperAdminDashboard />}>
-        <Route path="dashboard" element={<div>Admin Dashboard Page</div>} />
-        <Route path="statistics" element={<div>Statistics Page</div>} />
-        <Route path="analytics" element={<div>Analytics Page</div>} />
-        <Route path="users" element={<div>Users List Page</div>} />
+        <Route path='admin'>
+          <Route path="statistics" element={<StatisticsAdmin />} />
+          <Route path="list" element={<ListAdmin />} />
+          <Route path="blocked" element={<BlockedAdmin />} />
+          <Route path="delete" element={<DeleteAdmin />} />
+        </Route>
       </Route>
 
       <Route path="/admin" element={<AdminDashboard />}>
