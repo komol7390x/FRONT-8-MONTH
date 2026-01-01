@@ -12,25 +12,22 @@ export const items: MenuItem[] = [
         icon: <ShieldUser size={20} />,
         children: [
             {
-                key: '1',
+                key: 'admin-stats', 
                 label: <Link to={'/app/admin/statistics'} className="font-medium">Statistics</Link>,
                 icon: <BarChart3 size={16} />
             },
-
             {
-                key: '2',
+                key: 'admin-list', 
                 label: <Link to={'/app/admin/analytics'} className="font-medium">List</Link>,
                 icon: <Users size={16} />
             },
-
             {
-                key: '3',
+                key: 'admin-inactive',
                 label: <Link to={'/app/admin/analytics'} className="font-medium">Inactive</Link>,
                 icon: <UserLock size={16} />
             },
-
             {
-                key: '4',
+                key: 'admin-blocked',
                 label: <Link to={'/app/admin/analytics'} className="font-medium">List</Link>,
                 icon: <UserRoundX size={16} />
             },
@@ -49,11 +46,11 @@ export const items: MenuItem[] = [
         icon: <Users size={20} />,
         children: [
             {
-                key: '3',
+                key: 'teacher-users', // '3' o'rniga yangi key
                 label: <Link to={'/admin/users'} className="font-medium">All Users</Link>,
             },
             {
-                key: '4',
+                key: 'teacher-roles', // '4' o'rniga yangi key
                 label: <Link to={'/admin/roles'} className="font-medium">Roles & Permissions</Link>,
             },
         ],
@@ -66,17 +63,17 @@ export const items: MenuItem[] = [
         icon: <FileText size={20} />,
         children: [
             {
-                key: '5',
+                key: 'content-posts', // '5' o'rniga yangi key
                 label: <Link to={'/admin/posts'} className="font-medium">Posts</Link>,
             },
             {
-                key: '6',
+                key: 'content-media', // '6' o'rniga yangi key
                 label: <Link to={'/admin/media'} className="font-medium">Media Library</Link>,
             },
         ],
     },
     {
-        key: '7',
+        key: 'settings-key', // '7' o'rniga
         label: <span className="font-semibold">Settings</span>,
         icon: <Settings size={20} />,
     },

@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import Cookies from 'js-cookie'
 import { TokenName } from '../../../config/enum';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
+import { Roles } from '../../../config/roles';
 const { Title } = Typography;
 
 const formSchema = z.object({
@@ -32,7 +33,14 @@ export const LoginAdmin = () => {
         mutate(values, {
             onSuccess: (res) => {
                 Cookies.set(TokenName.TOKEN_NAME, res.data.token)
-                navigate('/admin/dashboard');
+                if (res.data.user.role == Roles.SUPER_ADMIN) {
+                    navigate('/super-admin/dashboard')
+                }
+                else if (res.data.user.role == Roles.ADMIN) {
+                    navigate('/admin/dashboard')
+                } else {
+                    navigate('/')
+                }
             },
             onError: (err: any) => {
                 console.error("3. Xatolik yuz berdi:", err);
