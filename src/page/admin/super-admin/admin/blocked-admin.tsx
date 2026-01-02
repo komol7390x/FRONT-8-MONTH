@@ -1,20 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, type JSX } from 'react';
 import { X, Phone, ChevronUp, ChevronDown, Loader2 } from 'lucide-react';
 import { SortEnum, useGetList } from './service/useGetList';
 
-const AdminPanel = () => {
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
-  const [searchInput, setSearchInput] = useState(''); // Debounce uchun
-  const [sort, setSort] = useState({
+// --- INTERFACES ---
+interface Admin {
+  id: string | number;
+  username: string;
+  fullname: string;
+  phoneNumber: string;
+  role: string;
+  avatarUrl?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface SortState {
+  field: typeof SortEnum[keyof typeof SortEnum];
+  order: 'asc' | 'desc';
+}
+
+interface EditForm {
+  username: string;
+  fullname: string;
+  phoneNumber: string;
+  role: string;
+}
+
+type ModalType = 'edit' | 'more' | '';
+
+const AdminPanel: React.FC = () => {
+  const [page, setPage] = useState<number>(1);
+  const [search, setSearch] = useState<string>('');
+  const [searchInput, setSearchInput] = useState<string>(''); // Debounce uchun
+  const [sort, setSort] = useState<SortState>({
     field: SortEnum.USERNAME,
     order: 'asc'
   });
-  const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState('');
-  const [selectedAdmin, setSelectedAdmin] = useState(null);
-  const [editForm, setEditForm] = useState({ username: '', fullname: '', phoneNumber: '', role: '' });
-  const [limit, setLimit] = useState(10);
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [modalType, setModalType] = useState<ModalType>('');
+  const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
+  const [editForm, setEditForm] = useState<EditForm>({
+    username: '',
+    fullname: '',
+    phoneNumber: '',
+    role: ''
+  });
+  const [limit, setLimit] = useState<number>(10);
 
   const { data, isPending, isError, error, refetch } = useGetList({
     limit,
@@ -23,21 +55,21 @@ const AdminPanel = () => {
     sort
   });
 
-  const admins = data?.admins || [];
-  const totalCount = data?.totalCount || 0;
-  const totalPages = Math.ceil(totalCount / limit);
+  const admins: Admin[] = data?.admins || [];
+  const totalCount: number = data?.totalCount || 0;
+  const totalPages: number = Math.ceil(totalCount / limit);
 
   // Debounce search
-  React.useEffect(() => {
+  useEffect(() => {
     const timer = setTimeout(() => {
       setSearch(searchInput);
-      setPage(1); // Search o'zgarganda birinchi sahifaga qaytamiz
+      setPage(1);
     }, 500);
 
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const handleSort = (field) => {
+  const handleSort = (field: typeof SortEnum[keyof typeof SortEnum]): void => {
     setSort(prev => ({
       field,
       order: prev.field === field && prev.order === 'asc' ? 'desc' : 'asc'
@@ -45,12 +77,12 @@ const AdminPanel = () => {
     setPage(1);
   };
 
-  const handleLimitChange = (newLimit) => {
+  const handleLimitChange = (newLimit: string | number): void => {
     setLimit(Number(newLimit));
     setPage(1);
   };
 
-  const openModal = (type, admin) => {
+  const openModal = (type: ModalType, admin: Admin): void => {
     setModalType(type);
     setSelectedAdmin(admin);
     if (type === 'edit') {
@@ -64,36 +96,38 @@ const AdminPanel = () => {
     setShowModal(true);
   };
 
-  const closeModal = () => {
+  const closeModal = (): void => {
     setShowModal(false);
     setSelectedAdmin(null);
     setEditForm({ username: '', fullname: '', phoneNumber: '', role: '' });
   };
 
-  const handleEdit = async () => {
+  const handleEdit = async (): Promise<void> => {
     try {
-      // Bu yerda API ga edit so'rovini yuborasiz
-      console.log('Editing admin:', selectedAdmin.id, editForm);
-      closeModal();
-      refetch(); // Ma'lumotlarni yangilash
+      if (selectedAdmin) {
+        console.log('Editing admin:', selectedAdmin.id, editForm);
+        // API call logic here
+        closeModal();
+        refetch();
+      }
     } catch (error) {
       console.error('Edit error:', error);
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: string | number): Promise<void> => {
     if (window.confirm('Adminni o\'chirmoqchimisiz?')) {
       try {
-        // Bu yerda API ga delete so'rovini yuborasiz
         console.log('Deleting admin:', id);
-        refetch(); // Ma'lumotlarni yangilash
+        // API call logic here
+        refetch();
       } catch (error) {
         console.error('Delete error:', error);
       }
     }
   };
 
-  const getInitials = (name) => {
+  const getInitials = (name: string): string => {
     return name
       .split(' ')
       .map(n => n[0])
@@ -102,8 +136,8 @@ const AdminPanel = () => {
       .slice(0, 2);
   };
 
-  const renderPaginationButtons = () => {
-    const buttons = [];
+  const renderPaginationButtons = (): JSX.Element[] => {
+    const buttons: JSX.Element[] = [];
     const maxVisible = 5;
 
     let startPage = Math.max(1, page - Math.floor(maxVisible / 2));
@@ -144,7 +178,7 @@ const AdminPanel = () => {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-xl text-red-600 mb-4">Error: {error?.message}</p>
+          <p className="text-xl text-red-600 mb-4">Error: {(error as Error)?.message}</p>
           <button
             onClick={() => refetch()}
             className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
@@ -159,6 +193,7 @@ const AdminPanel = () => {
   return (
     <div className="min-h-screen bg-gray-100 p-6">
       <div className="max-w-7xl mx-auto">
+
         {/* Header */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <div className="flex items-center justify-between">
@@ -174,7 +209,7 @@ const AdminPanel = () => {
               type="text"
               placeholder="Search by username, phone or role"
               value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchInput(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200"
             />
           </div>
@@ -230,9 +265,11 @@ const AdminPanel = () => {
                         src={admin.avatarUrl}
                         alt={admin.fullname}
                         className="w-12 h-12 rounded-full"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                          e.target.nextSibling.style.display = 'flex';
+                        onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const nextSib = target.nextSibling as HTMLElement;
+                          if (nextSib) nextSib.style.display = 'flex';
                         }}
                       />
                     ) : null}
@@ -291,7 +328,7 @@ const AdminPanel = () => {
         )}
 
         {/* Pagination */}
-        {totalPages > 0 && (
+        {totalCount > 0 && (
           <div className="bg-white rounded-lg shadow-sm p-4 mt-6">
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div className="text-sm text-gray-600">
@@ -302,14 +339,12 @@ const AdminPanel = () => {
                 <span className="text-sm text-gray-600 mr-2">Show:</span>
                 <select
                   value={limit}
-                  onChange={(e) => handleLimitChange(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleLimitChange(e.target.value)}
                   className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-200"
                 >
-                  <option value={5}>5 per page</option>
-                  <option value={10}>10 per page</option>
-                  <option value={20}>20 per page</option>
-                  <option value={50}>50 per page</option>
-                  <option value={100}>100 per page</option>
+                  {[5, 10, 20, 50, 100].map((v) => (
+                    <option key={v} value={v}>{v} per page</option>
+                  ))}
                 </select>
               </div>
 
@@ -322,7 +357,8 @@ const AdminPanel = () => {
                   Previous
                 </button>
 
-                {totalPages > 1 && page > 3 && (
+                {/* Birinchi sahifa va nuqtalar */}
+                {page > 3 && (
                   <>
                     <button
                       onClick={() => setPage(1)}
@@ -336,7 +372,8 @@ const AdminPanel = () => {
 
                 {renderPaginationButtons()}
 
-                {totalPages > 1 && page < totalPages - 2 && (
+                {/* Oxirgi sahifa va nuqtalar */}
+                {page < totalPages - 2 && (
                   <>
                     {page < totalPages - 3 && <span className="px-2 text-gray-500">...</span>}
                     <button
@@ -350,7 +387,7 @@ const AdminPanel = () => {
 
                 <button
                   onClick={() => setPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={page === totalPages}
+                  disabled={page === totalPages || totalPages === 0}
                   className="px-3 py-1 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Next
@@ -362,7 +399,7 @@ const AdminPanel = () => {
 
         {/* Modal */}
         {showModal && selectedAdmin && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-gray-300/70 bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">
@@ -457,7 +494,7 @@ const AdminPanel = () => {
                     <input
                       type="text"
                       value={editForm.username}
-                      onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditForm({ ...editForm, username: e.target.value })}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200"
                     />
                   </div>
@@ -467,7 +504,7 @@ const AdminPanel = () => {
                     <input
                       type="text"
                       value={editForm.fullname}
-                      onChange={(e) => setEditForm({ ...editForm, fullname: e.target.value })}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditForm({ ...editForm, fullname: e.target.value })}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200"
                     />
                   </div>
@@ -477,7 +514,7 @@ const AdminPanel = () => {
                     <input
                       type="text"
                       value={editForm.phoneNumber}
-                      onChange={(e) => setEditForm({ ...editForm, phoneNumber: e.target.value })}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditForm({ ...editForm, phoneNumber: e.target.value })}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200"
                     />
                   </div>
@@ -486,7 +523,7 @@ const AdminPanel = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
                     <select
                       value={editForm.role}
-                      onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setEditForm({ ...editForm, role: e.target.value })}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200"
                     >
                       <option value="ADMIN">ADMIN</option>

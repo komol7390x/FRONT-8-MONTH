@@ -48,8 +48,8 @@ export const useGetList = (params: GetListParams = {}) => {
         queryKey: ['getlist', params],
         queryFn: async () => {
             const queryParams: any = {
-                page: params.page || 1,
-                limit: params.limit || 10,
+                page: params.page,
+                limit: params.limit,
             };
 
             // Faqat mavjud bo'lsa qo'shamiz
