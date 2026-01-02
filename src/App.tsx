@@ -8,7 +8,7 @@ import { SuperAdminDashboard } from './page/admin/super-admin/dashboard';
 import { AdminDashboard } from './page/admin/admin/dashboard';
 import { StatisticsAdmin } from './page/admin/super-admin/admin/statistics-admin';
 import { ListAdmin } from './page/admin/super-admin/admin/list-admin';
-import { BlockedAdmin } from './page/admin/super-admin/admin/blocked-admin';
+import AdminPanel from './page/admin/super-admin/admin/blocked-admin';
 import { DeleteAdmin } from './page/admin/super-admin/admin/delete-admin';
 
 function App() {
@@ -24,7 +24,7 @@ function App() {
         <Route path='admin'>
           <Route path="statistics" element={<StatisticsAdmin />} />
           <Route path="list" element={<ListAdmin />} />
-          <Route path="blocked" element={<BlockedAdmin />} />
+          <Route path="blocked" element={<AdminPanel />} />
           <Route path="delete" element={<DeleteAdmin />} />
         </Route>
       </Route>
