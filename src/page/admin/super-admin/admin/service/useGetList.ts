@@ -11,6 +11,7 @@ export const SortEnum = {
 
 type SortType = typeof SortEnum[keyof typeof SortEnum];
 
+
 export interface Admin {
     id: number;
     isActive: boolean;
@@ -43,6 +44,22 @@ export interface GetListParams {
     status?: boolean;
 }
 
+export interface GetListResponse {
+    data: Admin[];
+    meta: {
+        totalItems: number;
+        itemCount: number;
+        itemsPerPage: number;
+        totalPages: number;
+        currentPage: number;
+    };
+    stats: {
+        active: number;
+        inactive: number;
+        deleted: number;
+    };
+}
+
 export const useGetList = (params: GetListParams = {}) => {
     return useQuery<GetListResponse>({
         queryKey: ['getlist', params],
@@ -52,8 +69,7 @@ export const useGetList = (params: GetListParams = {}) => {
                 limit: params.limit,
             };
 
-            // Faqat mavjud bo'lsa qo'shamiz
-            if (params.search && params.search.trim() !== '') {
+            if (params.search?.trim()) {
                 queryParams.search = params.search.trim();
             }
 
@@ -66,13 +82,14 @@ export const useGetList = (params: GetListParams = {}) => {
                 queryParams.status = params.status;
             }
 
-            console.log("Request params:", queryParams);
+            console.log('API Request Params:', queryParams);
 
             const res = await request.get<GetListResponse>('/admin/all', {
                 params: queryParams
             });
 
-            console.log("Backend response:", res.data);
+            console.log('API Response:', res.data);
+
             return res.data;
         },
         staleTime: 0,

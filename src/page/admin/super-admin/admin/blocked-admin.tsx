@@ -1,19 +1,7 @@
-import React, { useState, useEffect, type JSX } from 'react';
+import React, { useState, useEffect } from 'react';
+import type { JSX } from 'react';
 import { X, Phone, ChevronUp, ChevronDown, Loader2 } from 'lucide-react';
-import { SortEnum, useGetList } from './service/useGetList';
-
-// --- INTERFACES ---
-interface Admin {
-  id: string | number;
-  username: string;
-  fullname: string;
-  phoneNumber: string;
-  role: string;
-  avatarUrl?: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+import { SortEnum, useGetList, type Admin, } from './service/useGetList';
 
 interface SortState {
   field: typeof SortEnum[keyof typeof SortEnum];
@@ -32,11 +20,12 @@ type ModalType = 'edit' | 'more' | '';
 const AdminPanel: React.FC = () => {
   const [page, setPage] = useState<number>(1);
   const [search, setSearch] = useState<string>('');
-  const [searchInput, setSearchInput] = useState<string>(''); // Debounce uchun
+  const [searchInput, setSearchInput] = useState<string>('');
   const [sort, setSort] = useState<SortState>({
     field: SortEnum.USERNAME,
-    order: 'asc'
+    order: 'desc'
   });
+  
   const [showModal, setShowModal] = useState<boolean>(false);
   const [modalType, setModalType] = useState<ModalType>('');
   const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
@@ -55,11 +44,11 @@ const AdminPanel: React.FC = () => {
     sort
   });
 
-  const admins: Admin[] = data?.admins || [];
-  const totalCount: number = data?.totalCount || 0;
-  const totalPages: number = Math.ceil(totalCount / limit);
+  // Backend strukturasiga moslash (res.data ichida yana data massivi kelyapti)
+  const admins: Admin[] = data?.data || [];
+  const totalCount: number = data?.meta?.totalItems || 0;
+  const totalPages: number = data?.meta?.totalPages || 0;
 
-  // Debounce search
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearch(searchInput);
@@ -106,7 +95,6 @@ const AdminPanel: React.FC = () => {
     try {
       if (selectedAdmin) {
         console.log('Editing admin:', selectedAdmin.id, editForm);
-        // API call logic here
         closeModal();
         refetch();
       }
@@ -115,11 +103,10 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string | number): Promise<void> => {
+  const handleDelete = async (id: number): Promise<void> => {
     if (window.confirm('Adminni o\'chirmoqchimisiz?')) {
       try {
         console.log('Deleting admin:', id);
-        // API call logic here
         refetch();
       } catch (error) {
         console.error('Delete error:', error);
@@ -129,18 +116,18 @@ const AdminPanel: React.FC = () => {
 
   const getInitials = (name: string): string => {
     return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
+      ? name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+      : 'AD';
   };
 
   const renderPaginationButtons = (): JSX.Element[] => {
     const buttons: JSX.Element[] = [];
+    if (!data?.meta) return buttons;
+
+    const { totalPages, currentPage } = data.meta;
     const maxVisible = 5;
 
-    let startPage = Math.max(1, page - Math.floor(maxVisible / 2));
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
     let endPage = Math.min(totalPages, startPage + maxVisible - 1);
 
     if (endPage - startPage < maxVisible - 1) {
@@ -152,9 +139,9 @@ const AdminPanel: React.FC = () => {
         <button
           key={i}
           onClick={() => setPage(i)}
-          className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${page === i
-            ? 'bg-gray-900 text-white'
-            : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+          className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${currentPage === i
+            ? 'bg-gray-900 text-white shadow-md'
+            : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
             }`}
         >
           {i}
@@ -260,24 +247,21 @@ const AdminPanel: React.FC = () => {
               <div key={admin.id} className="bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    {admin.avatarUrl ? (
-                      <img
-                        src={admin.avatarUrl}
-                        alt={admin.fullname}
-                        className="w-12 h-12 rounded-full"
-                        onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                          const nextSib = target.nextSibling as HTMLElement;
-                          if (nextSib) nextSib.style.display = 'flex';
-                        }}
-                      />
-                    ) : null}
-                    <div
-                      className="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center text-white font-semibold text-lg"
-                      style={{ display: admin.avatarUrl ? 'none' : 'flex' }}
-                    >
-                      {getInitials(admin.fullname)}
+                    <div className="relative">
+                      {admin.avatarUrl ? (
+                        <img
+                          src={admin.avatarUrl}
+                          alt={admin.fullname}
+                          className="w-12 h-12 rounded-full object-cover"
+                          onError={(e) => (e.currentTarget.style.display = 'none')}
+                        />
+                      ) : null}
+                      <div
+                        className="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center text-white font-semibold text-lg"
+                        style={{ display: admin.avatarUrl ? 'none' : 'flex' }}
+                      >
+                        {getInitials(admin.fullname)}
+                      </div>
                     </div>
                     <div>
                       <div className="flex items-center gap-3">
@@ -328,7 +312,7 @@ const AdminPanel: React.FC = () => {
         )}
 
         {/* Pagination */}
-        {totalCount > 0 && (
+        {totalPages > 0 && (
           <div className="bg-white rounded-lg shadow-sm p-4 mt-6">
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div className="text-sm text-gray-600">
@@ -357,7 +341,6 @@ const AdminPanel: React.FC = () => {
                   Previous
                 </button>
 
-                {/* Birinchi sahifa va nuqtalar */}
                 {page > 3 && (
                   <>
                     <button
@@ -372,7 +355,6 @@ const AdminPanel: React.FC = () => {
 
                 {renderPaginationButtons()}
 
-                {/* Oxirgi sahifa va nuqtalar */}
                 {page < totalPages - 2 && (
                   <>
                     {page < totalPages - 3 && <span className="px-2 text-gray-500">...</span>}
@@ -420,7 +402,7 @@ const AdminPanel: React.FC = () => {
                       <img
                         src={selectedAdmin.avatarUrl}
                         alt={selectedAdmin.fullname}
-                        className="w-16 h-16 rounded-full"
+                        className="w-16 h-16 rounded-full object-cover"
                       />
                     ) : (
                       <div className="w-16 h-16 bg-gray-600 rounded-full flex items-center justify-center text-white font-semibold text-2xl">
@@ -454,12 +436,6 @@ const AdminPanel: React.FC = () => {
                       <p className="text-sm text-gray-600 mb-1">Created At</p>
                       <p className="text-sm text-gray-900">
                         {new Date(selectedAdmin.createdAt).toLocaleString()}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600 mb-1">Updated At</p>
-                      <p className="text-sm text-gray-900">
-                        {new Date(selectedAdmin.updatedAt).toLocaleString()}
                       </p>
                     </div>
                   </div>
