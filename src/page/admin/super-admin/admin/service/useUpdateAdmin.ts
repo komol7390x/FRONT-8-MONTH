@@ -20,8 +20,8 @@ export const useUpdateAdmin = () => {
 
     return useMutation({
         mutationFn: async ({ id, payload }: { id: number; payload: UpdateAdminPayload }) => {
-            const response = await request.put<UpdateAdminResponse>(
-                `/admin/${id}`,
+            const response = await request.patch<UpdateAdminResponse>(
+                `/admin/update-details/${id}`,
                 payload
             );
             return response.data;

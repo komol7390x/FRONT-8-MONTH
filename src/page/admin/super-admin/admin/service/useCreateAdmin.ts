@@ -45,11 +45,11 @@ export const useCreateAdmin = () => {
 export const useSendOtp = () => {
     return useMutation({
         mutationFn: async (phoneNumber: string) => {
-            const response = await request.post('/admin/send-otp', { phoneNumber });
+            const response = await request.post('/admin/confirm-tel', { phoneNumber });
             return response.data;
         },
-        onSuccess: () => {
-            message.success('OTP sent to phone number');
+        onSuccess: (data) => {
+            message.success(`OTP sent! For testing: ${data.data.otp}`);
         },
         onError: (error: any) => {
             const errorMessage = error?.response?.data?.message || 'Failed to send OTP';
@@ -61,7 +61,7 @@ export const useSendOtp = () => {
 export const useVerifyOtp = () => {
     return useMutation({
         mutationFn: async ({ phoneNumber, otp }: { phoneNumber: string; otp: string }) => {
-            const response = await request.post('/admin/verify-otp', { phoneNumber, otp });
+            const response = await request.post('/admin/confirm-otp', { phoneNumber, otp });
             return response.data;
         },
         onSuccess: () => {

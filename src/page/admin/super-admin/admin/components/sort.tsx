@@ -14,100 +14,81 @@ interface SortProps {
 
 export const Sort: React.FC<SortProps> = ({ sort, handleSort }) => {
     return (
-        <div>
-            <style>{`
-                @keyframes slideDown {
-                    from {
-                        opacity: 0;
-                        transform: translateY(-20px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
-                }
-                
-                @keyframes fadeIn {
-                    from {
-                        opacity: 0;
-                    }
-                    to {
-                        opacity: 1;
-                    }
-                }
-                
-                .sort-container {
-                    animation: slideDown 0.8s ease-out;
-                }
-            `}</style>
+        <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+                <span className="text-sm font-semibold text-gray-700">Sort by</span>
 
-            <div className="bg-white rounded-lg shadow-sm p-4 mb-4 sort-container">
-                <div className="flex items-center gap-6 text-sm flex-wrap">
-                    <span style={{ animation: 'fadeIn 0.6s ease-out 0s forwards' }} className="text-gray-600 font-medium">Sort by:</span>
-
+                <div className="flex items-center gap-2 flex-wrap">
                     <button
+                        type="button"
                         onClick={() => handleSort(SortEnum.USERNAME)}
-                        style={{ animation: 'fadeIn 0.6s ease-out 0.1s forwards' }}
-                        className="flex items-center gap-2 text-gray-700 hover:text-gray-900 font-medium transition-all duration-300 hover:scale-110"
+                        className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors flex items-center gap-2 ${sort.field === SortEnum.USERNAME
+                            ? 'bg-gray-900 text-white border-gray-900'
+                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                            }`}
                     >
                         Username
-                        {sort.field === SortEnum.USERNAME && (
-                            <span className="transition-transform duration-300">
-                                {sort.order === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                            </span>
-                        )}
+                        {sort.field === SortEnum.USERNAME && (sort.order === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
                     </button>
 
                     <button
+                        type="button"
                         onClick={() => handleSort(SortEnum.FULLNAME)}
-                        style={{ animation: 'fadeIn 0.6s ease-out 0.2s forwards' }}
-                        className="flex items-center gap-2 text-gray-700 hover:text-gray-900 font-medium transition-all duration-300 hover:scale-110"
+                        className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors flex items-center gap-2 ${sort.field === SortEnum.FULLNAME
+                            ? 'bg-gray-900 text-white border-gray-900'
+                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                            }`}
                     >
                         Full Name
-                        {sort.field === SortEnum.FULLNAME && (
-                            <span className="transition-transform duration-300">
-                                {sort.order === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                            </span>
-                        )}
+                        {sort.field === SortEnum.FULLNAME && (sort.order === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
                     </button>
 
                     <button
+                        type="button"
                         onClick={() => handleSort(SortEnum.PHONENUMBER)}
-                        style={{ animation: 'fadeIn 0.6s ease-out 0.3s forwards' }}
-                        className="flex items-center gap-2 text-gray-700 hover:text-gray-900 font-medium transition-all duration-300 hover:scale-110"
+                        className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors flex items-center gap-2 ${sort.field === SortEnum.PHONENUMBER
+                            ? 'bg-gray-900 text-white border-gray-900'
+                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                            }`}
                     >
-                        Phone Number
-                        {sort.field === SortEnum.PHONENUMBER && (
-                            <span className="transition-transform duration-300">
-                                {sort.order === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                            </span>
-                        )}
+                        Phone
+                        {sort.field === SortEnum.PHONENUMBER && (sort.order === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
                     </button>
 
                     <button
+                        type="button"
+                        onClick={() => handleSort(SortEnum.IS_ACTIVE)}
+                        className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors flex items-center gap-2 ${sort.field === SortEnum.IS_ACTIVE
+                            ? 'bg-gray-900 text-white border-gray-900'
+                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                            }`}
+                    >
+                        Status
+                        {sort.field === SortEnum.IS_ACTIVE && (sort.order === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
+                    </button>
+
+                    <button
+                        type="button"
                         onClick={() => handleSort(SortEnum.CREATED_AT)}
-                        style={{ animation: 'fadeIn 0.6s ease-out 0.4s forwards' }}
-                        className="flex items-center gap-2 text-gray-700 hover:text-gray-900 font-medium transition-all duration-300 hover:scale-110"
+                        className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors flex items-center gap-2 ${sort.field === SortEnum.CREATED_AT
+                            ? 'bg-gray-900 text-white border-gray-900'
+                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                            }`}
                     >
-                        Created Date
-                        {sort.field === SortEnum.CREATED_AT && (
-                            <span className="transition-transform duration-300">
-                                {sort.order === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                            </span>
-                        )}
+                        Created
+                        {sort.field === SortEnum.CREATED_AT && (sort.order === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
                     </button>
 
                     <button
+                        type="button"
                         onClick={() => handleSort(SortEnum.UPDATED_AT)}
-                        style={{ animation: 'fadeIn 0.6s ease-out 0.5s forwards' }}
-                        className="flex items-center gap-2 text-gray-700 hover:text-gray-900 font-medium transition-all duration-300 hover:scale-110"
+                        className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors flex items-center gap-2 ${sort.field === SortEnum.UPDATED_AT
+                            ? 'bg-gray-900 text-white border-gray-900'
+                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                            }`}
                     >
-                        Updated Date
-                        {sort.field === SortEnum.UPDATED_AT && (
-                            <span className="transition-transform duration-300">
-                                {sort.order === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                            </span>
-                        )}
+                        Updated
+                        {sort.field === SortEnum.UPDATED_AT && (sort.order === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
                     </button>
                 </div>
             </div>

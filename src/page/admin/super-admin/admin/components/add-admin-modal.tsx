@@ -25,6 +25,7 @@ export const AddAdminModal: React.FC<AddAdminModalProps> = ({ showModal, closeMo
     const [otp, setOtp] = useState('');
     const [otpSent, setOtpSent] = useState(false);
     const [otpVerified, setOtpVerified] = useState(false);
+    const [receivedOtp, setReceivedOtp] = useState('');
 
     const { mutate: createAdmin, isPending: isCreating } = useCreateAdmin();
     const { mutate: sendOtp, isPending: isSendingOtp } = useSendOtp();
@@ -43,8 +44,12 @@ export const AddAdminModal: React.FC<AddAdminModalProps> = ({ showModal, closeMo
             alert('Please enter phone number');
             return;
         }
-        sendOtp(formData.phoneNumber);
-        setOtpSent(true);
+        sendOtp(formData.phoneNumber, {
+            onSuccess: (data: any) => {
+                setOtpSent(true);
+                setReceivedOtp(data.data.otp);
+            }
+        } as any);
     };
 
     const handleVerifyOtp = () => {
@@ -81,6 +86,7 @@ export const AddAdminModal: React.FC<AddAdminModalProps> = ({ showModal, closeMo
                 setOtp('');
                 setOtpSent(false);
                 setOtpVerified(false);
+                setReceivedOtp('');
                 closeModal();
             }
         } as any);
@@ -133,6 +139,11 @@ export const AddAdminModal: React.FC<AddAdminModalProps> = ({ showModal, closeMo
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Verify OTP
                             </label>
+                            {receivedOtp && (
+                                <div className="mb-2 p-2 bg-yellow-100 text-yellow-800 rounded text-sm">
+                                    📱 Test OTP: <span className="font-mono font-bold">{receivedOtp}</span>
+                                </div>
+                            )}
                             <div className="flex gap-2">
                                 <input
                                     type="text"

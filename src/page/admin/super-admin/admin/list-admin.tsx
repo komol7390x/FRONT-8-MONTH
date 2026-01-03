@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import type { JSX } from 'react';
 import { Loader2 } from 'lucide-react';
 import { SortEnum, useGetList, type Admin, } from './service/useGetList';
 import { useUpdateAdmin } from './service/useUpdateAdmin';
 import { useBlockAdmin } from './service/useBlockAdmin';
+import { useCreateAdmin } from './service/useCreateAdmin';
+import { useDeleteAdmin } from './service/useDeleteAdmin';
 import { Header } from './components/header';
 import { Sort } from './components/sort';
 import { AdminCard } from './components/admin-card';
@@ -22,10 +23,11 @@ interface EditForm {
   password: string;
 }
 
-type ModalType = 'edit' | 'more' | '';
+type ModalType = 'edit' | 'more' | 'create' | '';
 
 export const ListAdmin: React.FC = () => {
   const [page, setPage] = useState<number>(1);
+  const [status, setStatus] = useState<boolean | undefined>(undefined);
   const [sort, setSort] = useState<SortState>({
     field: SortEnum.USERNAME,
     order: 'desc'
@@ -42,16 +44,23 @@ export const ListAdmin: React.FC = () => {
   });
   const [limit, setLimit] = useState<number>(10);
   const [search, setSearch] = useState<string>('');
+  const [otpSent, setOtpSent] = useState<boolean>(false);
+  const [otpVerified, setOtpVerified] = useState<boolean>(false);
+  const [receivedOtp, setReceivedOtp] = useState<string>('');
+  const [otp, setOtp] = useState<string>('');
 
   const { data, isPending, isError, error, refetch } = useGetList({
     limit,
     page,
     search,
-    sort
+    sort,
+    status
   });
 
   const { mutate: updateAdmin, isPending: isUpdating } = useUpdateAdmin();
   const { mutate: blockAdmin, isPending: isBlocking } = useBlockAdmin();
+  const { mutate: createAdmin, isPending: isCreating } = useCreateAdmin();
+  const { mutate: deleteAdmin, isPending: isDeleting } = useDeleteAdmin();
 
   // Backend strukturasiga moslash (res.data ichida yana data massivi kelyapti)
   const admins: Admin[] = data?.data || [];
@@ -71,6 +80,23 @@ export const ListAdmin: React.FC = () => {
     setPage(1);
   };
 
+  const openCreateModal = (): void => {
+    setModalType('create');
+    setSelectedAdmin(null);
+    setEditForm({
+      username: '',
+      fullname: '',
+      phoneNumber: '',
+      password: ''
+    });
+    // Reset OTP states
+    setOtpSent(false);
+    setOtpVerified(false);
+    setReceivedOtp('');
+    setOtp('');
+    setShowModal(true);
+  };
+
   const openModal = (type: ModalType, admin: Admin): void => {
     setModalType(type);
     setSelectedAdmin(admin);
@@ -81,6 +107,11 @@ export const ListAdmin: React.FC = () => {
         phoneNumber: admin.phoneNumber,
         password: ''
       });
+      // Reset OTP states when opening edit modal
+      setOtpSent(false);
+      setOtpVerified(false);
+      setReceivedOtp('');
+      setOtp('');
     }
     setShowModal(true);
   };
@@ -101,11 +132,39 @@ export const ListAdmin: React.FC = () => {
     setShowModal(false);
     setSelectedAdmin(null);
     setEditForm({ username: '', fullname: '', phoneNumber: '', password: '' });
+    // Reset OTP states
+    setOtpSent(false);
+    setOtpVerified(false);
+    setReceivedOtp('');
+    setOtp('');
+  };
+
+  const handleCreate = async (): Promise<void> => {
+    try {
+      createAdmin({
+        phoneNumber: editForm.phoneNumber,
+        username: editForm.username,
+        fullname: editForm.fullname,
+        password: editForm.password
+      }, {
+        onSuccess: () => {
+          closeModal();
+        }
+      } as any);
+    } catch (error) {
+      console.error('Create error:', error);
+    }
   };
 
   const handleEdit = async (): Promise<void> => {
     try {
       if (selectedAdmin) {
+        // Check if phone number was changed and OTP verification is required
+        if (editForm.phoneNumber !== selectedAdmin.phoneNumber && !otpVerified) {
+          alert('Phone number changed. Please verify the new phone number with OTP before saving.');
+          return;
+        }
+
         updateAdmin({
           id: selectedAdmin.id,
           payload: {
@@ -125,11 +184,14 @@ export const ListAdmin: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: number): Promise<void> => {
-    if (window.confirm('Adminni o\'chirmoqchimisiz?')) {
+  const handleSoftDelete = async (id: number): Promise<void> => {
+    if (window.confirm('Adminni o\'chirishni tasdiqlaysizmi?')) {
       try {
-        console.log('Deleting admin:', id);
-        refetch();
+        deleteAdmin(id, {
+          onSuccess: () => {
+            refetch();
+          }
+        } as any);
       } catch (error) {
         console.error('Delete error:', error);
       }
@@ -153,41 +215,9 @@ export const ListAdmin: React.FC = () => {
       : 'AD';
   };
 
-  const renderPaginationButtons = (): JSX.Element[] => {
-    const buttons: JSX.Element[] = [];
-    if (!data?.meta) return buttons;
-
-    const { totalPages, currentPage } = data.meta;
-    const maxVisible = 5;
-
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
-    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
-
-    if (endPage - startPage < maxVisible - 1) {
-      startPage = Math.max(1, endPage - maxVisible + 1);
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      buttons.push(
-        <button
-          key={i}
-          onClick={() => setPage(i)}
-          className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${currentPage === i
-            ? 'bg-gray-900 text-white shadow-md'
-            : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
-            }`}
-        >
-          {i}
-        </button>
-      );
-    }
-
-    return buttons;
-  };
-
   if (isPending) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-gray-600" />
         <span className="ml-3 text-xl text-gray-600">Loading...</span>
       </div>
@@ -196,12 +226,12 @@ export const ListAdmin: React.FC = () => {
 
   if (isError) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-xl text-red-600 mb-4">Error: {(error as Error)?.message}</p>
+          <p className="text-xl text-gray-900 mb-4">Error: {(error as Error)?.message}</p>
           <button
             onClick={() => refetch()}
-            className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
+            className="px-4 py-2 bg-gray-900 text-white rounded hover:bg-gray-800 transition-colors"
           >
             Try Again
           </button>
@@ -211,13 +241,14 @@ export const ListAdmin: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
 
         {/* Header */}
         <Header
           setPage={setPage}
           onSearch={setSearch}
+          openCreateModal={openCreateModal}
         />
 
         {/* Sort Controls */}
@@ -226,14 +257,64 @@ export const ListAdmin: React.FC = () => {
           handleSort={handleSort}
         />
 
+        <div className="bg-white rounded-lg shadow-sm p-3 mb-4">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm font-medium text-gray-600">Status:</span>
+            <button
+              type="button"
+              onClick={() => {
+                setStatus(undefined);
+                setPage(1);
+              }}
+              className={`px-3 py-1.5 rounded text-sm font-medium border transition-colors ${status === undefined
+                ? 'bg-gray-900 text-white border-gray-900'
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                }`}
+            >
+              All
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setStatus(true);
+                setPage(1);
+              }}
+              className={`px-3 py-1.5 rounded text-sm font-medium border transition-colors ${status === true
+                ? 'bg-green-600 text-white border-green-600'
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                }`}
+            >
+              Active
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setStatus(false);
+                setPage(1);
+              }}
+              className={`px-3 py-1.5 rounded text-sm font-medium border transition-colors ${status === false
+                ? 'bg-red-600 text-white border-red-600'
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                }`}
+            >
+              Blocked
+            </button>
+          </div>
+        </div>
+
         {/* Admin List */}
         <AdminCard
           admins={admins}
           getInitials={getInitials}
           openModal={openModal}
-          handleDelete={handleDelete}
+          showMore={true}
+          showEdit={false}
+          showBlock={false}
+          showDelete={false}
+          handleSoftDelete={handleSoftDelete}
           handleBlock={handleBlock}
           isBlocking={isBlocking}
+          isDeleting={isDeleting}
           page={page}
           limit={limit}
         />
@@ -247,7 +328,6 @@ export const ListAdmin: React.FC = () => {
           admins={admins}
           setPage={setPage}
           handleLimitChange={handleLimitChange}
-          renderPaginationButtons={renderPaginationButtons}
         />
 
         {/* Modal */}
@@ -257,14 +337,23 @@ export const ListAdmin: React.FC = () => {
           selectedAdmin={selectedAdmin}
           editForm={editForm}
           closeModal={closeModal}
-          handleDelete={handleDelete}
+          handleSoftDelete={handleSoftDelete}
           handleEdit={handleEdit}
+          handleCreate={handleCreate}
           setEditForm={setEditForm}
           switchToEdit={switchToEdit}
-          isUpdating={isUpdating}
+          isUpdating={isUpdating || isCreating}
           getInitials={getInitials}
           handleBlock={handleBlock}
           isBlocking={isBlocking}
+          otpSent={otpSent}
+          otpVerified={otpVerified}
+          receivedOtp={receivedOtp}
+          otp={otp}
+          setOtpSent={setOtpSent}
+          setOtpVerified={setOtpVerified}
+          setReceivedOtp={setReceivedOtp}
+          setOtp={setOtp}
         />
       </div>
     </div>

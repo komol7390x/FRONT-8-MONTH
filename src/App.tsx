@@ -7,9 +7,9 @@ import { LoginAdmin } from './page/admin/auth/login';
 import { SuperAdminDashboard } from './page/admin/super-admin/dashboard';
 import { AdminDashboard } from './page/admin/admin/dashboard';
 import { StatisticsAdmin } from './page/admin/super-admin/admin/statistics-admin';
-import { ListAdmin } from './page/admin/super-admin/admin/list-admin';
 import AdminPanel from './page/admin/super-admin/admin/blocked-admin';
 import { DeleteAdmin } from './page/admin/super-admin/admin/delete-admin';
+import { ListAdmin } from './page/admin/super-admin/admin/list-admin';
 
 function App() {
   return (
@@ -27,6 +27,7 @@ function App() {
           <Route path="blocked" element={<AdminPanel />} />
           <Route path="delete" element={<DeleteAdmin />} />
         </Route>
+        <Route path="statistics" element={<StatisticsAdmin />} />
       </Route>
 
       <Route path="/admin" element={<AdminDashboard />}>
@@ -40,4 +41,3 @@ function App() {
 }
 
 export default App;
-  

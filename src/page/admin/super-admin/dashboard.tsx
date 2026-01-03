@@ -8,6 +8,7 @@ import { TokenName } from '../../../config/enum';
 import { jwtDecode } from "jwt-decode";
 
 const { Header, Content, Footer } = Layout;
+
 export const SuperAdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const token = Cookies.get(TokenName.TOKEN_NAME);

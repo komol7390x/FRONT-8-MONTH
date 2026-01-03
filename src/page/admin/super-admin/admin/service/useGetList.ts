@@ -6,11 +6,11 @@ export const SortEnum = {
     UPDATED_AT: 'updatedAt',
     USERNAME: 'username',
     FULLNAME: 'fullname',
-    PHONENUMBER: 'phoneNumber'
+    PHONENUMBER: 'phoneNumber',
+    IS_ACTIVE: 'isActive'
 } as const;
 
 type SortType = typeof SortEnum[keyof typeof SortEnum];
-
 
 export interface Admin {
     id: number;

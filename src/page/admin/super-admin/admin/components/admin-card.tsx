@@ -1,19 +1,25 @@
 import type React from 'react';
-import { Phone } from 'lucide-react';
+import { Phone, MoreHorizontal, Edit, Ban, Unlock, Trash2 } from 'lucide-react';
 import type { Admin } from '../service/useGetList';
 
 interface AdminCardProps {
     admins: Admin[];
     getInitials: (name: string) => string;
     openModal: (type: 'edit' | 'more' | '', admin: Admin) => void;
-    handleDelete: (id: number) => Promise<void>;
+    showMore?: boolean;
+    showDelete?: boolean;
+    showEdit?: boolean;
+    showBlock?: boolean;
+    handleSoftDelete: (id: number) => Promise<void>;
     handleBlock: (id: number, currentActive: boolean) => void;
     isBlocking: boolean;
+    isDeleting?: boolean;
+
     page: number;
     limit: number;
 }
 
-export const AdminCard: React.FC<AdminCardProps> = ({ admins, getInitials, openModal, handleDelete, handleBlock, isBlocking, page, limit }) => {
+export const AdminCard: React.FC<AdminCardProps> = ({ admins, getInitials, openModal, showMore = true, showDelete = true, showEdit = true, showBlock = true, handleSoftDelete, handleBlock, isBlocking, isDeleting = false, page, limit }) => {
     return (
         <div>
             {admins.length === 0 ? (
@@ -21,116 +27,163 @@ export const AdminCard: React.FC<AdminCardProps> = ({ admins, getInitials, openM
                     <p className="text-gray-500 text-lg">No admins found</p>
                 </div>
             ) : (
-                <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                    {/* Table Header */}
-                    <div className="grid grid-cols-12 gap-4 bg-gray-50 p-4 border-b border-gray-200 font-semibold text-sm text-gray-700">
-                        <div className="col-span-1">№</div>
-                        <div className="col-span-1">ID</div>
-                        <div className="col-span-2">Name</div>
-                        <div className="col-span-2">Status</div>
-                        <div className="col-span-2">Phone</div>
-                        <div className="col-span-4">Actions</div>
-                    </div>
+                <>
+                    <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+                        {/* Table Header */}
+                        <div className="grid grid-cols-12 gap-x-8 px-4 bg-gray-50 p-4 border-b border-gray-200 font-semibold text-sm text-gray-700">
+                            <div className="col-span-1">№</div>
+                            <div className="col-span-1">ID</div>
+                            <div className="col-span-2">Name</div>
+                            <div className="col-span-1">Status</div>
+                            <div className="col-span-2">Phone</div>
+                            <div className="col-span-1">Created At</div>
+                            <div className="col-span-1">Updated At</div>
+                            <div className="col-span-3 text-right pr-2">Action</div>
+                        </div>
 
-                    {/* Table Body */}
-                    {admins.map((admin, index) => (
-                        <div key={admin.id} className="grid grid-cols-12 gap-4 p-4 border-b border-gray-200 items-center hover:bg-gray-50 transition-colors">
-                            {/* Number Column */}
-                            <div className="col-span-1">
-                                <span className="text-sm font-semibold text-gray-700">{((page - 1) * limit) + index + 1}</span>
-                            </div>
+                        {/* Table Body */}
+                        {admins.map((admin, index) => (
+                            <div key={admin.id} className="grid grid-cols-12 gap-x-8 px-4 p-4 border-b border-gray-200 items-center hover:bg-gray-50 transition-colors">
+                                {/* Number Column */}
+                                <div className="col-span-1">
+                                    <span className="text-sm font-semibold text-gray-700">{((page - 1) * limit) + index + 1}</span>
+                                </div>
 
-                            {/* ID Column */}
-                            <div className="col-span-1">
-                                <span className="px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs font-semibold">ID:{admin.id}</span>
-                            </div>
+                                {/* ID Column */}
+                                <div className="col-span-1">
+                                    <span className="px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs font-semibold">ID:{admin.id}</span>
+                                </div>
 
-                            {/* Name Column */}
-                            <div className="col-span-2">
-                                <div className="flex items-center gap-2">
-                                    {admin.avatarUrl ? (
-                                        <img
-                                            src={admin.avatarUrl}
-                                            alt={admin.fullname}
-                                            className="w-8 h-8 rounded-full object-cover"
-                                            onError={(e) => (e.currentTarget.style.display = 'none')}
-                                        />
-                                    ) : (
-                                        <div
-                                            className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center text-white font-semibold text-xs"
-                                        >
-                                            {getInitials(admin.fullname)}
+                                {/* Name Column */}
+                                <div className="col-span-2">
+                                    <div className="flex items-center gap-2">
+                                        {admin.avatarUrl ? (
+                                            <img
+                                                src={admin.avatarUrl}
+                                                alt={admin.fullname}
+                                                className="w-8 h-8 rounded-full object-cover"
+                                                onError={(e) => (e.currentTarget.style.display = 'none')}
+                                            />
+                                        ) : (
+                                            <div
+                                                className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center text-white font-semibold text-xs"
+                                            >
+                                                {getInitials(admin.fullname)}
+                                            </div>
+                                        )}
+                                        <div>
+                                            <p className="text-sm font-medium text-gray-900">{admin.fullname}</p>
+                                            <p className="text-xs text-gray-500">@{admin.username}</p>
                                         </div>
-                                    )}
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-900">{admin.fullname}</p>
-                                        <p className="text-xs text-gray-500">@{admin.username}</p>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Status Column */}
-                            <div className="col-span-2">
-                                {admin.isActive ? (
-                                    <span className="inline-block px-3 py-1 rounded text-xs font-semibold bg-green-100 text-green-700">
-                                        Active
-                                    </span>
-                                ) : (
-                                    <span className="inline-block px-3 py-1 rounded text-xs font-semibold bg-red-100 text-red-700">
-                                        Blocked
-                                    </span>
-                                )}
-                            </div>
+                                {/* Status Column */}
+                                <div className="col-span-1">
+                                    {admin.isActive ? (
+                                        <span className="inline-block px-3 py-1 rounded text-xs font-semibold bg-green-600 text-white min-w-[88px] text-center">
+                                            Active
+                                        </span>
+                                    ) : (
+                                        <span className="inline-block px-3 py-1 rounded text-xs font-semibold bg-red-600 text-white min-w-[88px] text-center">
+                                            Blocked
+                                        </span>
+                                    )}
+                                </div>
 
-                            {/* Phone Column */}
-                            <div className="col-span-2">
-                                <div className="flex items-center gap-1 text-sm text-gray-600">
-                                    <Phone size={14} />
-                                    <span>{admin.phoneNumber}</span>
+                                {/* Phone Column */}
+                                <div className="col-span-2 min-w-0">
+                                    <div className="flex items-center gap-1 text-sm text-gray-600 min-w-0">
+                                        <Phone size={14} className="shrink-0" />
+                                        <span className="flex-1 min-w-0 truncate">{admin.phoneNumber}</span>
+                                    </div>
+                                </div>
+
+                                {/* Created At Column */}
+                                <div className="col-span-1">
+                                    <span className="text-xs font-medium text-emerald-700 whitespace-nowrap">
+                                        {new Date(admin.createdAt || '').toLocaleString('uz-UZ', {
+                                            year: 'numeric',
+                                            month: '2-digit',
+                                            day: '2-digit',
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                        })}
+                                    </span>
+                                </div>
+
+                                {/* Updated At Column */}
+                                <div className="col-span-1">
+                                    <span className="text-xs font-medium text-blue-700 whitespace-nowrap">
+                                        {new Date(admin.updatedAt || '').toLocaleString('uz-UZ', {
+                                            year: 'numeric',
+                                            month: '2-digit',
+                                            day: '2-digit',
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                        })}
+                                    </span>
+                                </div>
+
+                                {/* Actions Column */}
+                                <div className="col-span-3 flex flex-row-reverse items-center gap-1 min-w-[120px] pr-2">
+                                    {showMore && (
+                                        <button
+                                            onClick={() => openModal('more', admin)}
+                                            className="px-2 py-1.5 bg-sky-500 text-white rounded text-sm font-medium hover:bg-sky-600 transition-colors flex items-center gap-2"
+                                            style={{ width: '100px' }}
+                                        >
+                                            <MoreHorizontal size={12} />
+                                            More
+                                        </button>
+                                    )}
+                                    {showEdit && (
+                                        <button
+                                            onClick={() => openModal('edit', admin)}
+                                            className="flex-1 px-2 py-1.5 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
+                                        >
+                                            <Edit size={12} />
+                                            Edit
+                                        </button>
+                                    )}
+                                    {showBlock && (
+                                        <>
+                                            {admin.isActive ? (
+                                                <button
+                                                    onClick={() => handleBlock(admin.id, admin.isActive)}
+                                                    disabled={isBlocking}
+                                                    className="flex-1 px-2 py-1.5 bg-orange-500 text-white rounded text-sm font-medium hover:bg-orange-600 disabled:bg-orange-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1"
+                                                >
+                                                    <Ban size={12} />
+                                                    {isBlocking ? 'Processing...' : 'Block'}
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    onClick={() => handleBlock(admin.id, admin.isActive)}
+                                                    disabled={isBlocking}
+                                                    className="flex-1 px-2 py-1.5 bg-green-600 text-white rounded text-sm font-medium hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1"
+                                                >
+                                                    <Unlock size={12} />
+                                                    {isBlocking ? 'Processing...' : 'Active'}
+                                                </button>
+                                            )}
+                                        </>
+                                    )}
+                                    {showDelete && (
+                                        <button
+                                            onClick={() => handleSoftDelete(admin.id)}
+                                            disabled={isDeleting}
+                                            className="flex-1 px-2 py-1.5 bg-red-600 text-white rounded text-sm font-medium hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1"
+                                        >
+                                            <Trash2 size={12} />
+                                            {isDeleting ? 'Deleting...' : 'Delete'}
+                                        </button>
+                                    )}
                                 </div>
                             </div>
-
-                            {/* Actions Column */}
-                            <div className="col-span-3 flex items-center gap-2">
-                                <button
-                                    onClick={() => openModal('more', admin)}
-                                    className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                                >
-                                    More
-                                </button>
-                                <button
-                                    onClick={() => openModal('edit', admin)}
-                                    className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                                >
-                                    Edit
-                                </button>
-                                {admin.isActive ? (
-                                    <button
-                                        onClick={() => handleBlock(admin.id, admin.isActive)}
-                                        disabled={isBlocking}
-                                        className="flex-1 px-3 py-2 bg-orange-600 text-white rounded text-sm font-medium hover:bg-orange-700 disabled:bg-orange-400 transition-colors"
-                                    >
-                                        {isBlocking ? 'Jarayonda...' : 'Block'}
-                                    </button>
-                                ) : (
-                                    <button
-                                        onClick={() => handleBlock(admin.id, admin.isActive)}
-                                        disabled={isBlocking}
-                                        className="flex-1 px-3 py-2 bg-green-600 text-white rounded text-sm font-medium hover:bg-green-700 disabled:bg-green-400 transition-colors"
-                                    >
-                                        {isBlocking ? 'Jarayonda...' : 'Active'}
-                                    </button>
-                                )}
-                                <button
-                                    onClick={() => handleDelete(admin.id)}
-                                    className="flex-1 px-3 py-2 bg-red-600 text-white rounded text-sm font-medium hover:bg-red-700 transition-colors"
-                                >
-                                    Delete
-                                </button>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
+                </>
             )}
         </div>
     )
