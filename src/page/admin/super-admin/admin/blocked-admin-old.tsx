@@ -1,28 +1,15 @@
 import React, { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { SortEnum, useGetList, type Admin } from './service/useGetList';
-import { useUpdateAdmin } from './service/useUpdateAdmin';
-import { useDeleteAdmin } from './service/useDeleteAdmin';
-import { useBlockAdmin } from './service/useBlockAdmin';
 import { Header } from './components/header';
 import { Sort } from './components/sort';
 import { AdminCard } from './components/admin-card';
 import { Pagination } from './components/pagantion';
-import { AdminModals } from './components/modal';
 
 interface SortState {
     field: typeof SortEnum[keyof typeof SortEnum];
     order: 'asc' | 'desc';
 }
-
-interface EditForm {
-    username: string;
-    fullname: string;
-    phoneNumber: string;
-    password: string;
-}
-
-type ModalType = 'edit' | 'more' | 'create' | '';
 
 const AdminPanel: React.FC = () => {
     const [page, setPage] = useState<number>(1);
@@ -31,15 +18,6 @@ const AdminPanel: React.FC = () => {
         order: 'desc'
     });
 
-    const [showModal, setShowModal] = useState<boolean>(false);
-    const [modalType, setModalType] = useState<ModalType>('');
-    const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
-    const [editForm, setEditForm] = useState<EditForm>({
-        username: '',
-        fullname: '',
-        phoneNumber: '',
-        password: ''
-    });
     const [limit, setLimit] = useState<number>(10);
     const [search, setSearch] = useState<string>('');
 
@@ -50,10 +28,6 @@ const AdminPanel: React.FC = () => {
         sort,
         status: false // Faqat blocked adminlarni ko'rsatish
     });
-
-    const { mutate: updateAdmin, isPending: isUpdating } = useUpdateAdmin();
-    const { mutate: deleteAdmin, isPending: isDeleting } = useDeleteAdmin();
-    const { mutate: blockAdmin, isPending: isBlocking } = useBlockAdmin();
 
     const admins: Admin[] = data?.data || [];
     const totalCount: number = data?.meta?.totalItems || 0;
@@ -72,65 +46,14 @@ const AdminPanel: React.FC = () => {
         setPage(1);
     };
 
-    const openModal = (type: ModalType, admin: Admin): void => {
-        setModalType(type);
-        setSelectedAdmin(admin);
-        if (type === 'edit') {
-            setEditForm({
-                username: admin.username,
-                fullname: admin.fullname,
-                phoneNumber: admin.phoneNumber,
-                password: ''
-            });
-        }
-        setShowModal(true);
-    };
-
-    const closeModal = (): void => {
-        setShowModal(false);
-        setSelectedAdmin(null);
-        setEditForm({ username: '', fullname: '', phoneNumber: '', password: '' });
-    };
-
-    const handleEdit = async (): Promise<void> => {
-        try {
-            if (selectedAdmin) {
-                updateAdmin({
-                    id: selectedAdmin.id,
-                    payload: {
-                        username: editForm.username,
-                        fullname: editForm.fullname,
-                        phoneNumber: editForm.phoneNumber,
-                        ...(editForm.password && { password: editForm.password })
-                    }
-                }, {
-                    onSuccess: () => {
-                        closeModal();
-                    }
-                } as any);
-            }
-        } catch (e) {
-            console.error('Edit error:', e);
-        }
+    const openModal = (type: 'edit' | 'more' | '', admin: Admin): void => {
+        // Modal ochish funksiyasi - hozircha bo'sh
+        console.log('Opening modal for admin:', admin.id, type);
     };
 
     const handleSoftDelete = async (id: number): Promise<void> => {
-        if (window.confirm('Adminni o\'chirishni tasdiqlaysizmi?')) {
-            deleteAdmin(id, {
-                onSuccess: () => {
-                    refetch();
-                }
-            } as any);
-        }
-    };
-
-    const handleBlock = (id: number): void => {
-        // For blocked admins, show confirmation modal instead of direct confirmation
-        // Find the admin from the current admins array
-        const admin = admins.find(a => a.id === id);
-        if (admin) {
-            openModal('more', admin);
-        }
+        // Delete funksiyasi - hozircha bo'sh
+        console.log('Deleting admin:', id);
     };
 
     const getInitials = (name: string): string => {
@@ -204,9 +127,7 @@ const AdminPanel: React.FC = () => {
                     showBlock={false}
                     showDelete={false}
                     handleSoftDelete={handleSoftDelete}
-                    handleBlock={handleBlock}
-                    isBlocking={isBlocking}
-                    isDeleting={isDeleting}
+                    isDeleting={false}
                     page={page}
                     limit={limit}
                 />
@@ -219,26 +140,6 @@ const AdminPanel: React.FC = () => {
                     admins={admins}
                     setPage={setPage}
                     handleLimitChange={handleLimitChange}
-                />
-
-                <AdminModals
-                    showModal={showModal}
-                    modalType={modalType}
-                    selectedAdmin={selectedAdmin}
-                    editForm={editForm}
-                    closeModal={closeModal}
-                    handleSoftDelete={handleSoftDelete}
-                    handleEdit={handleEdit}
-                    handleCreate={async () => { }}
-                    setEditForm={setEditForm}
-                    switchToEdit={() => setModalType('edit')}
-                    isUpdating={isUpdating}
-                    getInitials={getInitials}
-                    handleBlock={handleBlock}
-                    isBlocking={isBlocking}
-                    refetch={refetch}
-                    deleteAdmin={deleteAdmin}
-                    blockAdmin={blockAdmin}
                 />
             </div>
         </div>

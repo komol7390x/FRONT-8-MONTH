@@ -11,8 +11,8 @@ interface AdminCardProps {
     showEdit?: boolean;
     showBlock?: boolean;
     handleSoftDelete: (id: number) => Promise<void>;
-    handleBlock: (id: number, currentActive: boolean) => void;
-    isBlocking: boolean;
+    handleBlock?: (id: number) => void;
+    isBlocking?: boolean;
     isDeleting?: boolean;
 
     page: number;
@@ -135,7 +135,7 @@ export const AdminCard: React.FC<AdminCardProps> = ({ admins, getInitials, openM
                                         <>
                                             {admin.isActive ? (
                                                 <button
-                                                    onClick={() => handleBlock(admin.id, admin.isActive)}
+                                                    onClick={() => handleBlock?.(admin.id)}
                                                     disabled={isBlocking}
                                                     className="flex-1 px-2 py-1.5 bg-orange-500 text-white rounded text-sm font-medium hover:bg-orange-600 disabled:bg-orange-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1"
                                                 >
@@ -144,12 +144,12 @@ export const AdminCard: React.FC<AdminCardProps> = ({ admins, getInitials, openM
                                                 </button>
                                             ) : (
                                                 <button
-                                                    onClick={() => handleBlock(admin.id, admin.isActive)}
+                                                    onClick={() => handleBlock?.(admin.id)}
                                                     disabled={isBlocking}
                                                     className="flex-1 px-2 py-1.5 bg-green-600 text-white rounded text-sm font-medium hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1"
                                                 >
                                                     <Unlock size={12} />
-                                                    {isBlocking ? 'Processing...' : 'Active'}
+                                                    {isBlocking ? 'Bajarilmoqda...' : 'Active'}
                                                 </button>
                                             )}
                                         </>

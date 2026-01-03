@@ -1,29 +1,15 @@
 import React, { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { SortEnum, useGetList, type Admin } from './service/useGetList';
-import { useUpdateAdmin } from './service/useUpdateAdmin';
-import { useCreateAdmin } from './service/useCreateAdmin';
-import { useDeleteAdmin } from './service/useDeleteAdmin';
-import { useBlockAdmin } from './service/useBlockAdmin';
 import { Header } from './components/header';
 import { Sort } from './components/sort';
 import { AdminCard } from './components/admin-card';
 import { Pagination } from './components/pagantion';
-import { AdminModals } from './components/modal';
 
 interface SortState {
     field: typeof SortEnum[keyof typeof SortEnum];
     order: 'asc' | 'desc';
 }
-
-interface EditForm {
-    username: string;
-    fullname: string;
-    phoneNumber: string;
-    password: string;
-}
-
-type ModalType = 'edit' | 'more' | 'create' | '';
 
 export const ListAdmin: React.FC = () => {
     const [page, setPage] = useState<number>(1);
@@ -33,15 +19,6 @@ export const ListAdmin: React.FC = () => {
         order: 'desc'
     });
 
-    const [showModal, setShowModal] = useState<boolean>(false);
-    const [modalType, setModalType] = useState<ModalType>('');
-    const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
-    const [editForm, setEditForm] = useState<EditForm>({
-        username: '',
-        fullname: '',
-        phoneNumber: '',
-        password: ''
-    });
     const [limit, setLimit] = useState<number>(10);
     const [search, setSearch] = useState<string>('');
 
@@ -52,11 +29,6 @@ export const ListAdmin: React.FC = () => {
         sort,
         status
     });
-
-    const { mutate: updateAdmin, isPending: isUpdating } = useUpdateAdmin();
-    const { mutate: createAdmin, isPending: isCreating } = useCreateAdmin();
-    const { mutate: deleteAdmin, isPending: isDeleting } = useDeleteAdmin();
-    const { mutate: blockAdmin, isPending: isBlocking } = useBlockAdmin();
 
     const admins: Admin[] = data?.data || [];
     const totalCount: number = data?.meta?.totalItems || 0;
@@ -75,108 +47,14 @@ export const ListAdmin: React.FC = () => {
         setPage(1);
     };
 
-    const openCreateModal = (): void => {
-        setModalType('create');
-        setSelectedAdmin(null);
-        setEditForm({
-            username: '',
-            fullname: '',
-            phoneNumber: '',
-            password: ''
-        });
-        setShowModal(true);
-    };
-
-    const openModal = (type: ModalType, admin: Admin): void => {
-        setModalType(type);
-        setSelectedAdmin(admin);
-        if (type === 'edit') {
-            setEditForm({
-                username: admin.username,
-                fullname: admin.fullname,
-                phoneNumber: admin.phoneNumber,
-                password: ''
-            });
-        }
-        setShowModal(true);
-    };
-
-    const switchToEdit = (): void => {
-        if (selectedAdmin) {
-            setEditForm({
-                username: selectedAdmin.username,
-                fullname: selectedAdmin.fullname,
-                phoneNumber: selectedAdmin.phoneNumber,
-                password: ''
-            });
-            setModalType('edit');
-        }
-    };
-
-    const closeModal = (): void => {
-        setShowModal(false);
-        setSelectedAdmin(null);
-        setEditForm({ username: '', fullname: '', phoneNumber: '', password: '' });
-    };
-
-    const handleCreate = async (): Promise<void> => {
-        try {
-            createAdmin({
-                phoneNumber: editForm.phoneNumber,
-                username: editForm.username,
-                fullname: editForm.fullname,
-                password: editForm.password
-            }, {
-                onSuccess: () => {
-                    closeModal();
-                }
-            } as any);
-        } catch (error) {
-            console.error('Create error:', error);
-        }
-    };
-
-    const handleEdit = async (): Promise<void> => {
-        try {
-            if (selectedAdmin) {
-                updateAdmin({
-                    id: selectedAdmin.id,
-                    payload: {
-                        username: editForm.username,
-                        fullname: editForm.fullname,
-                        phoneNumber: editForm.phoneNumber,
-                        ...(editForm.password && { password: editForm.password })
-                    }
-                }, {
-                    onSuccess: () => {
-                        closeModal();
-                    }
-                } as any);
-            }
-        } catch (error) {
-            console.error('Edit error:', error);
-        }
+    const openModal = (type: 'edit' | 'more' | '', admin: Admin): void => {
+        // Modal ochish funksiyasi - hozircha bo'sh
+        console.log('Opening modal for admin:', admin.id, type);
     };
 
     const handleSoftDelete = async (id: number): Promise<void> => {
         if (window.confirm('Adminni o\'chirishni tasdiqlaysizmi?')) {
-            try {
-                deleteAdmin(id, {
-                    onSuccess: () => {
-                        refetch();
-                    }
-                } as any);
-            } catch (error) {
-                console.error('Delete error:', error);
-            }
-        }
-    };
-
-    const handleBlock = (id: number): void => {
-        // Modal orqali block/unblock qilish uchun adminni topamiz va modalni ochamiz
-        const admin = admins.find(a => a.id === id);
-        if (admin) {
-            openModal('more', admin);
+            console.log('Deleting admin:', id);
         }
     };
 
@@ -218,7 +96,7 @@ export const ListAdmin: React.FC = () => {
                 <Header
                     setPage={setPage}
                     onSearch={setSearch}
-                    openCreateModal={openCreateModal}
+                    openCreateModal={() => { }}
                 />
 
                 <Sort
@@ -280,9 +158,7 @@ export const ListAdmin: React.FC = () => {
                     showBlock={false}
                     showDelete={false}
                     handleSoftDelete={handleSoftDelete}
-                    handleBlock={handleBlock}
-                    isBlocking={isBlocking}
-                    isDeleting={isDeleting}
+                    isDeleting={false}
                     page={page}
                     limit={limit}
                 />
@@ -295,26 +171,6 @@ export const ListAdmin: React.FC = () => {
                     admins={admins}
                     setPage={setPage}
                     handleLimitChange={handleLimitChange}
-                />
-
-                <AdminModals
-                    showModal={showModal}
-                    modalType={modalType}
-                    selectedAdmin={selectedAdmin}
-                    editForm={editForm}
-                    closeModal={closeModal}
-                    handleSoftDelete={handleSoftDelete}
-                    handleEdit={handleEdit}
-                    handleCreate={handleCreate}
-                    setEditForm={setEditForm}
-                    switchToEdit={switchToEdit}
-                    isUpdating={isUpdating || isCreating}
-                    getInitials={getInitials}
-                    handleBlock={handleBlock}
-                    isBlocking={isBlocking}
-                    refetch={refetch}
-                    deleteAdmin={deleteAdmin}
-                    blockAdmin={blockAdmin}
                 />
             </div>
         </div>
