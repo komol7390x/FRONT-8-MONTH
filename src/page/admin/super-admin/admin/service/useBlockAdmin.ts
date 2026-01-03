@@ -17,7 +17,7 @@ export const useBlockAdmin = () => {
             );
             return response.data;
         },
-        onSuccess: (data, variables) => {
+        onSuccess: (_data, variables) => {
             const actionText = variables.active ? 'unblocked' : 'blocked';
             message.success(`Admin ${actionText} successfully`);
             queryClient.invalidateQueries({ queryKey: ['getlist'] });
