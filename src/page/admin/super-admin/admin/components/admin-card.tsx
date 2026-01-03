@@ -30,20 +30,19 @@ export const AdminCard: React.FC<AdminCardProps> = ({ admins, getInitials, openM
                 <>
                     <div className="bg-white rounded-lg shadow-sm overflow-hidden">
                         {/* Table Header */}
-                        <div className="grid grid-cols-12 gap-x-8 px-4 bg-gray-50 p-4 border-b border-gray-200 font-semibold text-sm text-gray-700">
+                        <div className="grid grid-cols-12 gap-x-2 px-4 bg-gray-50 p-4 border-b border-gray-200 font-semibold text-sm text-gray-700">
                             <div className="col-span-1">№</div>
                             <div className="col-span-1">ID</div>
                             <div className="col-span-2">Name</div>
                             <div className="col-span-1">Status</div>
                             <div className="col-span-2">Phone</div>
                             <div className="col-span-1">Created At</div>
-                            <div className="col-span-1">Updated At</div>
                             <div className="col-span-3 text-right pr-2">Action</div>
                         </div>
 
                         {/* Table Body */}
                         {admins.map((admin, index) => (
-                            <div key={admin.id} className="grid grid-cols-12 gap-x-8 px-4 p-4 border-b border-gray-200 items-center hover:bg-gray-50 transition-colors">
+                            <div key={admin.id} className="grid grid-cols-12 gap-x-2 px-4 p-4 border-b border-gray-200 items-center hover:bg-gray-50 transition-colors">
                                 {/* Number Column */}
                                 <div className="col-span-1">
                                     <span className="text-sm font-semibold text-gray-700">{((page - 1) * limit) + index + 1}</span>
@@ -103,19 +102,6 @@ export const AdminCard: React.FC<AdminCardProps> = ({ admins, getInitials, openM
                                 <div className="col-span-1">
                                     <span className="text-xs font-medium text-emerald-700 whitespace-nowrap">
                                         {new Date(admin.createdAt || '').toLocaleString('uz-UZ', {
-                                            year: 'numeric',
-                                            month: '2-digit',
-                                            day: '2-digit',
-                                            hour: '2-digit',
-                                            minute: '2-digit'
-                                        })}
-                                    </span>
-                                </div>
-
-                                {/* Updated At Column */}
-                                <div className="col-span-1">
-                                    <span className="text-xs font-medium text-blue-700 whitespace-nowrap">
-                                        {new Date(admin.updatedAt || '').toLocaleString('uz-UZ', {
                                             year: 'numeric',
                                             month: '2-digit',
                                             day: '2-digit',

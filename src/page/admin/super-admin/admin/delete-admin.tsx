@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Loader2, Trash2, MoreHorizontal, X, Copy, Shield } from 'lucide-react';
+import { Loader2, Trash2, X, Copy, Shield } from 'lucide-react';
 import { SortEnum, useGetList, type Admin } from './service/useGetList';
 import { useDeleteAdmin } from './service/useDeleteAdmin';
 import { Header } from './components/header';
@@ -31,7 +31,8 @@ export const DeleteAdmin: React.FC = () => {
     limit,
     page,
     search,
-    sort
+    sort,
+    isDeleted: true
   });
 
   const { mutate: deleteAdmin, isPending: isDeleting } = useDeleteAdmin();
@@ -122,6 +123,7 @@ export const DeleteAdmin: React.FC = () => {
           setPage={setPage}
           onSearch={setSearch}
           openCreateModal={() => { }}
+          showAddAdmin={false}
         />
 
         {/* Sort Controls */}

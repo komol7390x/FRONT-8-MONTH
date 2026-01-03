@@ -42,6 +42,7 @@ export interface GetListParams {
         order: 'asc' | 'desc';
     };
     status?: boolean;
+    isDeleted?: boolean;
 }
 
 export interface GetListResponse {
@@ -80,6 +81,10 @@ export const useGetList = (params: GetListParams = {}) => {
 
             if (params.status !== undefined) {
                 queryParams.status = params.status;
+            }
+
+            if (params.isDeleted !== undefined) {
+                queryParams.isDeleted = params.isDeleted;
             }
 
             console.log('API Request Params:', queryParams);
