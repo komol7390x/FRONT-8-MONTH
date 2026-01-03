@@ -84,9 +84,9 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
         if (selectedAdmin) {
             deleteAdmin(selectedAdmin.id, {
                 onSuccess: () => {
-                    refetch();
                     closeModal();
-                    setConfirmAction(null);
+                    refetch();
+                    window.location.href = '/super-admin/admin/delete';
                 }
             } as any);
         }

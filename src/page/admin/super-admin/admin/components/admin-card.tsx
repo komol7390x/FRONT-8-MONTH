@@ -42,7 +42,7 @@ export const AdminCard: React.FC<AdminCardProps> = ({ admins, getInitials, openM
 
                         {/* Table Body */}
                         {admins.map((admin, index) => (
-                            <div key={admin.id} className="grid grid-cols-7 gap-x-10 px-4 p-4 border-b border-gray-200 items-center hover:bg-gray-50 transition-colors">
+                            <div key={admin.id} className={`grid grid-cols-7 gap-x-10 px-4 p-4 border-b border-gray-200 items-center hover:bg-gray-50 transition-colors ${admin.isDeleted ? 'bg-red-50' : ''}`}>
                                 {/* Number Column */}
                                 <div className="col-span-1">
                                     <span className="text-sm font-semibold text-gray-700">{((page - 1) * limit) + index + 1}</span>
@@ -79,7 +79,11 @@ export const AdminCard: React.FC<AdminCardProps> = ({ admins, getInitials, openM
 
                                 {/* Status Column */}
                                 <div className="col-span-1">
-                                    {admin.isActive ? (
+                                    {admin.isDeleted ? (
+                                        <span className="inline-block px-3 py-1 rounded text-xs font-semibold bg-red-600 text-white min-w-22 text-center">
+                                            Deleted
+                                        </span>
+                                    ) : admin.isActive ? (
                                         <span className="inline-block px-3 py-1 rounded text-xs font-semibold bg-green-600 text-white min-w-22 text-center">
                                             Active
                                         </span>
@@ -149,7 +153,7 @@ export const AdminCard: React.FC<AdminCardProps> = ({ admins, getInitials, openM
                                                     className="flex-1 px-2 py-1.5 bg-green-600 text-white rounded text-sm font-medium hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1"
                                                 >
                                                     <Unlock size={12} />
-                                                    {isBlocking ? 'Bajarilmoqda...' : 'Active'}
+                                                    {isBlocking ? 'Processing...' : 'Active'}
                                                 </button>
                                             )}
                                         </>

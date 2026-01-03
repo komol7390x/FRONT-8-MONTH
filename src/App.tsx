@@ -8,8 +8,8 @@ import { SuperAdminDashboard } from './page/admin/super-admin/dashboard';
 import { AdminDashboard } from './page/admin/admin/dashboard';
 import { StatisticsAdmin } from './page/admin/super-admin/admin/statistics-admin';
 import AdminPanel from './page/admin/super-admin/admin/blocked-admin';
-import { DeleteAdmin } from './page/admin/super-admin/admin/delete-admin';
 import { ListAdmin } from './page/admin/super-admin/admin/list-admin';
+import { DeleteAdmin } from './page/admin/super-admin/admin/delete-admin';
 
 function App() {
   return (

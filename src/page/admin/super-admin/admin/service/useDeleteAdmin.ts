@@ -9,14 +9,14 @@ interface DeleteAdminResponse {
 export const useDeleteAdmin = () => {
     return useMutation<DeleteAdminResponse, Error, number>({
         mutationFn: async (id: number) => {
-            const res = await request.delete<DeleteAdminResponse>(`/admin/delete/${id}`);
+            const res = await request.patch<DeleteAdminResponse>(`/admin/restore/${id}`);
             return res.data;
         },
         onSuccess: (data) => {
-            console.log('Admin deleted successfully:', data);
+            console.log('Admin restored successfully:', data);
         },
         onError: (error) => {
-            console.error('Error deleting admin:', error);
+            console.error('Error restoring admin:', error);
         }
     });
 };
