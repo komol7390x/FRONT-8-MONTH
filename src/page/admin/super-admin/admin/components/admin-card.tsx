@@ -29,20 +29,20 @@ export const AdminCard: React.FC<AdminCardProps> = ({ admins, getInitials, openM
             ) : (
                 <>
                     <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                        {/* Table Header */}
-                        <div className="grid grid-cols-12 gap-x-2 px-4 bg-gray-50 p-4 border-b border-gray-200 font-semibold text-sm text-gray-700">
+                        {/* Table Header: 7 equal columns for consistent spacing */}
+                        <div className="grid grid-cols-7 gap-x-10 px-4 bg-gray-50 p-4 border-b border-gray-200 font-semibold text-sm text-gray-700">
                             <div className="col-span-1">№</div>
                             <div className="col-span-1">ID</div>
-                            <div className="col-span-2">Name</div>
+                            <div className="col-span-1">Name</div>
                             <div className="col-span-1">Status</div>
-                            <div className="col-span-2">Phone</div>
+                            <div className="col-span-1">Phone</div>
                             <div className="col-span-1">Created At</div>
-                            <div className="col-span-3 text-right pr-2">Action</div>
+                            <div className="col-span-1 text-right pr-2">Action</div>
                         </div>
 
                         {/* Table Body */}
                         {admins.map((admin, index) => (
-                            <div key={admin.id} className="grid grid-cols-12 gap-x-2 px-4 p-4 border-b border-gray-200 items-center hover:bg-gray-50 transition-colors">
+                            <div key={admin.id} className="grid grid-cols-7 gap-x-10 px-4 p-4 border-b border-gray-200 items-center hover:bg-gray-50 transition-colors">
                                 {/* Number Column */}
                                 <div className="col-span-1">
                                     <span className="text-sm font-semibold text-gray-700">{((page - 1) * limit) + index + 1}</span>
@@ -54,7 +54,7 @@ export const AdminCard: React.FC<AdminCardProps> = ({ admins, getInitials, openM
                                 </div>
 
                                 {/* Name Column */}
-                                <div className="col-span-2">
+                                <div className="col-span-1">
                                     <div className="flex items-center gap-2">
                                         {admin.avatarUrl ? (
                                             <img
@@ -80,18 +80,18 @@ export const AdminCard: React.FC<AdminCardProps> = ({ admins, getInitials, openM
                                 {/* Status Column */}
                                 <div className="col-span-1">
                                     {admin.isActive ? (
-                                        <span className="inline-block px-3 py-1 rounded text-xs font-semibold bg-green-600 text-white min-w-[88px] text-center">
+                                        <span className="inline-block px-3 py-1 rounded text-xs font-semibold bg-green-600 text-white min-w-22 text-center">
                                             Active
                                         </span>
                                     ) : (
-                                        <span className="inline-block px-3 py-1 rounded text-xs font-semibold bg-red-600 text-white min-w-[88px] text-center">
+                                        <span className="inline-block px-3 py-1 rounded text-xs font-semibold bg-red-600 text-white min-w-22 text-center">
                                             Blocked
                                         </span>
                                     )}
                                 </div>
 
                                 {/* Phone Column */}
-                                <div className="col-span-2 min-w-0">
+                                <div className="col-span-1 min-w-0">
                                     <div className="flex items-center gap-1 text-sm text-gray-600 min-w-0">
                                         <Phone size={14} className="shrink-0" />
                                         <span className="flex-1 min-w-0 truncate">{admin.phoneNumber}</span>
@@ -112,12 +112,11 @@ export const AdminCard: React.FC<AdminCardProps> = ({ admins, getInitials, openM
                                 </div>
 
                                 {/* Actions Column */}
-                                <div className="col-span-3 flex flex-row-reverse items-center gap-1 min-w-[120px] pr-2">
+                                <div className="col-span-1 flex justify-end items-center gap-1 pr-2">
                                     {showMore && (
                                         <button
                                             onClick={() => openModal('more', admin)}
-                                            className="px-2 py-1.5 bg-sky-500 text-white rounded text-sm font-medium hover:bg-sky-600 transition-colors flex items-center gap-2"
-                                            style={{ width: '100px' }}
+                                            className="px-3 py-1.5 bg-sky-500 text-white rounded text-sm font-medium hover:bg-sky-600 transition-colors flex items-center gap-2"
                                         >
                                             <MoreHorizontal size={12} />
                                             More
