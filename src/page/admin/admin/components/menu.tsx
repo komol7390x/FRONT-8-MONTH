@@ -1,5 +1,5 @@
 import { Badge, type MenuProps } from 'antd';
-import { FileText, Settings, Users } from 'lucide-react';
+import { Settings, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 
@@ -30,22 +30,6 @@ export const items: MenuItem[] = [
         ],
     },
 
-    // STUDENT
-    {
-        key: 'sub3',
-        label: <span className="font-semibold">Content</span>,
-        icon: <FileText size={20} />,
-        children: [
-            {
-                key: '5',
-                label: <Link to={'/admin/posts'} className="font-medium">Posts</Link>,
-            },
-            {
-                key: '6',
-                label: <Link to={'/admin/media'} className="font-medium">Media Library</Link>,
-            },
-        ],
-    },
     {
         key: '7',
         label: <span className="font-semibold">Settings</span>,

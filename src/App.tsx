@@ -19,6 +19,10 @@ import { StudentList } from './page/admin/student/student-list';
 import { StudentBlocked } from './page/admin/student/student-blocked';
 import { StudentDelete } from './page/admin/student/student-delete';
 import { StudentStatistics } from './page/admin/student/student-statistics';
+import { LessonPage } from './page/admin/super-admin/lesson/lesson-page';
+import { CertificatePage } from './page/admin/super-admin/certificate/certificate-page';
+import { PaymentPage } from './page/admin/super-admin/payment/payment-page';
+import { SettingsPage } from './page/admin/super-admin/settings/settings-page';
 
 function App() {
   return (
@@ -51,6 +55,11 @@ function App() {
           <Route path="blocked" element={<StudentBlocked />} />
           <Route path="delete" element={<StudentDelete />} />
         </Route>
+
+        <Route path='lesson' element={<LessonPage />} />
+        <Route path='certificate' element={<CertificatePage />} />
+        <Route path='payment' element={<PaymentPage />} />
+        <Route path='settings' element={<SettingsPage />} />
       </Route>
 
       <Route path="/admin" element={<AdminDashboard />}>

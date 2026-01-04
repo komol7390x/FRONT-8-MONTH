@@ -1,5 +1,5 @@
 import { Badge, type MenuProps } from 'antd';
-import { BarChart3, FileText, Settings, ShieldUser, UserLock, UserRoundX, Users } from 'lucide-react';
+import { BarChart3, CreditCard, FileBadge2, Settings, ShieldUser, UserLock, UserRoundX, Users, Video } from 'lucide-react';
 import { Link } from 'react-router-dom';
 type MenuItem = Required<MenuProps>['items'][number];
 
@@ -72,7 +72,7 @@ export const items: MenuItem[] = [
     {
         key: 'sub3',
         label: <span className="font-semibold">Student</span>,
-        icon: <FileText size={20} />,
+        icon: <Users size={20} />,
         children: [
             {
                 key: 'student-stats',
@@ -97,23 +97,23 @@ export const items: MenuItem[] = [
         ],
     },
     {
-        key: 'content-key',
-        label: <span className="font-semibold">Content</span>,
-        icon: <FileText size={20} />,
-        children: [
-            {
-                key: 'content-posts',
-                label: <Link to={'/super-admin/posts'} className="font-medium">Posts</Link>,
-            },
-            {
-                key: 'content-media',
-                label: <Link to={'/super-admin/media'} className="font-medium">Media Library</Link>,
-            },
-        ],
+        key: 'lesson-page',
+        label: <Link to={'/super-admin/lesson'} className="font-semibold">Lesson</Link>,
+        icon: <Video size={20} />,
+    },
+    {
+        key: 'certificate-page',
+        label: <Link to={'/super-admin/certificate'} className="font-semibold">Certificate</Link>,
+        icon: <FileBadge2 size={20} />,
+    },
+    {
+        key: 'payment-page',
+        label: <Link to={'/super-admin/payment'} className="font-semibold">Payment</Link>,
+        icon: <CreditCard size={20} />,
     },
     {
         key: 'settings-key', // '7' o'rniga
-        label: <span className="font-semibold">Settings</span>,
+        label: <Link to={'/super-admin/settings'} className="font-semibold">Settings</Link>,
         icon: <Settings size={20} />,
     },
 ];

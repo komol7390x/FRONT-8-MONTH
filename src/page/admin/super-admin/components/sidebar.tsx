@@ -37,6 +37,12 @@ export const Sidebar = () => {
         if (p.startsWith('/super-admin/student/delete')) return { selectedKeys: ['student-delete'], openKeys: ['sub3'] };
         if (p.startsWith('/super-admin/student')) return { selectedKeys: ['student-all'], openKeys: ['sub3'] };
 
+        // PAGES
+        if (p.startsWith('/super-admin/lesson')) return { selectedKeys: ['lesson-page'], openKeys: [] };
+        if (p.startsWith('/super-admin/certificate')) return { selectedKeys: ['certificate-page'], openKeys: [] };
+        if (p.startsWith('/super-admin/payment')) return { selectedKeys: ['payment-page'], openKeys: [] };
+        if (p.startsWith('/super-admin/settings')) return { selectedKeys: ['settings-key'], openKeys: [] };
+
         return { selectedKeys: [], openKeys: [] };
     }, [location.pathname]);
 
