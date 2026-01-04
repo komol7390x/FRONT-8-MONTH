@@ -17,7 +17,6 @@ export const TeacherList: React.FC = () => {
     const [search, setSearch] = useState<string>('');
     const [sort, setSort] = useState<string>(TeacherSort.FULLNAME);
     const [level, setLevel] = useState<string>('');
-    const [lang, setLang] = useState<string>('');
     const [statusFilter, setStatusFilter] = useState<string>('');
     const [isDeletedFilter, setIsDeletedFilter] = useState<string>('');
 
@@ -49,7 +48,6 @@ export const TeacherList: React.FC = () => {
         search,
         sort: sort as any,
         level: (level as any) || undefined,
-        lang: lang || undefined,
         status: statusParam,
         isDeleted: isDeletedParam,
     });
@@ -123,8 +121,6 @@ export const TeacherList: React.FC = () => {
                         setSort={setSort}
                         level={level}
                         setLevel={setLevel}
-                        lang={lang}
-                        setLang={setLang}
                         onResetPage={() => setPage(1)}
                         onClear={() => {
                             setSearchInput('');
@@ -133,7 +129,6 @@ export const TeacherList: React.FC = () => {
                             setIsDeletedFilter('');
                             setSort(TeacherSort.FULLNAME);
                             setLevel('');
-                            setLang('');
                             setPage(1);
                         }}
                     />

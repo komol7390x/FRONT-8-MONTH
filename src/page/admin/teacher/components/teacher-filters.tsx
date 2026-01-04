@@ -1,5 +1,6 @@
 import type React from 'react';
-import { ChevronDown, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
+import { Select } from 'antd';
 import { LanguageLevel, TeacherSort } from '../service/useGetTeachers';
 
 interface TeacherFiltersProps {
@@ -18,8 +19,6 @@ interface TeacherFiltersProps {
     setSort: (v: string) => void;
     level: string;
     setLevel: (v: string) => void;
-    lang: string;
-    setLang: (v: string) => void;
 
     onResetPage: () => void;
     onClear?: () => void;
@@ -41,8 +40,6 @@ export const TeacherFilters: React.FC<TeacherFiltersProps> = ({
     setSort,
     level,
     setLevel,
-    lang,
-    setLang,
 
     onResetPage,
     onClear,
@@ -86,85 +83,64 @@ export const TeacherFilters: React.FC<TeacherFiltersProps> = ({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-                <div className="relative">
-                    <select
-                        value={statusFilter}
-                        onChange={(e) => {
-                            setStatusFilter(e.target.value);
-                            onResetPage();
-                        }}
-                        disabled={!!disableStatus}
-                        className="w-full h-10 pl-4 pr-10 border border-gray-200 rounded-xl bg-white disabled:bg-gray-100 text-sm shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-gray-200"
-                    >
-                        <option value="">Status: All</option>
-                        <option value="true">Active</option>
-                        <option value="false">Blocked</option>
-                    </select>
-                    <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-                </div>
-
-                <div className="relative">
-                    <select
-                        value={isDeletedFilter}
-                        onChange={(e) => {
-                            setIsDeletedFilter(e.target.value);
-                            onResetPage();
-                        }}
-                        disabled={!!disableDeleted}
-                        className="w-full h-10 pl-4 pr-10 border border-gray-200 rounded-xl bg-white disabled:bg-gray-100 text-sm shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-gray-200"
-                    >
-                        <option value="">Deleted: All</option>
-                        <option value="true">Deleted</option>
-                        <option value="false">Not Deleted</option>
-                    </select>
-                    <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-                </div>
-
-                <div className="relative">
-                    <select
-                        value={sort}
-                        onChange={(e) => {
-                            setSort(e.target.value);
-                            onResetPage();
-                        }}
-                        className="w-full h-10 pl-4 pr-10 border border-gray-200 rounded-xl bg-white text-sm shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-gray-200"
-                    >
-                        <option value={TeacherSort.FULLNAME}>Sort: Fullname</option>
-                        <option value={TeacherSort.EMAIL}>Sort: Email</option>
-                        <option value={TeacherSort.RATING}>Sort: Rating</option>
-                        <option value={TeacherSort.CREATED_AT}>Sort: Created</option>
-                    </select>
-                    <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-                </div>
-
-                <div className="relative">
-                    <select
-                        value={level}
-                        onChange={(e) => {
-                            setLevel(e.target.value);
-                            onResetPage();
-                        }}
-                        className="w-full h-10 pl-4 pr-10 border border-gray-200 rounded-xl bg-white text-sm shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-gray-200"
-                    >
-                        <option value="">Level: All</option>
-                        {Object.values(LanguageLevel).map((l) => (
-                            <option key={l} value={l}>{l}</option>
-                        ))}
-                    </select>
-                    <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-                <input
-                    type="text"
-                    placeholder="lang (e.g. s)"
-                    value={lang}
-                    onChange={(e) => {
-                        setLang(e.target.value);
+                <Select
+                    allowClear
+                    disabled={!!disableStatus}
+                    value={statusFilter || undefined}
+                    onChange={(v) => {
+                        setStatusFilter(v ?? '');
                         onResetPage();
                     }}
-                    className="w-full h-10 px-4 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-200 text-sm shadow-sm"
+                    placeholder="Status"
+                    style={{ width: '100%' }}
+                    options={[
+                        { value: 'true', label: 'Active' },
+                        { value: 'false', label: 'Blocked' },
+                    ]}
+                />
+
+                <Select
+                    allowClear
+                    disabled={!!disableDeleted}
+                    value={isDeletedFilter || undefined}
+                    onChange={(v) => {
+                        setIsDeletedFilter(v ?? '');
+                        onResetPage();
+                    }}
+                    placeholder="Deleted"
+                    style={{ width: '100%' }}
+                    options={[
+                        { value: 'true', label: 'Deleted' },
+                        { value: 'false', label: 'Not Deleted' },
+                    ]}
+                />
+
+                <Select
+                    value={sort}
+                    onChange={(v) => {
+                        setSort(v);
+                        onResetPage();
+                    }}
+                    placeholder="Sort"
+                    style={{ width: '100%' }}
+                    options={[
+                        { value: TeacherSort.FULLNAME, label: 'Fullname' },
+                        { value: TeacherSort.EMAIL, label: 'Email' },
+                        { value: TeacherSort.RATING, label: 'Rating' },
+                        { value: TeacherSort.CREATED_AT, label: 'Created' },
+                    ]}
+                />
+
+                <Select
+                    allowClear
+                    value={level || undefined}
+                    onChange={(v) => {
+                        setLevel(v ?? '');
+                        onResetPage();
+                    }}
+                    placeholder="Level"
+                    style={{ width: '100%' }}
+                    options={Object.values(LanguageLevel).map((l) => ({ value: l, label: l }))}
                 />
             </div>
         </div>

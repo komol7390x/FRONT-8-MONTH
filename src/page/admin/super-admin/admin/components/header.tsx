@@ -6,9 +6,11 @@ interface HeaderProps {
     onSearch: (value: string) => void; // Parentdagi search state'ni yangilash uchun
     openCreateModal: () => void; // Create modalini ochish uchun
     showAddAdmin?: boolean;
+    onClearExtras?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ setPage, onSearch, openCreateModal, showAddAdmin = true }) => {
+export const Header: React.FC<HeaderProps> = ({ setPage, onSearch, openCreateModal, showAddAdmin = true, onClearExtras }) => {
+
     const [localSearch, setLocalSearch] = useState<string>('');
 
     useEffect(() => {
@@ -65,6 +67,7 @@ export const Header: React.FC<HeaderProps> = ({ setPage, onSearch, openCreateMod
                                 setLocalSearch('');
                                 onSearch('');
                                 setPage(1);
+                                onClearExtras?.();
                             }}
                             className="h-11 px-5 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors shadow-sm"
                         >

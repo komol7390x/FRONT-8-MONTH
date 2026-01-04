@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Loader2 } from 'lucide-react';
+import { Select } from 'antd';
 import { SortEnum, useGetList, type Admin, } from './service/useGetList';
 import { useUpdateAdmin } from './service/useUpdateAdmin';
 import { useBlockAdmin } from './service/useBlockAdmin';
@@ -28,6 +29,7 @@ type ModalType = 'edit' | 'more' | 'create' | 'confirm' | '';
 export const ListAdmin: React.FC = () => {
   const [page, setPage] = useState<number>(1);
   const [status, setStatus] = useState<boolean | undefined>(undefined);
+  const [isDeleted, setIsDeleted] = useState<boolean | undefined>(undefined);
   const [deletedIds, setDeletedIds] = useState<number[]>([]);
   const [sort, setSort] = useState<SortState>({
     field: SortEnum.USERNAME,
@@ -57,7 +59,8 @@ export const ListAdmin: React.FC = () => {
     page,
     search,
     sort,
-    status
+    status,
+    isDeleted
   });
 
   const { mutate: updateAdmin, isPending: isUpdating } = useUpdateAdmin();
@@ -71,10 +74,7 @@ export const ListAdmin: React.FC = () => {
   const totalPages: number = data?.meta?.totalPages || 0;
 
   const handleSort = (field: typeof SortEnum[keyof typeof SortEnum]): void => {
-    setSort(prev => ({
-      field,
-      order: prev.field === field && prev.order === 'asc' ? 'desc' : 'asc'
-    }));
+    setSort({ field, order: 'desc' });
     setPage(1);
   };
 
@@ -270,6 +270,11 @@ export const ListAdmin: React.FC = () => {
           setPage={setPage}
           onSearch={setSearch}
           openCreateModal={openCreateModal}
+          onClearExtras={() => {
+            setStatus(undefined);
+            setIsDeleted(undefined);
+            setSort({ field: SortEnum.USERNAME, order: 'desc' });
+          }}
         />
 
         {/* Sort Controls */}
@@ -278,48 +283,37 @@ export const ListAdmin: React.FC = () => {
           handleSort={handleSort}
         />
 
-        <div className="bg-white rounded-lg shadow-sm p-3 mb-4">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-medium text-gray-600">Status:</span>
-            <button
-              type="button"
-              onClick={() => {
-                setStatus(undefined);
+        <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+            <Select
+              allowClear
+              value={status === undefined ? undefined : status ? 'true' : 'false'}
+              onChange={(v) => {
+                setStatus(v === undefined ? undefined : v === 'true');
                 setPage(1);
               }}
-              className={`px-3 py-1.5 rounded text-sm font-medium border transition-colors ${status === undefined
-                ? 'bg-gray-900 text-white border-gray-900'
-                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                }`}
-            >
-              All
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setStatus(true);
+              placeholder="Status"
+              style={{ width: '100%' }}
+              options={[
+                { value: 'true', label: 'Active' },
+                { value: 'false', label: 'Blocked' },
+              ]}
+            />
+
+            <Select
+              allowClear
+              value={isDeleted === undefined ? undefined : isDeleted ? 'true' : 'false'}
+              onChange={(v) => {
+                setIsDeleted(v === undefined ? undefined : v === 'true');
                 setPage(1);
               }}
-              className={`px-3 py-1.5 rounded text-sm font-medium border transition-colors ${status === true
-                ? 'bg-green-600 text-white border-green-600'
-                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                }`}
-            >
-              Active
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setStatus(false);
-                setPage(1);
-              }}
-              className={`px-3 py-1.5 rounded text-sm font-medium border transition-colors ${status === false
-                ? 'bg-red-600 text-white border-red-600'
-                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                }`}
-            >
-              Blocked
-            </button>
+              placeholder="Deleted"
+              style={{ width: '100%' }}
+              options={[
+                { value: 'true', label: 'Deleted' },
+                { value: 'false', label: 'Not Deleted' },
+              ]}
+            />
           </div>
         </div>
 

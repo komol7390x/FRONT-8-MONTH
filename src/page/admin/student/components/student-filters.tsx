@@ -1,5 +1,6 @@
 import type React from 'react';
-import { ChevronDown, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
+import { Select } from 'antd';
 import { StudentSort } from '../service/useGetStudents';
 
 interface StudentFiltersProps {
@@ -78,57 +79,55 @@ export const StudentFilters: React.FC<StudentFiltersProps> = ({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-                <div className="relative">
-                    <select
-                        value={statusFilter}
-                        onChange={(e) => {
-                            setStatusFilter(e.target.value);
-                            onResetPage();
-                        }}
-                        disabled={!!disableStatus}
-                        className="w-full h-10 pl-4 pr-10 border border-gray-200 rounded-xl bg-white disabled:bg-gray-100 text-sm shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-gray-200"
-                    >
-                        <option value="">Status: All</option>
-                        <option value="true">Active</option>
-                        <option value="false">Blocked</option>
-                    </select>
-                    <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-                </div>
+                <Select
+                    allowClear
+                    disabled={!!disableStatus}
+                    value={statusFilter || undefined}
+                    onChange={(v) => {
+                        setStatusFilter(v ?? '');
+                        onResetPage();
+                    }}
+                    placeholder="Status"
+                    style={{ width: '100%' }}
+                    options={[
+                        { value: 'true', label: 'Active' },
+                        { value: 'false', label: 'Blocked' },
+                    ]}
+                />
 
-                <div className="relative">
-                    <select
-                        value={isDeletedFilter}
-                        onChange={(e) => {
-                            setIsDeletedFilter(e.target.value);
-                            onResetPage();
-                        }}
-                        disabled={!!disableDeleted}
-                        className="w-full h-10 pl-4 pr-10 border border-gray-200 rounded-xl bg-white disabled:bg-gray-100 text-sm shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-gray-200"
-                    >
-                        <option value="">Deleted: All</option>
-                        <option value="true">Deleted</option>
-                        <option value="false">Not Deleted</option>
-                    </select>
-                    <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-                </div>
+                <Select
+                    allowClear
+                    disabled={!!disableDeleted}
+                    value={isDeletedFilter || undefined}
+                    onChange={(v) => {
+                        setIsDeletedFilter(v ?? '');
+                        onResetPage();
+                    }}
+                    placeholder="Deleted"
+                    style={{ width: '100%' }}
+                    options={[
+                        { value: 'true', label: 'Deleted' },
+                        { value: 'false', label: 'Not Deleted' },
+                    ]}
+                />
 
-                <div className="relative">
-                    <select
-                        value={sort}
-                        onChange={(e) => {
-                            setSort(e.target.value);
-                            onResetPage();
-                        }}
-                        className="w-full h-10 pl-4 pr-10 border border-gray-200 rounded-xl bg-white text-sm shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-gray-200"
-                    >
-                        <option value={StudentSort.CREATED_AT}>Sort: Created</option>
-                        <option value={StudentSort.UPDATED_AT}>Sort: Updated</option>
-                        <option value={StudentSort.FIRST_NAME}>Sort: First name</option>
-                        <option value={StudentSort.LAST_NAME}>Sort: Last name</option>
-                        <option value={StudentSort.TG_USERNAME}>Sort: Tg username</option>
-                    </select>
-                    <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-                </div>
+                <Select
+                    allowClear
+                    value={sort}
+                    onChange={(v) => {
+                        setSort(v);
+                        onResetPage();
+                    }}
+                    placeholder="Sort"
+                    style={{ width: '100%' }}
+                    options={[
+                        { value: StudentSort.CREATED_AT, label: 'Created' },
+                        { value: StudentSort.UPDATED_AT, label: 'Updated' },
+                        { value: StudentSort.FIRST_NAME, label: 'First name' },
+                        { value: StudentSort.LAST_NAME, label: 'Last name' },
+                        { value: StudentSort.TG_USERNAME, label: 'Tg username' },
+                    ]}
+                />
             </div>
         </div>
     );

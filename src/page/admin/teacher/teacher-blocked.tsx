@@ -15,7 +15,6 @@ export const TeacherBlocked: React.FC = () => {
     const [search, setSearch] = useState<string>('');
     const [sort, setSort] = useState<string>(TeacherSort.FULLNAME);
     const [level, setLevel] = useState<string>('');
-    const [lang, setLang] = useState<string>('');
     const [statusFilter, setStatusFilter] = useState<string>('');
     const [isDeletedFilter, setIsDeletedFilter] = useState<string>('');
 
@@ -45,7 +44,6 @@ export const TeacherBlocked: React.FC = () => {
         search,
         sort: sort as any,
         level: (level as any) || undefined,
-        lang: lang || undefined,
         status: statusParam,
         isDeleted: isDeletedParam,
     });
@@ -100,8 +98,6 @@ export const TeacherBlocked: React.FC = () => {
                         setSort={setSort}
                         level={level}
                         setLevel={setLevel}
-                        lang={lang}
-                        setLang={setLang}
                         onResetPage={() => setPage(1)}
                         onClear={() => {
                             setSearchInput('');
@@ -110,7 +106,6 @@ export const TeacherBlocked: React.FC = () => {
                             setIsDeletedFilter('');
                             setSort(TeacherSort.FULLNAME);
                             setLevel('');
-                            setLang('');
                             setPage(1);
                         }}
                     />

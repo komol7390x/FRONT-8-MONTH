@@ -62,10 +62,7 @@ export const DeleteAdmin: React.FC = () => {
   const totalPages: number = data?.meta?.totalPages || 0;
 
   const handleSort = (field: typeof SortEnum[keyof typeof SortEnum]): void => {
-    setSort(prev => ({
-      field,
-      order: prev.field === field && prev.order === 'asc' ? 'desc' : 'asc'
-    }));
+    setSort({ field, order: 'desc' });
     setPage(1);
   };
 
@@ -158,6 +155,9 @@ export const DeleteAdmin: React.FC = () => {
           onSearch={setSearch}
           openCreateModal={() => { }}
           showAddAdmin={false}
+          onClearExtras={() => {
+            setSort({ field: SortEnum.USERNAME, order: 'desc' });
+          }}
         />
 
         {/* Sort Controls */}
