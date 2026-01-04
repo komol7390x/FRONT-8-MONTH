@@ -60,11 +60,6 @@ export const items: MenuItem[] = [
                 label: <Link to={'/super-admin/teacher/delete'} className="font-medium">Delete</Link>,
                 icon: <UserRoundX size={16} />
             },
-            {
-                key: 'teacher-create',
-                label: <Link to={'/super-admin/teacher/create'} className="font-medium">Create Teacher</Link>,
-                icon: <BarChart3 size={16} />
-            },
         ],
     },
 

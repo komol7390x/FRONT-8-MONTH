@@ -1,14 +1,17 @@
 import type React from 'react';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, MoreHorizontal, Ban, Unlock, Trash2, Edit, Phone, Mail } from 'lucide-react';
+import { Loader2, MoreHorizontal, Ban, Unlock, Trash2, Edit, Phone, Mail, X } from 'lucide-react';
 import { message } from 'antd';
 import { useGetTeachers, TeacherSort, LanguageLevel, type Teacher } from './service/useGetTeachers';
 import { useTeacherIsActive } from './service/useTeacherIsActive';
 import { useTeacherLessons, BookedLessonStatus, type LessonTemplateItem } from './service/useTeacherLessons';
 import { Pagination } from '../super-admin/admin/components/pagantion';
+import { useConfirmTelEmail } from './service/useConfirmTeacherOtp';
+import { useCreateTeacher } from './service/useCreateTeacher';
+import { useCreateCertificate } from './service/useCreateCertificate';
 
-type ModalType = 'more' | 'details' | '';
+type ModalType = 'more' | 'details' | 'create' | 'certificate' | '';
 
 type PageMode = 'all' | 'blocked' | 'delete';
 
@@ -28,7 +31,8 @@ const getInitials = (name: string): string => {
 };
 
 export const TeacherList: React.FC<TeacherListProps> = ({ mode = 'all' }) => {
-    const navigate = useNavigate();
+    // keep hook available for future navigations
+    useNavigate();
     const [page, setPage] = useState<number>(1);
     const [limit, setLimit] = useState<number>(10);
     const [search, setSearch] = useState<string>('');
@@ -53,6 +57,31 @@ export const TeacherList: React.FC<TeacherListProps> = ({ mode = 'all' }) => {
 
     const { mutate: setActive, isPending: isBlocking } = useTeacherIsActive();
 
+    const { mutate: sendTelEmailOtp, isPending: isSendingOtp } = useConfirmTelEmail();
+    const { mutate: createTeacher, isPending: isCreatingTeacher } = useCreateTeacher();
+    const { mutate: createCertificate, isPending: isCreatingCertificate } = useCreateCertificate();
+
+    const [createForm, setCreateForm] = useState({
+        fullname: '',
+        email: '',
+        phoneNumber: '',
+        password: '',
+        expirence: 0,
+    });
+    const [receivedPhoneOtp, setReceivedPhoneOtp] = useState<string>('');
+    const [receivedEmailOtp, setReceivedEmailOtp] = useState<string>('');
+    const [phoneOtp, setPhoneOtp] = useState<string>('');
+    const [emailOtp, setEmailOtp] = useState<string>('');
+    const [otpSent, setOtpSent] = useState<boolean>(false);
+
+    const [certificateForm, setCertificateForm] = useState({
+        specificationName: '',
+        level: 'B2',
+        description: '',
+        hourPrice: 0,
+        teacherId: 0,
+    });
+
     const teachersRaw = data?.data || [];
     const totalCount = data?.meta?.totalItems || teachersRaw.length;
     const totalPages = data?.meta?.totalPages || 0;
@@ -66,9 +95,34 @@ export const TeacherList: React.FC<TeacherListProps> = ({ mode = 'all' }) => {
     const openModal = (type: ModalType, teacher: Teacher) => {
         setModalType(type);
         setSelectedTeacher(teacher);
-        if (type === 'details') {
+        if (type === 'details' || type === 'more') {
             setActiveTab('info');
         }
+        setShowModal(true);
+    };
+
+    const openCreateModal = () => {
+        setModalType('create');
+        setSelectedTeacher(null);
+        setCreateForm({ fullname: '', email: '', phoneNumber: '', password: '', expirence: 0 });
+        setReceivedPhoneOtp('');
+        setReceivedEmailOtp('');
+        setPhoneOtp('');
+        setEmailOtp('');
+        setOtpSent(false);
+        setShowModal(true);
+    };
+
+    const openCertificateModal = () => {
+        setModalType('certificate');
+        setSelectedTeacher(null);
+        setCertificateForm({
+            specificationName: '',
+            level: 'B2',
+            description: '',
+            hourPrice: 0,
+            teacherId: 0,
+        });
         setShowModal(true);
     };
 
@@ -78,19 +132,90 @@ export const TeacherList: React.FC<TeacherListProps> = ({ mode = 'all' }) => {
         setSelectedTeacher(null);
     };
 
+    const handleCreateCertificate = () => {
+        if (!certificateForm.specificationName.trim()) {
+            message.warning('specificationName is required');
+            return;
+        }
+        if (!certificateForm.level) {
+            message.warning('level is required');
+            return;
+        }
+        if (!certificateForm.description.trim()) {
+            message.warning('description is required');
+            return;
+        }
+        if (!certificateForm.teacherId) {
+            message.warning('teacherId is required');
+            return;
+        }
+
+        createCertificate(
+            {
+                specificationName: certificateForm.specificationName,
+                level: certificateForm.level,
+                description: certificateForm.description,
+                hourPrice: Number(certificateForm.hourPrice) || 0,
+                teacherId: Number(certificateForm.teacherId),
+            },
+            {
+                onSuccess: () => {
+                    closeModal();
+                    refetch();
+                },
+            } as any,
+        );
+    };
+
+    const phoneVerified = otpSent && !!receivedPhoneOtp && phoneOtp === receivedPhoneOtp;
+    const emailVerified = otpSent && !!receivedEmailOtp && emailOtp === receivedEmailOtp;
+    const otpVerified = phoneVerified && emailVerified;
+
+    const handleSendOtp = () => {
+        if (!createForm.phoneNumber.trim() || !createForm.email.trim()) {
+            message.warning('Phone number and email are required');
+            return;
+        }
+
+        sendTelEmailOtp(
+            { phoneNumber: createForm.phoneNumber, email: createForm.email },
+            {
+                onSuccess: (data: any) => {
+                    setOtpSent(true);
+                    setReceivedPhoneOtp(data?.data?.phoneOtp || '');
+                    setReceivedEmailOtp(data?.data?.emailOtp || '');
+                },
+            } as any,
+        );
+    };
+
+    const handleCreateTeacher = () => {
+        if (!otpVerified) {
+            message.warning('Please verify OTP first');
+            return;
+        }
+
+        createTeacher(
+            {
+                fullname: createForm.fullname,
+                email: createForm.email,
+                phoneNumber: createForm.phoneNumber,
+                password: createForm.password,
+                expirence: Number(createForm.expirence) || 0,
+            },
+            {
+                onSuccess: () => {
+                    closeModal();
+                    refetch();
+                },
+            } as any,
+        );
+    };
+
     const handleLimitChange = (newLimit: string | number) => {
         setLimit(Number(newLimit));
         setPage(1);
     };
-
-    const certificatesText = useMemo(() => {
-        const certs = selectedTeacher?.certificates || [];
-        if (certs.length === 0) return '-';
-        return certs
-            .slice(0, 3)
-            .map((c) => `${c.specificationName || '-'} (${c.level || '-'})`)
-            .join(', ');
-    }, [selectedTeacher]);
 
     const lessonsQuery = useTeacherLessons(selectedTeacher?.id, {
         status: BookedLessonStatus.AVAILABLE,
@@ -138,12 +263,20 @@ export const TeacherList: React.FC<TeacherListProps> = ({ mode = 'all' }) => {
                     <div className="flex items-center justify-between">
                         <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
                         {mode === 'all' && (
-                            <button
-                                onClick={() => navigate('/super-admin/teacher/create')}
-                                className="bg-green-600 text-white px-6 py-2.5 rounded font-medium hover:bg-green-700 transition-colors"
-                            >
-                                Add Teacher
-                            </button>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={openCertificateModal}
+                                    className="bg-blue-600 text-white px-6 py-2.5 rounded font-medium hover:bg-blue-700 transition-colors"
+                                >
+                                    Create Certificate
+                                </button>
+                                <button
+                                    onClick={openCreateModal}
+                                    className="bg-green-600 text-white px-6 py-2.5 rounded font-medium hover:bg-green-700 transition-colors"
+                                >
+                                    Add Teacher
+                                </button>
+                            </div>
                         )}
                     </div>
 
@@ -156,7 +289,7 @@ export const TeacherList: React.FC<TeacherListProps> = ({ mode = 'all' }) => {
                                 setSearch(e.target.value);
                                 setPage(1);
                             }}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
                         />
 
                         <select
@@ -165,7 +298,7 @@ export const TeacherList: React.FC<TeacherListProps> = ({ mode = 'all' }) => {
                                 setSort(e.target.value);
                                 setPage(1);
                             }}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50"
                         >
                             <option value={TeacherSort.FULLNAME}>Sort: Fullname</option>
                             <option value={TeacherSort.EMAIL}>Sort: Email</option>
@@ -179,7 +312,7 @@ export const TeacherList: React.FC<TeacherListProps> = ({ mode = 'all' }) => {
                                 setLevel(e.target.value);
                                 setPage(1);
                             }}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50"
                         >
                             <option value="">Level: All</option>
                             {Object.values(LanguageLevel).map((l) => (
@@ -195,7 +328,7 @@ export const TeacherList: React.FC<TeacherListProps> = ({ mode = 'all' }) => {
                                 setLang(e.target.value);
                                 setPage(1);
                             }}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
                         />
                     </div>
                 </div>
@@ -322,7 +455,7 @@ export const TeacherList: React.FC<TeacherListProps> = ({ mode = 'all' }) => {
                     <div className="fixed inset-0 bg-gray-300/70 bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={closeModal}>
                         <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-xl font-bold text-gray-900">Teacher Actions</h2>
+                                <h2 className="text-xl font-bold text-gray-900">Teacher Details</h2>
                                 <button onClick={closeModal} className="text-gray-400 hover:text-gray-600 transition-colors">✕</button>
                             </div>
 
@@ -339,13 +472,88 @@ export const TeacherList: React.FC<TeacherListProps> = ({ mode = 'all' }) => {
                                 </div>
                             </div>
 
-                            <div className="mt-4 space-y-3">
-                                <div className="text-xs text-gray-600">
-                                    <p className="font-semibold">Certificates</p>
-                                    <p className="mt-1">{certificatesText}</p>
-                                </div>
+                            <div className="flex flex-wrap gap-2 mt-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveTab('info')}
+                                    className={`px-3 py-2 rounded text-sm font-semibold border ${activeTab === 'info' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+                                >
+                                    Info
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveTab('certificates')}
+                                    className={`px-3 py-2 rounded text-sm font-semibold border ${activeTab === 'certificates' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+                                >
+                                    Certificates
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveTab('lessons')}
+                                    className={`px-3 py-2 rounded text-sm font-semibold border ${activeTab === 'lessons' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+                                >
+                                    Lessons
+                                </button>
+                            </div>
 
-                                <div className="flex gap-2">
+                            <div className="mt-4 space-y-3">
+                                {activeTab === 'info' && (
+                                    <div className="space-y-2">
+                                        <div className="p-3 border border-gray-200 rounded-lg bg-gray-50">
+                                            <p className="text-xs font-semibold text-gray-500">ID</p>
+                                            <p className="text-sm font-semibold text-gray-900">{selectedTeacher.id}</p>
+                                        </div>
+                                        <div className="p-3 border border-gray-200 rounded-lg bg-gray-50">
+                                            <p className="text-xs font-semibold text-gray-500">Created At</p>
+                                            <p className="text-xs font-medium text-gray-700">
+                                                {selectedTeacher.createdAt ? new Date(selectedTeacher.createdAt).toLocaleString() : '-'}
+                                            </p>
+                                        </div>
+                                        <div className="p-3 border border-gray-200 rounded-lg bg-gray-50">
+                                            <p className="text-xs font-semibold text-gray-500">Rating</p>
+                                            <p className="text-sm font-semibold text-gray-900">{selectedTeacher.rating ?? 0}</p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {activeTab === 'certificates' && (
+                                    <div className="space-y-2">
+                                        {(selectedTeacher.certificates || []).length === 0 ? (
+                                            <div className="p-4 text-center text-gray-500 border border-gray-200 rounded-lg bg-gray-50">No certificates</div>
+                                        ) : (
+                                            (selectedTeacher.certificates || []).map((c: any) => (
+                                                <div key={c.id || `${c.specificationName}-${c.level}`} className="p-3 border border-gray-200 rounded-lg bg-gray-50">
+                                                    <p className="text-sm font-semibold text-gray-900">{c.specificationName || '-'}</p>
+                                                    <p className="text-xs text-gray-600 mt-1">Level: {c.level || '-'}</p>
+                                                    <p className="text-xs text-gray-600">Hour price: {c.hourPrice ?? '-'}</p>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                )}
+
+                                {activeTab === 'lessons' && (
+                                    <div className="space-y-2">
+                                        {lessonsQuery.isPending ? (
+                                            <div className="flex items-center gap-2 text-gray-600"><Loader2 className="w-4 h-4 animate-spin" /> Loading lessons...</div>
+                                        ) : lessons.length === 0 ? (
+                                            <div className="p-4 text-center text-gray-500 border border-gray-200 rounded-lg bg-gray-50">No lessons</div>
+                                        ) : (
+                                            lessons.map((l) => (
+                                                <div key={l.id} className="p-3 border border-gray-200 rounded-lg bg-gray-50">
+                                                    <div className="flex items-center justify-between gap-3">
+                                                        <p className="text-sm font-semibold text-gray-900">{l.lessonName || 'Lesson'}</p>
+                                                        <span className="px-2 py-1 rounded text-xs font-semibold bg-gray-100 text-gray-700">{l.status}</span>
+                                                    </div>
+                                                    <p className="text-xs text-gray-600 mt-1">Weekday: {l.weekDays || '-'}</p>
+                                                    <p className="text-xs text-gray-600">Price: {l.price || '-'}</p>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                )}
+
+                                <div className="flex gap-2 pt-2">
                                     <button
                                         type="button"
                                         disabled
@@ -386,7 +594,7 @@ export const TeacherList: React.FC<TeacherListProps> = ({ mode = 'all' }) => {
                                 <button
                                     type="button"
                                     disabled
-                                    onClick={() => message.info('Delete endpoint not provided yet')}
+                                    onClick={() => message.info('Teacher delete endpoint not provided yet')}
                                     className="w-full px-4 py-2.5 bg-red-300 text-white rounded text-sm font-medium cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                                 >
                                     <Trash2 size={16} />
@@ -438,19 +646,19 @@ export const TeacherList: React.FC<TeacherListProps> = ({ mode = 'all' }) => {
 
                             {activeTab === 'info' && (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="p-4 border border-gray-200 rounded-lg">
+                                    <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
                                         <p className="text-xs font-semibold text-gray-500">Fullname</p>
                                         <p className="text-sm font-semibold text-gray-900 mt-1">{selectedTeacher.fullname}</p>
                                     </div>
-                                    <div className="p-4 border border-gray-200 rounded-lg">
+                                    <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
                                         <p className="text-xs font-semibold text-gray-500">Email</p>
                                         <p className="text-sm font-semibold text-gray-900 mt-1">{selectedTeacher.email}</p>
                                     </div>
-                                    <div className="p-4 border border-gray-200 rounded-lg">
+                                    <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
                                         <p className="text-xs font-semibold text-gray-500">Phone</p>
                                         <p className="text-sm font-semibold text-gray-900 mt-1">{selectedTeacher.phoneNumber}</p>
                                     </div>
-                                    <div className="p-4 border border-gray-200 rounded-lg">
+                                    <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
                                         <p className="text-xs font-semibold text-gray-500">Rating</p>
                                         <p className="text-sm font-semibold text-gray-900 mt-1">{selectedTeacher.rating ?? '-'}</p>
                                     </div>
@@ -460,12 +668,13 @@ export const TeacherList: React.FC<TeacherListProps> = ({ mode = 'all' }) => {
                             {activeTab === 'certificates' && (
                                 <div className="space-y-2">
                                     {(selectedTeacher.certificates || []).length === 0 ? (
-                                        <div className="p-6 text-center text-gray-500 border border-gray-200 rounded-lg">No certificates</div>
+                                        <div className="p-6 text-center text-gray-500 border border-gray-200 rounded-lg bg-gray-50">No certificates</div>
                                     ) : (
-                                        (selectedTeacher.certificates || []).map((c, i) => (
-                                            <div key={i} className="p-4 border border-gray-200 rounded-lg">
+                                        (selectedTeacher.certificates || []).map((c: any, i: number) => (
+                                            <div key={c.id || i} className="p-4 border border-gray-200 rounded-lg bg-gray-50">
                                                 <p className="text-sm font-semibold text-gray-900">{c.specificationName || '-'}</p>
                                                 <p className="text-xs text-gray-600 mt-1">Level: {c.level || '-'}</p>
+                                                <p className="text-xs text-gray-600">Hour price: {c.hourPrice ?? '-'}</p>
                                             </div>
                                         ))
                                     )}
@@ -477,10 +686,10 @@ export const TeacherList: React.FC<TeacherListProps> = ({ mode = 'all' }) => {
                                     {lessonsQuery.isPending ? (
                                         <div className="flex items-center gap-2 text-gray-600"><Loader2 className="w-4 h-4 animate-spin" /> Loading lessons...</div>
                                     ) : lessons.length === 0 ? (
-                                        <div className="p-6 text-center text-gray-500 border border-gray-200 rounded-lg">No lessons</div>
+                                        <div className="p-6 text-center text-gray-500 border border-gray-200 rounded-lg bg-gray-50">No lessons</div>
                                     ) : (
                                         lessons.map((l) => (
-                                            <div key={l.id} className="p-4 border border-gray-200 rounded-lg">
+                                            <div key={l.id} className="p-4 border border-gray-200 rounded-lg bg-gray-50">
                                                 <div className="flex items-center justify-between gap-3">
                                                     <p className="text-sm font-semibold text-gray-900">{l.lessonName || 'Lesson'}</p>
                                                     <span className="px-2 py-1 rounded text-xs font-semibold bg-gray-100 text-gray-700">{l.status}</span>
@@ -499,10 +708,10 @@ export const TeacherList: React.FC<TeacherListProps> = ({ mode = 'all' }) => {
                                     {lessonsQuery.isPending ? (
                                         <div className="flex items-center gap-2 text-gray-600"><Loader2 className="w-4 h-4 animate-spin" /> Loading students...</div>
                                     ) : students.length === 0 ? (
-                                        <div className="p-6 text-center text-gray-500 border border-gray-200 rounded-lg">No students</div>
+                                        <div className="p-6 text-center text-gray-500 border border-gray-200 rounded-lg bg-gray-50">No students</div>
                                     ) : (
                                         students.map((s) => (
-                                            <div key={s.id} className="p-4 border border-gray-200 rounded-lg">
+                                            <div key={s.id} className="p-4 border border-gray-200 rounded-lg bg-gray-50">
                                                 <p className="text-sm font-semibold text-gray-900">{`${s.firstName || ''} ${s.lastName || ''}`.trim() || `Student ID:${s.id}`}</p>
                                                 <p className="text-xs text-gray-600 mt-1">Phone: {s.phoneNumber || '-'}</p>
                                                 <p className="text-xs text-gray-600">Username: {s.tgUsername || '-'}</p>
@@ -514,7 +723,227 @@ export const TeacherList: React.FC<TeacherListProps> = ({ mode = 'all' }) => {
                         </div>
                     </div>
                 )}
+
+                {showModal && modalType === 'create' && (
+                    <div className="fixed inset-0 bg-gray-300/70 bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={closeModal}>
+                        <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-2xl font-bold text-gray-900">Add New Teacher</h2>
+                                <button onClick={closeModal} className="text-gray-400 hover:text-gray-600 transition-colors">
+                                    <X size={24} />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                    <input
+                                        type="email"
+                                        value={createForm.email}
+                                        onChange={(e) => setCreateForm((p) => ({ ...p, email: e.target.value }))}
+                                        disabled={otpVerified}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 disabled:bg-gray-100"
+                                        placeholder="teacher@mail.com"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                                    <input
+                                        value={createForm.phoneNumber}
+                                        onChange={(e) => setCreateForm((p) => ({ ...p, phoneNumber: e.target.value }))}
+                                        disabled={otpVerified}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 disabled:bg-gray-100"
+                                        placeholder="+998901234567"
+                                    />
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={handleSendOtp}
+                                    disabled={otpVerified || isSendingOtp || !createForm.phoneNumber || !createForm.email}
+                                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:bg-blue-300 transition-colors"
+                                >
+                                    {isSendingOtp ? 'Sending OTP...' : 'Send OTP'}
+                                </button>
+
+                                {otpSent && !otpVerified && (
+                                    <div className="grid grid-cols-1 gap-3">
+                                        <div>
+                                            {receivedPhoneOtp && (
+                                                <div className="mb-2 p-2 bg-yellow-100 text-yellow-800 rounded text-sm">
+                                                    Phone Test OTP: <span className="font-mono font-bold">{receivedPhoneOtp}</span>
+                                                </div>
+                                            )}
+                                            <input
+                                                value={phoneOtp}
+                                                onChange={(e) => setPhoneOtp(e.target.value)}
+                                                placeholder="Enter phone OTP"
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            {receivedEmailOtp && (
+                                                <div className="mb-2 p-2 bg-yellow-100 text-yellow-800 rounded text-sm">
+                                                    Email Test OTP: <span className="font-mono font-bold">{receivedEmailOtp}</span>
+                                                </div>
+                                            )}
+                                            <input
+                                                value={emailOtp}
+                                                onChange={(e) => setEmailOtp(e.target.value)}
+                                                placeholder="Enter email OTP"
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+
+                                {otpVerified && (
+                                    <div className="p-3 bg-green-100 text-green-700 rounded-lg text-sm font-medium">
+                                        ✅ Email & Phone verified
+                                    </div>
+                                )}
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                                    <input
+                                        value={createForm.fullname}
+                                        onChange={(e) => setCreateForm((p) => ({ ...p, fullname: e.target.value }))}
+                                        disabled={!otpVerified}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 disabled:bg-gray-100"
+                                        placeholder="Ali Valiyev"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                                    <input
+                                        type="password"
+                                        value={createForm.password}
+                                        onChange={(e) => setCreateForm((p) => ({ ...p, password: e.target.value }))}
+                                        disabled={!otpVerified}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 disabled:bg-gray-100"
+                                        placeholder="@Komol12345"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Expirence (years)</label>
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        value={createForm.expirence}
+                                        onChange={(e) => setCreateForm((p) => ({ ...p, expirence: Number(e.target.value) }))}
+                                        disabled={!otpVerified}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 disabled:bg-gray-100"
+                                    />
+                                </div>
+
+                                <div className="flex gap-2 mt-6">
+                                    <button
+                                        type="button"
+                                        onClick={closeModal}
+                                        disabled={isCreatingTeacher}
+                                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={handleCreateTeacher}
+                                        disabled={isCreatingTeacher || !otpVerified}
+                                        className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:bg-green-300"
+                                    >
+                                        {isCreatingTeacher ? 'Creating...' : 'Create Teacher'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {showModal && modalType === 'certificate' && (
+                    <div className="fixed inset-0 bg-gray-300/70 bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={closeModal}>
+                        <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-2xl font-bold text-gray-900">Create Certificate</h2>
+                                <button onClick={closeModal} className="text-gray-400 hover:text-gray-600 transition-colors">
+                                    <X size={24} />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Specification Name</label>
+                                    <input
+                                        value={certificateForm.specificationName}
+                                        onChange={(e) => setCertificateForm((p) => ({ ...p, specificationName: e.target.value }))}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
+                                        placeholder="IELTS Preparation"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Level</label>
+                                    <select
+                                        value={certificateForm.level}
+                                        onChange={(e) => setCertificateForm((p) => ({ ...p, level: e.target.value }))}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50"
+                                    >
+                                        {Object.values(LanguageLevel).map((l) => (
+                                            <option key={l} value={l}>{l}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                    <textarea
+                                        value={certificateForm.description}
+                                        onChange={(e) => setCertificateForm((p) => ({ ...p, description: e.target.value }))}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
+                                        rows={3}
+                                        placeholder="Advanced level language course description"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Hour Price</label>
+                                    <input
+                                        type="number"
+                                        value={certificateForm.hourPrice}
+                                        onChange={(e) => setCertificateForm((p) => ({ ...p, hourPrice: Number(e.target.value) }))}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
+                                        placeholder="50000"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Teacher ID</label>
+                                    <input
+                                        type="number"
+                                        value={certificateForm.teacherId}
+                                        onChange={(e) => setCertificateForm((p) => ({ ...p, teacherId: Number(e.target.value) }))}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
+                                        placeholder="1"
+                                    />
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={handleCreateCertificate}
+                                    disabled={isCreatingCertificate}
+                                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:bg-blue-300 transition-colors"
+                                >
+                                    {isCreatingCertificate ? 'Creating...' : 'Create Certificate'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
+
 };

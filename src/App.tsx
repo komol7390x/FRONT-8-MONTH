@@ -14,7 +14,6 @@ import { TeacherDashboard } from './page/admin/teacher/teacher-dashboard';
 import { TeacherList } from './page/admin/teacher/teacher-list';
 import { TeacherBlocked } from './page/admin/teacher/teacher-blocked';
 import { TeacherDelete } from './page/admin/teacher/teacher-delete';
-import { TeacherCreate } from './page/admin/teacher/teacher-create';
 import { TeacherConfirm } from './page/admin/teacher/teacher-confirm';
 
 function App() {
@@ -37,7 +36,6 @@ function App() {
           <Route path="all" element={<TeacherList />} />
           <Route path="blocked" element={<TeacherBlocked />} />
           <Route path="delete" element={<TeacherDelete />} />
-          <Route path="create" element={<TeacherCreate />} />
           <Route path="confirm" element={<TeacherConfirm />} />
         </Route>
       </Route>
