@@ -106,11 +106,11 @@ export const StudentCreateModal: React.FC<StudentCreateModalProps> = ({ open, on
 
     return (
         <div className="fixed inset-0 bg-gray-300/70 bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onClose}>
-            <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-linear-to-r from-green-50 to-emerald-50 rounded-xl shadow-xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto border border-green-200" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
-                        <UserPlus size={20} className="text-gray-900" />
-                        <h2 className="text-2xl font-bold text-gray-900">Add Student</h2>
+                        <UserPlus size={20} className="text-green-800" />
+                        <h2 className="text-2xl font-bold text-green-900">Add Student</h2>
                     </div>
                     <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
                         <X size={24} />
@@ -191,7 +191,7 @@ export const StudentCreateModal: React.FC<StudentCreateModalProps> = ({ open, on
 
                     {step === 'details' && (
                         <>
-                            <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
+                            <div className="grid grid-cols-1 gap-3">
                                 <div className="group">
                                     <label className="block text-xs font-semibold text-green-700 mb-1.5">Phone</label>
                                     <div className="relative">

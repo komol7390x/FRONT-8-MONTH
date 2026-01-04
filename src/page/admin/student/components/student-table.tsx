@@ -1,5 +1,5 @@
 import type React from 'react';
-import { CalendarClock, Hash, MoreHorizontal, Phone, UserRound } from 'lucide-react';
+import { CalendarClock, Hash, MoreHorizontal, Phone, Unlock, UserRound } from 'lucide-react';
 import type { Student } from '../service/useGetStudents';
 import { getInitials } from './student-utils';
 
@@ -8,9 +8,12 @@ interface StudentTableProps {
     page: number;
     limit: number;
     onMore: (s: Student) => void;
+    showRecover?: boolean;
+    onRecover?: (id: number) => void;
+    isRecovering?: boolean;
 }
 
-export const StudentTable: React.FC<StudentTableProps> = ({ students, page, limit, onMore }) => {
+export const StudentTable: React.FC<StudentTableProps> = ({ students, page, limit, onMore, showRecover = false, onRecover, isRecovering = false }) => {
     return (
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
             <div className="grid grid-cols-8 px-3 sm:px-4 bg-gray-50 py-3 sm:py-4 border-b border-gray-200 font-semibold text-sm text-gray-700">
@@ -106,6 +109,20 @@ export const StudentTable: React.FC<StudentTableProps> = ({ students, page, limi
                                     <MoreHorizontal size={12} />
                                     More
                                 </button>
+
+                                {showRecover && isDeletedRow && (
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onRecover?.(s.id);
+                                        }}
+                                        disabled={isRecovering}
+                                        className="px-3 py-1.5 bg-green-600 text-white rounded text-sm font-medium hover:bg-green-700 disabled:bg-green-300 transition-colors flex items-center gap-2"
+                                    >
+                                        <Unlock size={12} />
+                                        {isRecovering ? 'Recovering...' : 'Recover'}
+                                    </button>
+                                )}
                             </div>
                         </div>
                     );

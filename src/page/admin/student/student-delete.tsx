@@ -7,6 +7,7 @@ import { StudentMoreModal } from './components/student-more-modal';
 import { StudentTable } from './components/student-table';
 import { StudentSort, type Student } from './service/useGetStudents';
 import { useGetStudents } from './service/useGetStudents';
+import { useSoftDeleteStudent } from './service/useSoftDeleteStudent';
 
 export const StudentDelete: React.FC = () => {
     const [page, setPage] = useState<number>(1);
@@ -19,6 +20,8 @@ export const StudentDelete: React.FC = () => {
 
     const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
     const [isMoreOpen, setIsMoreOpen] = useState<boolean>(false);
+
+    const { mutate: restoreStudent, isPending: isRestoring } = useSoftDeleteStudent();
 
     const applySearchNow = () => {
         setSearch(searchInput);
@@ -52,6 +55,17 @@ export const StudentDelete: React.FC = () => {
     const handleLimitChange = (newLimit: string | number) => {
         setLimit(Number(newLimit));
         setPage(1);
+    };
+
+    const handleRecover = (id: number) => {
+        restoreStudent(
+            { id, status: false },
+            {
+                onSuccess: () => {
+                    refetch();
+                },
+            } as any,
+        );
     };
 
     if (isPending) {
@@ -106,6 +120,9 @@ export const StudentDelete: React.FC = () => {
                         setSelectedStudent(s);
                         setIsMoreOpen(true);
                     }}
+                    showRecover={true}
+                    onRecover={handleRecover}
+                    isRecovering={isRestoring}
                 />
 
                 <Pagination

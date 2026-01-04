@@ -71,9 +71,21 @@ export const StudentMoreLessons: React.FC<StudentMoreLessonsProps> = ({ student 
                                     {String(l?.lessonName || 'Lesson')}
                                 </p>
                             </div>
-                            <p className="text-xs text-gray-700 mt-1 truncate" title={String(l?.googleEventId || '')}>
-                                {String(l?.googleEventId || '')}
-                            </p>
+                            <div className="group flex items-center justify-between mt-1 gap-2">
+                                <p className="text-xs text-gray-700 truncate" title={String(l?.googleEventId || '')}>
+                                    {String(l?.googleEventId || '')}
+                                </p>
+                                {!!l?.googleEventId && (
+                                    <button
+                                        type="button"
+                                        onClick={() => copyToClipboard(String(l?.googleEventId))}
+                                        className="opacity-0 group-hover:opacity-100 shrink-0 p-1.5 border border-gray-300 rounded-md text-gray-700 bg-gray-50 hover:bg-gray-100 transition-colors"
+                                        title="Copy googleEventId"
+                                    >
+                                        <Copy size={14} />
+                                    </button>
+                                )}
+                            </div>
                         </div>
                         <span className="px-2 py-1 rounded text-xs font-semibold bg-gray-100 text-gray-700 shrink-0">
                             {String(l?.status || '-')}
@@ -117,7 +129,7 @@ export const StudentMoreLessons: React.FC<StudentMoreLessonsProps> = ({ student 
                             </div>
                         </div>
 
-                        <div className="px-3 py-2 border rounded-lg bg-white border-gray-200">
+                        <div className="group px-3 py-2 border rounded-lg bg-white border-gray-200">
                             <div className="flex items-center gap-2 min-w-0">
                                 <Link2 size={14} className="text-rose-700 shrink-0" />
                                 <span className="text-xs font-semibold text-gray-700 w-24 shrink-0">Meet</span>
@@ -128,7 +140,7 @@ export const StudentMoreLessons: React.FC<StudentMoreLessonsProps> = ({ student 
                                     <button
                                         type="button"
                                         onClick={() => copyToClipboard(String(l?.meetLink))}
-                                        className="shrink-0 p-1.5 border border-gray-300 rounded-md text-gray-700 bg-gray-50 hover:bg-gray-100 transition-colors"
+                                        className="opacity-0 group-hover:opacity-100 shrink-0 p-1.5 border border-gray-300 rounded-md text-gray-700 bg-gray-50 hover:bg-gray-100 transition-colors"
                                         title="Copy meet link"
                                     >
                                         <Copy size={14} />

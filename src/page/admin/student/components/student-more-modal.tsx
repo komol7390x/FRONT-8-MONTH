@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Ban, Edit, PlusCircle, Unlock, Wallet, X } from 'lucide-react';
+import { Ban, Edit, PlusCircle, Trash2, Unlock, Wallet, X } from 'lucide-react';
 import type { Student } from '../service/useGetStudents';
 import { useStudentIsActive } from '../service/useStudentIsActive';
 import { useSoftDeleteStudent } from '../service/useSoftDeleteStudent';
@@ -213,16 +213,18 @@ export const StudentMoreModal: React.FC<StudentMoreModalProps> = ({
                             {activeTab === 'lessons' && <StudentMoreLessons student={student} />}
                         </div>
 
-                        <div className="mt-4 space-y-2">
-                            <button
-                                type="button"
-                                onClick={() => setIsEditOpen(true)}
-                                disabled={!!student.isDeleted}
-                                className="w-full px-4 py-2.5 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 disabled:bg-blue-300 transition-colors flex items-center justify-center gap-2"
-                            >
-                                <Edit size={16} />
-                                Edit
-                            </button>
+                        <div className="mt-4 grid grid-cols-2 gap-2">
+                            {activeTab === 'info' && (
+                                <button
+                                    type="button"
+                                    onClick={() => setIsEditOpen(true)}
+                                    disabled={!!student.isDeleted}
+                                    className="col-span-2 px-4 py-2.5 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 disabled:bg-blue-300 transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <Edit size={16} />
+                                    Edit
+                                </button>
+                            )}
 
                             <button
                                 type="button"
@@ -232,40 +234,16 @@ export const StudentMoreModal: React.FC<StudentMoreModalProps> = ({
                                     setView('confirm');
                                 }}
                                 disabled={isBlocking || !!student.isDeleted}
-                                className={`w-full px-4 py-2.5 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2 ${student.isActive
-                                    ? 'bg-red-600 text-white hover:bg-red-700 disabled:bg-red-300'
-                                    : 'bg-green-600 text-white hover:bg-green-700 disabled:bg-green-300'
+                                className={`px-4 py-2.5 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2 ${student.isActive
+                                    ? 'bg-red-700 text-white hover:bg-red-800 disabled:bg-red-300'
+                                    : 'bg-green-700 text-white hover:bg-green-800 disabled:bg-green-300'
                                     }`}
                             >
                                 {student.isActive ? <Ban size={16} /> : <Unlock size={16} />}
-                                {isBlocking ? 'Processing...' : student.isActive ? 'Block' : 'Unblock'}
+                                {isBlocking ? '...' : student.isActive ? 'Block' : 'Unblock'}
                             </button>
 
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    if (shouldShowHardDelete) {
-                                        setConfirmAction('hardDelete');
-                                        setView('confirm');
-                                        return;
-                                    }
-                                    setConfirmAction('softDelete');
-                                    setView('confirm');
-                                }}
-                                disabled={isSoftDeleting || isHardDeleting}
-                                className="w-full px-4 py-2.5 bg-red-600 text-white rounded text-sm font-medium hover:bg-red-700 disabled:bg-red-300 transition-colors flex items-center justify-center gap-2"
-                            >
-                                {shouldShowHardDelete ? <PlusCircle size={16} /> : <Edit size={16} />}
-                                {shouldShowHardDelete
-                                    ? isHardDeleting
-                                        ? 'Deleting...'
-                                        : 'Hard Delete'
-                                    : isSoftDeleting
-                                        ? 'Deleting...'
-                                        : 'Delete'}
-                            </button>
-
-                            {shouldShowHardDelete && (
+                            {student.isDeleted ? (
                                 <button
                                     type="button"
                                     onClick={() => {
@@ -273,10 +251,38 @@ export const StudentMoreModal: React.FC<StudentMoreModalProps> = ({
                                         setView('confirm');
                                     }}
                                     disabled={isSoftDeleting}
-                                    className="w-full px-4 py-2.5 bg-green-600 text-white rounded text-sm font-medium hover:bg-green-700 disabled:bg-green-300 transition-colors flex items-center justify-center gap-2"
+                                    className="px-4 py-2.5 bg-green-700 text-white rounded text-sm font-medium hover:bg-green-800 disabled:bg-green-300 transition-colors flex items-center justify-center gap-2"
                                 >
                                     <Unlock size={16} />
-                                    {isSoftDeleting ? 'Restoring...' : 'Restore'}
+                                    {isSoftDeleting ? '...' : 'Recover'}
+                                </button>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setConfirmAction('softDelete');
+                                        setView('confirm');
+                                    }}
+                                    disabled={isSoftDeleting}
+                                    className="px-4 py-2.5 bg-red-800 text-white rounded text-sm font-medium hover:bg-red-900 disabled:bg-red-300 transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <Trash2 size={16} />
+                                    {isSoftDeleting ? '...' : 'Delete'}
+                                </button>
+                            )}
+
+                            {shouldShowHardDelete && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setConfirmAction('hardDelete');
+                                        setView('confirm');
+                                    }}
+                                    disabled={isHardDeleting}
+                                    className="col-span-2 px-4 py-2.5 bg-red-900 text-white rounded text-sm font-medium hover:bg-black disabled:bg-red-300 transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <PlusCircle size={16} />
+                                    {isHardDeleting ? 'Deleting...' : 'Hard Delete'}
                                 </button>
                             )}
                         </div>
