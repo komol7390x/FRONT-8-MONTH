@@ -5,6 +5,7 @@ import { useMutation } from '@tanstack/react-query';
 import { message } from 'antd';
 import { SortEnum, useGetList, type Admin } from './service/useGetList';
 import { request } from '../../../../config/request';
+import { useDeleteAdmin } from './service/useDeleteAdmin';
 import { Header } from './components/header';
 import { Sort } from './components/sort';
 import { AdminCard } from './components/admin-card';
@@ -24,6 +25,8 @@ export const DeleteAdmin: React.FC = () => {
     field: SortEnum.USERNAME,
     order: 'desc'
   });
+
+  const { mutate: restoreAdmin, isPending: isRestoring } = useDeleteAdmin();
 
   const [showModal, setShowModal] = useState<boolean>(false);
   const [modalType, setModalType] = useState<ModalType>('');
@@ -64,6 +67,17 @@ export const DeleteAdmin: React.FC = () => {
       order: prev.field === field && prev.order === 'asc' ? 'desc' : 'asc'
     }));
     setPage(1);
+  };
+
+  const handleRecover = async (id: number): Promise<void> => {
+    restoreAdmin(
+      { id, status: false },
+      {
+        onSuccess: () => {
+          refetch();
+        },
+      } as any,
+    );
   };
 
   const handleLimitChange = (newLimit: string | number): void => {
@@ -160,10 +174,12 @@ export const DeleteAdmin: React.FC = () => {
           showEdit={false}
           showBlock={false}
           showDelete={true}
+          showRecover={true}
           handleSoftDelete={handleHardDelete}
+          handleRecover={handleRecover}
           handleBlock={() => { }}
           isBlocking={false}
-          isDeleting={isDeleting}
+          isDeleting={isDeleting || isRestoring}
           page={page}
           limit={limit}
         />

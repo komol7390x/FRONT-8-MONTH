@@ -240,6 +240,7 @@ const AdminPanel: React.FC = () => {
           showEdit={false}
           showBlock={true}
           showDelete={false}
+          showRecover={false}
           handleSoftDelete={handleSoftDelete}
           handleBlock={handleBlock}
           isBlocking={isBlocking}

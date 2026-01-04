@@ -15,6 +15,9 @@ import { TeacherBlocked } from './page/admin/teacher/teacher-blocked';
 import { TeacherDelete } from './page/admin/teacher/teacher-delete';
 import { TeacherConfirm } from './page/admin/teacher/teacher-confirm';
 import { TeacherStatistics } from './page/admin/teacher/teacher-statistics';
+import { StudentList } from './page/admin/student/student-list';
+import { StudentBlocked } from './page/admin/student/student-blocked';
+import { StudentDelete } from './page/admin/student/student-delete';
 
 function App() {
   return (
@@ -39,6 +42,12 @@ function App() {
           <Route path="blocked" element={<TeacherBlocked />} />
           <Route path="delete" element={<TeacherDelete />} />
           <Route path="confirm" element={<TeacherConfirm />} />
+        </Route>
+
+        <Route path='student'>
+          <Route path="all" element={<StudentList />} />
+          <Route path="blocked" element={<StudentBlocked />} />
+          <Route path="delete" element={<StudentDelete />} />
         </Route>
       </Route>
 

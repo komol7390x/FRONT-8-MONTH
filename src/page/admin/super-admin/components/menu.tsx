@@ -71,6 +71,28 @@ export const items: MenuItem[] = [
     // STUDENT
     {
         key: 'sub3',
+        label: <span className="font-semibold">Student</span>,
+        icon: <FileText size={20} />,
+        children: [
+            {
+                key: 'student-all',
+                label: <Link to={'/super-admin/student/all'} className="font-medium">List</Link>,
+                icon: <Users size={16} />
+            },
+            {
+                key: 'student-blocked',
+                label: <Link to={'/super-admin/student/blocked'} className="font-medium">Blocked</Link>,
+                icon: <UserLock size={16} />
+            },
+            {
+                key: 'student-delete',
+                label: <Link to={'/super-admin/student/delete'} className="font-medium">Delete</Link>,
+                icon: <UserRoundX size={16} />
+            },
+        ],
+    },
+    {
+        key: 'content-key',
         label: <span className="font-semibold">Content</span>,
         icon: <FileText size={20} />,
         children: [
