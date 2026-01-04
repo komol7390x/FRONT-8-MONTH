@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Ban, Edit, PlusCircle, Trash2, Unlock, Wallet, X } from 'lucide-react';
+import { Modal } from 'antd';
 import type { Student } from '../service/useGetStudents';
 import { useStudentIsActive } from '../service/useStudentIsActive';
 import { useSoftDeleteStudent } from '../service/useSoftDeleteStudent';
@@ -247,8 +248,16 @@ export const StudentMoreModal: React.FC<StudentMoreModalProps> = ({
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        setConfirmAction('restore');
-                                        setView('confirm');
+                                        Modal.confirm({
+                                            title: 'Recover student?',
+                                            content: 'Deleted studentni tiklashni tasdiqlaysizmi?',
+                                            okText: 'Recover',
+                                            cancelText: 'Cancel',
+                                            onOk: async () => {
+                                                setConfirmAction('restore');
+                                                setView('confirm');
+                                            },
+                                        });
                                     }}
                                     disabled={isSoftDeleting}
                                     className="px-4 py-2.5 bg-green-700 text-white rounded text-sm font-medium hover:bg-green-800 disabled:bg-green-300 transition-colors flex items-center justify-center gap-2"

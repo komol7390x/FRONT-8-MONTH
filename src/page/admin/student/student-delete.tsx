@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
+import { Modal } from 'antd';
 
 import { Pagination } from '../super-admin/admin/components/pagantion';
 import { StudentFilters } from './components/student-filters';
@@ -58,14 +59,23 @@ export const StudentDelete: React.FC = () => {
     };
 
     const handleRecover = (id: number) => {
-        restoreStudent(
-            { id, status: false },
-            {
-                onSuccess: () => {
-                    refetch();
-                },
-            } as any,
-        );
+        Modal.confirm({
+            title: 'Recover student?',
+            content: 'Deleted studentni tiklashni tasdiqlaysizmi?',
+            okText: 'Recover',
+            cancelText: 'Cancel',
+            okButtonProps: { danger: false },
+            onOk: async () => {
+                restoreStudent(
+                    { id, status: false },
+                    {
+                        onSuccess: () => {
+                            refetch();
+                        },
+                    } as any,
+                );
+            },
+        });
     };
 
     if (isPending) {

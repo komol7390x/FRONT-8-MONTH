@@ -18,6 +18,7 @@ import { TeacherStatistics } from './page/admin/teacher/teacher-statistics';
 import { StudentList } from './page/admin/student/student-list';
 import { StudentBlocked } from './page/admin/student/student-blocked';
 import { StudentDelete } from './page/admin/student/student-delete';
+import { StudentStatistics } from './page/admin/student/student-statistics';
 
 function App() {
   return (
@@ -45,6 +46,7 @@ function App() {
         </Route>
 
         <Route path='student'>
+          <Route path="statistics" element={<StudentStatistics />} />
           <Route path="all" element={<StudentList />} />
           <Route path="blocked" element={<StudentBlocked />} />
           <Route path="delete" element={<StudentDelete />} />

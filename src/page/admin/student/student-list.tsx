@@ -88,7 +88,7 @@ export const StudentList: React.FC = () => {
                             onClick={() => {
                                 setIsCreateOpen(true);
                             }}
-                            className="px-5 py-2.5 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition-colors flex items-center gap-2"
+                            className="px-5 py-2.5 bg-green-600 text-white rounded-xl font-semibold hover:bg-gray-800 transition-colors flex items-center gap-2"
                         >
                             <UserPlus size={18} />
                             Add Student

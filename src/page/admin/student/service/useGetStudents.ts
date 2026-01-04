@@ -74,5 +74,6 @@ export const useGetStudents = (params: GetStudentsParams = {}) => {
         },
         staleTime: 0,
         refetchOnWindowFocus: false,
+        refetchOnMount: 'always',
     });
 };

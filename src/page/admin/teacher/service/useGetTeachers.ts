@@ -88,6 +88,7 @@ export const useGetTeachers = (params: GetTeachersParams = {}) => {
             return res.data;
         },
         staleTime: 0,
-        refetchOnWindowFocus: false
+        refetchOnWindowFocus: false,
+        refetchOnMount: 'always'
     });
 };

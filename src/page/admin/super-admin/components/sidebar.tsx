@@ -1,15 +1,50 @@
 import { Bell, ChevronLeft, ChevronRight, User } from 'lucide-react';
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import logo from '@/assets/img/logo.png'
 import { Avatar, ConfigProvider, Menu } from 'antd';
 import { items } from './menu';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useGetMe } from '../admin/service/get-me';
 
 export const Sidebar = () => {
     const [collapsed, setCollapsed] = useState(false);
     const { data, isPending, isError } = useGetMe()
     const [activeTab, setActiveTab] = useState<string>('');
+    const location = useLocation();
+
+    const { selectedKeys, openKeys: openKeysByPath } = useMemo(() => {
+        const p = location.pathname;
+
+        // ADMIN
+        if (p.startsWith('/super-admin/admin/statistics')) return { selectedKeys: ['admin-stats'], openKeys: ['sub1'] };
+        if (p.startsWith('/super-admin/admin/list')) return { selectedKeys: ['admin-list'], openKeys: ['sub1'] };
+        if (p.startsWith('/super-admin/admin/blocked')) return { selectedKeys: ['admin-blocked'], openKeys: ['sub1'] };
+        if (p.startsWith('/super-admin/admin/delete')) return { selectedKeys: ['admin-delete'], openKeys: ['sub1'] };
+        if (p.startsWith('/super-admin/admin')) return { selectedKeys: ['admin-list'], openKeys: ['sub1'] };
+
+        // TEACHER
+        if (p.startsWith('/super-admin/teacher/statistics')) return { selectedKeys: ['teacher-stats'], openKeys: ['sub2'] };
+        if (p.startsWith('/super-admin/teacher/all')) return { selectedKeys: ['teacher-all'], openKeys: ['sub2'] };
+        if (p.startsWith('/super-admin/teacher/blocked')) return { selectedKeys: ['teacher-blocked'], openKeys: ['sub2'] };
+        if (p.startsWith('/super-admin/teacher/delete')) return { selectedKeys: ['teacher-delete'], openKeys: ['sub2'] };
+        if (p.startsWith('/super-admin/teacher/confirm')) return { selectedKeys: ['teacher-confirm'], openKeys: ['sub2'] };
+        if (p.startsWith('/super-admin/teacher')) return { selectedKeys: ['teacher-all'], openKeys: ['sub2'] };
+
+        // STUDENT
+        if (p.startsWith('/super-admin/student/statistics')) return { selectedKeys: ['student-stats'], openKeys: ['sub3'] };
+        if (p.startsWith('/super-admin/student/all')) return { selectedKeys: ['student-all'], openKeys: ['sub3'] };
+        if (p.startsWith('/super-admin/student/blocked')) return { selectedKeys: ['student-blocked'], openKeys: ['sub3'] };
+        if (p.startsWith('/super-admin/student/delete')) return { selectedKeys: ['student-delete'], openKeys: ['sub3'] };
+        if (p.startsWith('/super-admin/student')) return { selectedKeys: ['student-all'], openKeys: ['sub3'] };
+
+        return { selectedKeys: [], openKeys: [] };
+    }, [location.pathname]);
+
+    const [openKeys, setOpenKeys] = useState<string[]>(openKeysByPath);
+
+    useEffect(() => {
+        setOpenKeys(openKeysByPath);
+    }, [openKeysByPath]);
     if (isPending) {
         return <div className="animate-pulse bg-white/10 h-10 w-full rounded-xl" />;
     }
@@ -70,7 +105,16 @@ export const Sidebar = () => {
                             inlineCollapsed={collapsed}
                             items={items} // Bu yerda menyu itemlaringiz bo'lishi kerak
                             className="bg-transparent border-none"
-                            defaultSelectedKeys={['1']}
+                            selectedKeys={selectedKeys}
+                            openKeys={openKeys}
+                            onOpenChange={(keys) => {
+                                const latestOpenKey = keys.find((k) => !openKeys.includes(k));
+                                if (latestOpenKey) {
+                                    setOpenKeys([latestOpenKey]);
+                                } else {
+                                    setOpenKeys(keys);
+                                }
+                            }}
                         />
                     </ConfigProvider>
                 </div>
