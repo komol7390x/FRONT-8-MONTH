@@ -10,7 +10,6 @@ import { StatisticsAdmin } from './page/admin/super-admin/admin/statistics-admin
 import AdminPanel from './page/admin/super-admin/admin/blocked-admin';
 import { DeleteAdmin } from './page/admin/super-admin/admin/delete-admin';
 import { ListAdmin } from './page/admin/super-admin/admin/list-admin';
-import { TeacherDashboard } from './page/admin/teacher/teacher-dashboard';
 import { TeacherList } from './page/admin/teacher/teacher-list';
 import { TeacherBlocked } from './page/admin/teacher/teacher-blocked';
 import { TeacherDelete } from './page/admin/teacher/teacher-delete';
@@ -33,8 +32,9 @@ function App() {
           <Route path="blocked" element={<AdminPanel />} />
           <Route path="delete" element={<DeleteAdmin />} />
         </Route>
-        <Route path='teacher' element={<TeacherDashboard />}>
-          <Route path="statistics" element={<TeacherStatistics />} />
+
+        <Route path='teacher'>
+          <Route path='statistics' element={<TeacherStatistics />} />
           <Route path="all" element={<TeacherList />} />
           <Route path="blocked" element={<TeacherBlocked />} />
           <Route path="delete" element={<TeacherDelete />} />
