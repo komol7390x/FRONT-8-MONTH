@@ -10,6 +10,12 @@ import { StatisticsAdmin } from './page/admin/super-admin/admin/statistics-admin
 import AdminPanel from './page/admin/super-admin/admin/blocked-admin';
 import { DeleteAdmin } from './page/admin/super-admin/admin/delete-admin';
 import { ListAdmin } from './page/admin/super-admin/admin/list-admin';
+import { TeacherDashboard } from './page/admin/teacher/teacher-dashboard';
+import { TeacherList } from './page/admin/teacher/teacher-list';
+import { TeacherBlocked } from './page/admin/teacher/teacher-blocked';
+import { TeacherDelete } from './page/admin/teacher/teacher-delete';
+import { TeacherCreate } from './page/admin/teacher/teacher-create';
+import { TeacherConfirm } from './page/admin/teacher/teacher-confirm';
 
 function App() {
   return (
@@ -27,7 +33,13 @@ function App() {
           <Route path="blocked" element={<AdminPanel />} />
           <Route path="delete" element={<DeleteAdmin />} />
         </Route>
-        <Route path="statistics" element={<StatisticsAdmin />} />
+        <Route path='teacher' element={<TeacherDashboard />}>
+          <Route path="all" element={<TeacherList />} />
+          <Route path="blocked" element={<TeacherBlocked />} />
+          <Route path="delete" element={<TeacherDelete />} />
+          <Route path="create" element={<TeacherCreate />} />
+          <Route path="confirm" element={<TeacherConfirm />} />
+        </Route>
       </Route>
 
       <Route path="/admin" element={<AdminDashboard />}>

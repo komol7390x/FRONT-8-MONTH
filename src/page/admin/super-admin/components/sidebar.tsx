@@ -4,7 +4,7 @@ import logo from '@/assets/img/logo.png'
 import { Avatar, ConfigProvider, Menu } from 'antd';
 import { items } from './menu';
 import { Link } from 'react-router-dom';
-import { useGetMe } from '../service/get-me';
+import { useGetMe } from '../admin/service/get-me';
 
 export const Sidebar = () => {
     const [collapsed, setCollapsed] = useState(false);

@@ -46,12 +46,24 @@ export const items: MenuItem[] = [
         icon: <Users size={20} />,
         children: [
             {
-                key: 'teacher-users',
-                label: <Link to={'/super-admin/users'} className="font-medium">All Users</Link>,
+                key: 'teacher-all',
+                label: <Link to={'/super-admin/teacher/all'} className="font-medium">List</Link>,
+                icon: <Users size={16} />
             },
             {
-                key: 'teacher-roles',
-                label: <Link to={'/super-admin/roles'} className="font-medium">Roles & Permissions</Link>,
+                key: 'teacher-blocked',
+                label: <Link to={'/super-admin/teacher/blocked'} className="font-medium">Blocked</Link>,
+                icon: <UserLock size={16} />
+            },
+            {
+                key: 'teacher-delete',
+                label: <Link to={'/super-admin/teacher/delete'} className="font-medium">Delete</Link>,
+                icon: <UserRoundX size={16} />
+            },
+            {
+                key: 'teacher-create',
+                label: <Link to={'/super-admin/teacher/create'} className="font-medium">Create Teacher</Link>,
+                icon: <BarChart3 size={16} />
             },
         ],
     },
