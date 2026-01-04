@@ -18,8 +18,8 @@ export const useDeleteAdmin = () => {
                 );
                 return res.data;
             } catch (error: any) {
-                const status = error?.response?.status;
-                if (status === 405 || status === 404) {
+                const httpStatus = error?.response?.status;
+                if (httpStatus === 405 || httpStatus === 404) {
                     const res = await request.patch<DeleteAdminResponse>(`/admin/soft-delete/${id}`,
                         undefined,
                         {

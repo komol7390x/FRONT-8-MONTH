@@ -1,10 +1,16 @@
-import { Alert, Button, Card, Descriptions, Drawer, Input, InputNumber, Select, Spin, Table, Tag, Typography } from 'antd';
+import { Alert, Button, Card, InputNumber, Select, Spin, Table, Tag, Typography, message } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useMemo, useState } from 'react';
-import { Award, CheckCircle2, Hash, Search, Trash2, User } from 'lucide-react';
+import { Award, CheckCircle2, Copy, Hash, Search, User, X } from 'lucide-react';
 import { CertificateUpsertModal } from '../../teacher/components/certificate-upsert-modal';
 import { Pagination } from '../admin/components/pagantion';
 import { useCertificates } from './service/useCertificates';
+import { TeacherMoreModal } from '../../teacher/components/teacher-more-modal';
+import { StudentMoreModal } from '../../student/components/student-more-modal';
+import type { Teacher } from '../../teacher/service/useGetTeachers';
+import type { Student } from '../../student/service/useGetStudents';
+import { useGetTeacherById } from '../../teacher/service/useGetTeacherById';
+import { useGetStudentById } from '../../student/service/useGetStudentById';
 
 export const CertificatePage: React.FC = () => {
     const [page, setPage] = useState<number>(1);
@@ -17,11 +23,18 @@ export const CertificatePage: React.FC = () => {
     const [isDeleted, setIsDeleted] = useState<boolean | undefined>(undefined);
 
     const [selectedRow, setSelectedRow] = useState<any | null>(null);
-    const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
-
-    const [modalOpen, setModalOpen] = useState<boolean>(false);
+    const [detailsOpen, setDetailsOpen] = useState<boolean>(false);
+    const [upsertOpen, setUpsertOpen] = useState<boolean>(false);
     const [modalCertificate, setModalCertificate] = useState<any | null>(null);
     const [newTeacherId, setNewTeacherId] = useState<number | undefined>(undefined);
+
+    const [teacherModalOpen, setTeacherModalOpen] = useState(false);
+    const [studentModalOpen, setStudentModalOpen] = useState(false);
+    const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
+    const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+
+    const teacherByIdQuery = useGetTeacherById(selectedRow?.teacherId ? Number(selectedRow.teacherId) : undefined);
+    const studentByIdQuery = useGetStudentById(selectedRow?.studentId ? Number(selectedRow.studentId) : undefined);
 
     const query = useCertificates({ page, limit, search, status, isDeleted });
 
@@ -38,8 +51,25 @@ export const CertificatePage: React.FC = () => {
         setPage(1);
     };
 
+    const copyToClipboard = async (text: string) => {
+        try {
+            await navigator.clipboard.writeText(text);
+            message.success('Copied');
+        } catch {
+            message.error('Copy failed');
+        }
+    };
+
     const columns: ColumnsType<any> = useMemo(
         () => [
+            {
+                title: '№',
+                key: 'sn',
+                width: 60,
+                render: (_: any, __: any, idx: number) => (
+                    <span className="text-sm font-semibold text-gray-700">{(page - 1) * limit + idx + 1}</span>
+                ),
+            },
             { title: <span className="inline-flex items-center gap-1"><Hash size={14} />ID</span>, dataIndex: 'id', key: 'id', width: 90 },
             { title: <span className="inline-flex items-center gap-1"><Award size={14} />Specification</span>, dataIndex: 'specificationName', key: 'specificationName', width: 220 },
             {
@@ -62,17 +92,8 @@ export const CertificatePage: React.FC = () => {
                 width: 110,
                 render: (v) => <Tag color={v ? 'green' : 'red'} className="m-0">{v ? 'Active' : 'Inactive'}</Tag>,
             },
-            {
-                title: <span className="inline-flex items-center gap-1"><Trash2 size={14} />Del</span>,
-                dataIndex: 'isDeleted',
-                key: 'isDeleted',
-                width: 120,
-                render: (v) => <Tag color={v ? 'red' : 'default'} className="m-0">{v ? 'Deleted' : 'OK'}</Tag>,
-            },
-            { title: 'CreatedAt', dataIndex: 'createdAt', key: 'createdAt', width: 180 },
-            { title: 'UpdatedAt', dataIndex: 'updatedAt', key: 'updatedAt', width: 180 },
         ],
-        []
+        [limit, page]
     );
 
     if (query.isPending) {
@@ -100,99 +121,103 @@ export const CertificatePage: React.FC = () => {
                 Certificate
             </Typography.Title>
 
-            <div className="rounded-2xl border border-white/20 bg-white/70 backdrop-blur-sm shadow-sm p-4">
-                <div className="flex flex-col gap-3">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
-                        <Input
+            <div className="mt-4 p-4 rounded-2xl border border-gray-200 bg-linear-to-r from-white to-gray-50 shadow-sm space-y-3">
+                <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="flex-1 relative">
+                        <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+                        <input
+                            type="text"
+                            placeholder="Search by specification/level/teacher id"
                             value={searchInput}
                             onChange={(e) => setSearchInput(e.target.value)}
-                            placeholder="Search (Specification / Level / Teacher ID)"
-                            prefix={<Search size={16} className="text-slate-400" />}
-                            size="large"
-                        />
-
-                        <div className="flex gap-2">
-                            <Button
-                                type="primary"
-                                className="w-full"
-                                onClick={() => {
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
                                     setSearch(searchInput);
                                     setPage(1);
-                                }}
-                                size="large"
-                            >
-                                Search
-                            </Button>
-                            <Button
-                                className="w-full"
-                                onClick={() => {
-                                    setSearchInput('');
-                                    setSearch('');
-                                    setStatus(undefined);
-                                    setIsDeleted(undefined);
-                                    setPage(1);
-                                    setLimit(10);
-                                }}
-                                size="large"
-                            >
-                                Clear
-                            </Button>
-                        </div>
-
-                        <InputNumber
-                            value={newTeacherId}
-                            onChange={(v) => setNewTeacherId(v === null ? undefined : Number(v))}
-                            placeholder="Teacher ID (for Add)"
-                            style={{ width: '100%' }}
-                            min={1}
-                            size="large"
-                        />
-
-                        <Button
-                            className="w-full"
-                            onClick={() => {
-                                setModalCertificate(null);
-                                setModalOpen(true);
+                                }
                             }}
-                            size="large"
+                            className="w-full h-11 pl-11 pr-4 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-cyan-200 text-sm shadow-sm"
+                        />
+                    </div>
+
+                    <div className="flex gap-2">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setSearch(searchInput);
+                                setPage(1);
+                            }}
+                            className="h-11 px-5 bg-linear-to-r from-cyan-600 to-blue-600 text-white rounded-xl text-sm font-semibold hover:from-cyan-700 hover:to-blue-700 transition-colors shadow-sm flex items-center justify-center gap-2"
                         >
-                            Add Certificate
-                        </Button>
+                            <Search size={16} />
+                            Search
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setSearchInput('');
+                                setSearch('');
+                                setStatus(undefined);
+                                setIsDeleted(undefined);
+                                setPage(1);
+                                setLimit(10);
+                            }}
+                            className="h-11 px-5 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors shadow-sm"
+                        >
+                            Clear
+                        </button>
                     </div>
+                </div>
 
-                    <div className="rounded-xl bg-slate-50 border border-slate-100 p-3">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
-                            <Select
-                                allowClear
-                                value={status === undefined ? undefined : status ? 'true' : 'false'}
-                                onChange={(v) => {
-                                    setStatus(v === undefined ? undefined : v === 'true');
-                                    setPage(1);
-                                }}
-                                placeholder="Status"
-                                size="large"
-                                options={[
-                                    { value: 'true', label: 'Active' },
-                                    { value: 'false', label: 'Inactive' },
-                                ]}
-                            />
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                    <Select
+                        allowClear
+                        value={status === undefined ? undefined : status ? 'true' : 'false'}
+                        onChange={(v) => {
+                            setStatus(v === undefined ? undefined : v === 'true');
+                            setPage(1);
+                        }}
+                        placeholder="Status"
+                        style={{ width: '100%' }}
+                        options={[
+                            { value: 'true', label: 'Active' },
+                            { value: 'false', label: 'Inactive' },
+                        ]}
+                    />
 
-                            <Select
-                                allowClear
-                                value={isDeleted === undefined ? undefined : isDeleted ? 'true' : 'false'}
-                                onChange={(v) => {
-                                    setIsDeleted(v === undefined ? undefined : v === 'true');
-                                    setPage(1);
-                                }}
-                                placeholder="Deleted"
-                                size="large"
-                                options={[
-                                    { value: 'true', label: 'Deleted' },
-                                    { value: 'false', label: 'Not deleted' },
-                                ]}
-                            />
-                        </div>
-                    </div>
+                    <Select
+                        allowClear
+                        value={isDeleted === undefined ? undefined : isDeleted ? 'true' : 'false'}
+                        onChange={(v) => {
+                            setIsDeleted(v === undefined ? undefined : v === 'true');
+                            setPage(1);
+                        }}
+                        placeholder="Deleted"
+                        style={{ width: '100%' }}
+                        options={[
+                            { value: 'true', label: 'Deleted' },
+                            { value: 'false', label: 'Not deleted' },
+                        ]}
+                    />
+
+                    <InputNumber
+                        value={newTeacherId}
+                        onChange={(v) => setNewTeacherId(v === null ? undefined : Number(v))}
+                        placeholder="Teacher ID"
+                        style={{ width: '100%' }}
+                        min={1}
+                        controls={false}
+                    />
+
+                    <Button
+                        className="w-full"
+                        onClick={() => {
+                            setModalCertificate(null);
+                            setUpsertOpen(true);
+                        }}
+                    >
+                        Add Certificate
+                    </Button>
                 </div>
             </div>
 
@@ -206,11 +231,11 @@ export const CertificatePage: React.FC = () => {
                         return {
                             onClick: () => {
                                 setSelectedRow(record);
-                                setDrawerOpen(true);
+                                setDetailsOpen(true);
                             },
                             onDoubleClick: () => {
                                 setModalCertificate(record);
-                                setModalOpen(true);
+                                setUpsertOpen(true);
                             },
                         };
                     }}
@@ -229,102 +254,224 @@ export const CertificatePage: React.FC = () => {
                 handleLimitChange={handleLimitChange}
             />
 
-            <Drawer
-                open={drawerOpen}
-                onClose={() => {
-                    setDrawerOpen(false);
-                    setSelectedRow(null);
-                }}
-                title={
-                    <div className="flex items-center justify-between w-full">
-                        <span>Certificate Info</span>
-                        <div className="flex items-center gap-2">
-                            <Tag color="blue">ID: {selectedRow?.id ?? '-'}</Tag>
-                            {!!selectedRow?.level && <Tag color="geekblue">{String(selectedRow.level)}</Tag>}
+            {detailsOpen && selectedRow && (
+                <div
+                    className="fixed inset-0 bg-gray-300/70 bg-opacity-50 flex items-center justify-center z-50 p-4"
+                    onClick={() => {
+                        setDetailsOpen(false);
+                        setSelectedRow(null);
+                    }}
+                >
+                    <div
+                        className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-xl font-bold text-gray-900">Certificate Details</h2>
+                            <button
+                                onClick={() => {
+                                    setDetailsOpen(false);
+                                    setSelectedRow(null);
+                                }}
+                                className="text-gray-400 hover:text-gray-600 transition-colors"
+                            >
+                                <X size={22} />
+                            </button>
+                        </div>
+
+                        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 mb-4">
+                            <div className="flex items-center justify-between gap-3">
+                                <div className="min-w-0">
+                                    <p className="font-semibold text-gray-900 truncate">{selectedRow?.specificationName || 'Certificate'}</p>
+                                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                        <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-semibold">ID:{selectedRow?.id}</span>
+                                        {!!selectedRow?.level && (
+                                            <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs font-semibold">{String(selectedRow.level)}</span>
+                                        )}
+                                        <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-semibold">T:{selectedRow?.teacherId ?? '-'}</span>
+                                    </div>
+                                </div>
+                                <Tag color={selectedRow?.isActive ? 'green' : 'red'} className="m-0">
+                                    {selectedRow?.isActive ? 'Active' : 'Inactive'}
+                                </Tag>
+                            </div>
+                        </div>
+
+                        <div className="border-t pt-4 space-y-2">
+                            {(
+                                [
+                                    { label: 'ID', value: selectedRow?.id },
+                                    { label: 'TeacherId', value: selectedRow?.teacherId },
+                                    { label: 'Specification', value: selectedRow?.specificationName },
+                                    { label: 'Level', value: selectedRow?.level },
+                                    { label: 'Description', value: selectedRow?.description },
+                                    { label: 'Price', value: selectedRow?.hourPrice },
+                                ] as Array<{ label: string; value: any }>
+                            ).map((item) => (
+                                <div
+                                    key={item.label}
+                                    className="group flex items-center justify-between p-2.5 bg-gray-50 rounded hover:bg-gray-100 transition-colors"
+                                >
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-xs font-medium text-gray-500 mb-0.5">{item.label}</p>
+                                        <p className="text-sm font-semibold text-gray-900 truncate">{item.value ?? '-'}</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => copyToClipboard(String(item.value ?? ''))}
+                                        className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-white rounded transition-colors"
+                                        title={`Copy ${item.label}`}
+                                    >
+                                        <Copy size={14} />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+
+                        {!!selectedRow?.teacher && (
+                            <div className="pt-4">
+                                <h3 className="text-sm font-bold text-gray-900">Teacher</h3>
+                                <div className="mt-2 space-y-2">
+                                    {(
+                                        [
+                                            { label: 'ID', value: selectedRow.teacher?.id },
+                                            { label: 'Name', value: selectedRow.teacher?.fullname ?? selectedRow.teacher?.name },
+                                            { label: 'Phone', value: selectedRow.teacher?.phoneNumber },
+                                            { label: 'TG', value: selectedRow.teacher?.tgUsername },
+                                        ] as Array<{ label: string; value: any }>
+                                    ).map((item) => (
+                                        <div
+                                            key={`t_${item.label}`}
+                                            className="group flex items-center justify-between p-2.5 bg-gray-50 rounded hover:bg-gray-100 transition-colors"
+                                        >
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-xs font-medium text-gray-500 mb-0.5">{item.label}</p>
+                                                <p className="text-sm font-semibold text-gray-900 truncate">{item.value ?? '-'}</p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => copyToClipboard(String(item.value ?? ''))}
+                                                className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-white rounded transition-colors"
+                                                title={`Copy ${item.label}`}
+                                            >
+                                                <Copy size={14} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {!!selectedRow?.student && (
+                            <div className="pt-4">
+                                <h3 className="text-sm font-bold text-gray-900">Student</h3>
+                                <div className="mt-2 space-y-2">
+                                    {(
+                                        [
+                                            { label: 'ID', value: selectedRow.student?.id },
+                                            {
+                                                label: 'Name',
+                                                value:
+                                                    (selectedRow.student?.fullname ??
+                                                        `${selectedRow.student?.firstName || ''} ${selectedRow.student?.lastName || ''}`.trim()) ||
+                                                    undefined,
+                                            },
+                                            { label: 'Phone', value: selectedRow.student?.phoneNumber },
+                                            { label: 'TG', value: selectedRow.student?.tgUsername },
+                                        ] as Array<{ label: string; value: any }>
+                                    ).map((item) => (
+                                        <div
+                                            key={`s_${item.label}`}
+                                            className="group flex items-center justify-between p-2.5 bg-gray-50 rounded hover:bg-gray-100 transition-colors"
+                                        >
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-xs font-medium text-gray-500 mb-0.5">{item.label}</p>
+                                                <p className="text-sm font-semibold text-gray-900 truncate">{item.value ?? '-'}</p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => copyToClipboard(String(item.value ?? ''))}
+                                                className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-white rounded transition-colors"
+                                                title={`Copy ${item.label}`}
+                                            >
+                                                <Copy size={14} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="mt-4 flex gap-2">
+                            <Button
+                                className="w-full"
+                                onClick={() => {
+                                    setModalCertificate(selectedRow);
+                                    setUpsertOpen(true);
+                                }}
+                            >
+                                Edit
+                            </Button>
+                        </div>
+
+                        <div className="mt-3 grid grid-cols-2 gap-2">
+                            <Button
+                                className="w-full"
+                                onClick={() => {
+                                    const t = teacherByIdQuery.data;
+                                    if (!t) return;
+                                    setSelectedTeacher(t as any);
+                                    setTeacherModalOpen(true);
+                                }}
+                            >
+                                Teacher details
+                            </Button>
+                            {!!selectedRow?.studentId && (
+                                <Button
+                                    className="w-full"
+                                    onClick={() => {
+                                        const s = studentByIdQuery.data;
+                                        if (!s) return;
+                                        setSelectedStudent(s as any);
+                                        setStudentModalOpen(true);
+                                    }}
+                                >
+                                    Student details
+                                </Button>
+                            )}
                         </div>
                     </div>
-                }
-                width={520}
-            >
-                <Descriptions
-                    size="small"
-                    column={1}
-                    bordered
-                    items={[
-                        { key: 'specificationName', label: 'Specification', children: selectedRow?.specificationName ?? '-' },
-                        { key: 'level', label: 'Level', children: selectedRow?.level ?? '-' },
-                        { key: 'description', label: 'Description', children: selectedRow?.description ?? '-' },
-                        { key: 'hourPrice', label: 'Hour Price', children: selectedRow?.hourPrice ?? '-' },
-                        { key: 'teacherId', label: 'Teacher ID', children: selectedRow?.teacherId ?? '-' },
-                        { key: 'active', label: 'Active', children: String(!!selectedRow?.isActive) },
-                        { key: 'deleted', label: 'Deleted', children: String(!!selectedRow?.isDeleted) },
-                        { key: 'createdAt', label: 'CreatedAt', children: selectedRow?.createdAt ?? '-' },
-                        { key: 'updatedAt', label: 'UpdatedAt', children: selectedRow?.updatedAt ?? '-' },
-                    ]}
-                />
-
-                {!!selectedRow?.teacher && (
-                    <div className="mt-4">
-                        <Typography.Title level={5} style={{ margin: 0 }}>Teacher</Typography.Title>
-                        <Descriptions
-                            size="small"
-                            column={1}
-                            bordered
-                            className="mt-2"
-                            items={[
-                                { key: 't_id', label: 'ID', children: selectedRow.teacher?.id ?? '-' },
-                                { key: 't_name', label: 'Name', children: selectedRow.teacher?.fullname ?? selectedRow.teacher?.name ?? '-' },
-                                { key: 't_phone', label: 'Phone', children: selectedRow.teacher?.phoneNumber ?? '-' },
-                                { key: 't_tg', label: 'TG', children: selectedRow.teacher?.tgUsername ?? '-' },
-                            ]}
-                        />
-                    </div>
-                )}
-
-                {!!selectedRow?.student && (
-                    <div className="mt-4">
-                        <Typography.Title level={5} style={{ margin: 0 }}>Student</Typography.Title>
-                        <Descriptions
-                            size="small"
-                            column={1}
-                            bordered
-                            className="mt-2"
-                            items={[
-                                { key: 's_id', label: 'ID', children: selectedRow.student?.id ?? '-' },
-                                { key: 's_name', label: 'Name', children: (selectedRow.student?.fullname ?? `${selectedRow.student?.firstName || ''} ${selectedRow.student?.lastName || ''}`.trim()) || '-' },
-                                { key: 's_phone', label: 'Phone', children: selectedRow.student?.phoneNumber ?? '-' },
-                                { key: 's_tg', label: 'TG', children: selectedRow.student?.tgUsername ?? '-' },
-                            ]}
-                        />
-                    </div>
-                )}
-
-                <div className="mt-4 flex gap-2">
-                    <Button
-                        className="w-full"
-                        onClick={() => {
-                            setModalCertificate(selectedRow);
-                            setModalOpen(true);
-                        }}
-                    >
-                        Edit
-                    </Button>
                 </div>
-            </Drawer>
+            )}
 
             <CertificateUpsertModal
-                open={modalOpen}
+                open={upsertOpen}
                 certificate={modalCertificate}
                 teacherId={modalCertificate?.teacherId || newTeacherId}
                 onClose={() => {
-                    setModalOpen(false);
+                    setUpsertOpen(false);
                     setModalCertificate(null);
                 }}
                 onSaved={() => {
-                    setModalOpen(false);
+                    setUpsertOpen(false);
                     setModalCertificate(null);
                     query.refetch();
                 }}
+            />
+
+            <TeacherMoreModal
+                open={teacherModalOpen}
+                teacher={selectedTeacher}
+                onClose={() => setTeacherModalOpen(false)}
+                onEdit={() => { }}
+                onRefetch={() => teacherByIdQuery.refetch()}
+            />
+
+            <StudentMoreModal
+                open={studentModalOpen}
+                student={selectedStudent}
+                onClose={() => setStudentModalOpen(false)}
+                onRefetch={() => studentByIdQuery.refetch()}
             />
         </div>
     );
