@@ -66,7 +66,7 @@ export const useTeacherLessons = (teacherId: number | undefined, params: LessonT
         queryKey: ['teacher-lessons', teacherId, params],
         enabled: !!teacherId,
         queryFn: async () => {
-            const res = await request.get<LessonTemplateResponse>('/lesson-template/teacher', {
+            const res = await request.get<LessonTemplateResponse>('/lesson-template', {
                 params: {
                     teacherId,
                     status: params.status,

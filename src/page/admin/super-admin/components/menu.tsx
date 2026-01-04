@@ -46,6 +46,11 @@ export const items: MenuItem[] = [
         icon: <Users size={20} />,
         children: [
             {
+                key: 'teacher-stats',
+                label: <Link to={'/super-admin/teacher/statistics'} className="font-medium">Statistics</Link>,
+                icon: <BarChart3 size={16} />
+            },
+            {
                 key: 'teacher-all',
                 label: <Link to={'/super-admin/teacher/all'} className="font-medium">List</Link>,
                 icon: <Users size={16} />

@@ -15,6 +15,7 @@ import { TeacherList } from './page/admin/teacher/teacher-list';
 import { TeacherBlocked } from './page/admin/teacher/teacher-blocked';
 import { TeacherDelete } from './page/admin/teacher/teacher-delete';
 import { TeacherConfirm } from './page/admin/teacher/teacher-confirm';
+import { TeacherStatistics } from './page/admin/teacher/teacher-statistics';
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
           <Route path="delete" element={<DeleteAdmin />} />
         </Route>
         <Route path='teacher' element={<TeacherDashboard />}>
+          <Route path="statistics" element={<TeacherStatistics />} />
           <Route path="all" element={<TeacherList />} />
           <Route path="blocked" element={<TeacherBlocked />} />
           <Route path="delete" element={<TeacherDelete />} />

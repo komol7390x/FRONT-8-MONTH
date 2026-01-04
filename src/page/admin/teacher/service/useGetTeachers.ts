@@ -51,6 +51,8 @@ export interface GetTeachersParams {
     level?: LanguageLevel;
     sort?: TeacherSort;
     lang?: string;
+    status?: boolean;
+    isDeleted?: boolean;
 }
 
 export interface GetTeachersResponse {
@@ -76,6 +78,8 @@ export const useGetTeachers = (params: GetTeachersParams = {}) => {
             if (params.level) queryParams.level = params.level;
             if (params.sort) queryParams.sort = params.sort;
             if (params.lang?.trim()) queryParams.lang = params.lang.trim();
+            if (typeof params.status === 'boolean') queryParams.status = params.status;
+            if (typeof params.isDeleted === 'boolean') queryParams.isDeleted = params.isDeleted;
 
             const res = await request.get<GetTeachersResponse>('/teacher/all', {
                 params: queryParams
