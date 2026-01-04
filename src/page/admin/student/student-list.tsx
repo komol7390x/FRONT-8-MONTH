@@ -106,6 +106,14 @@ export const StudentList: React.FC = () => {
                         sort={sort}
                         setSort={setSort}
                         onResetPage={() => setPage(1)}
+                        onClear={() => {
+                            setSearchInput('');
+                            setSearch('');
+                            setStatusFilter('');
+                            setIsDeletedFilter('');
+                            setSort(StudentSort.CREATED_AT);
+                            setPage(1);
+                        }}
                     />
                 </div>
 

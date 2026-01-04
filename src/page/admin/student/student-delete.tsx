@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
-import { Modal } from 'antd';
 
 import { Pagination } from '../super-admin/admin/components/pagantion';
 import { StudentFilters } from './components/student-filters';
@@ -8,7 +7,6 @@ import { StudentMoreModal } from './components/student-more-modal';
 import { StudentTable } from './components/student-table';
 import { StudentSort, type Student } from './service/useGetStudents';
 import { useGetStudents } from './service/useGetStudents';
-import { useSoftDeleteStudent } from './service/useSoftDeleteStudent';
 
 export const StudentDelete: React.FC = () => {
     const [page, setPage] = useState<number>(1);
@@ -22,7 +20,7 @@ export const StudentDelete: React.FC = () => {
     const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
     const [isMoreOpen, setIsMoreOpen] = useState<boolean>(false);
 
-    const { mutate: restoreStudent, isPending: isRestoring } = useSoftDeleteStudent();
+    const [initialAction, setInitialAction] = useState<any>(null);
 
     const applySearchNow = () => {
         setSearch(searchInput);
@@ -59,23 +57,11 @@ export const StudentDelete: React.FC = () => {
     };
 
     const handleRecover = (id: number) => {
-        Modal.confirm({
-            title: 'Recover student?',
-            content: 'Deleted studentni tiklashni tasdiqlaysizmi?',
-            okText: 'Recover',
-            cancelText: 'Cancel',
-            okButtonProps: { danger: false },
-            onOk: async () => {
-                restoreStudent(
-                    { id, status: false },
-                    {
-                        onSuccess: () => {
-                            refetch();
-                        },
-                    } as any,
-                );
-            },
-        });
+        const s = students.find((x) => x.id === id);
+        if (!s) return;
+        setSelectedStudent(s);
+        setInitialAction('restore');
+        setIsMoreOpen(true);
     };
 
     if (isPending) {
@@ -119,6 +105,12 @@ export const StudentDelete: React.FC = () => {
                         sort={sort}
                         setSort={setSort}
                         onResetPage={() => setPage(1)}
+                        onClear={() => {
+                            setSearchInput('');
+                            setSearch('');
+                            setSort(StudentSort.CREATED_AT);
+                            setPage(1);
+                        }}
                     />
                 </div>
 
@@ -128,11 +120,12 @@ export const StudentDelete: React.FC = () => {
                     limit={limit}
                     onMore={(s) => {
                         setSelectedStudent(s);
+                        setInitialAction(null);
                         setIsMoreOpen(true);
                     }}
                     showRecover={true}
                     onRecover={handleRecover}
-                    isRecovering={isRestoring}
+                    isRecovering={false}
                 />
 
                 <Pagination
@@ -151,6 +144,7 @@ export const StudentDelete: React.FC = () => {
                     deleteMode={true}
                     onClose={() => setIsMoreOpen(false)}
                     onRefetch={() => refetch()}
+                    initialAction={initialAction}
                 />
             </div>
         </div>

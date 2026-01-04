@@ -103,6 +103,16 @@ export const TeacherDelete: React.FC = () => {
                         lang={lang}
                         setLang={setLang}
                         onResetPage={() => setPage(1)}
+                        onClear={() => {
+                            setSearchInput('');
+                            setSearch('');
+                            setStatusFilter('');
+                            setIsDeletedFilter('');
+                            setSort(TeacherSort.FULLNAME);
+                            setLevel('');
+                            setLang('');
+                            setPage(1);
+                        }}
                     />
                 </div>
 

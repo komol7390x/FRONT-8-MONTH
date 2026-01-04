@@ -18,6 +18,7 @@ interface StudentFiltersProps {
     setSort: (v: string) => void;
 
     onResetPage: () => void;
+    onClear?: () => void;
 }
 
 export const StudentFilters: React.FC<StudentFiltersProps> = ({
@@ -36,6 +37,7 @@ export const StudentFilters: React.FC<StudentFiltersProps> = ({
     setSort,
 
     onResetPage,
+    onClear,
 }) => {
     return (
         <div className="mt-4 p-4 rounded-2xl border border-gray-200 bg-linear-to-r from-white to-gray-50 shadow-sm space-y-3">
@@ -54,14 +56,25 @@ export const StudentFilters: React.FC<StudentFiltersProps> = ({
                     />
                 </div>
 
-                <button
-                    type="button"
-                    onClick={applySearchNow}
-                    className="h-11 px-5 bg-linear-to-r from-cyan-600 to-blue-600 text-white rounded-xl text-sm font-semibold hover:from-cyan-700 hover:to-blue-700 transition-colors shadow-sm flex items-center justify-center gap-2"
-                >
-                    <Search size={16} />
-                    Search
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        type="button"
+                        onClick={applySearchNow}
+                        className="h-11 px-5 bg-linear-to-r from-cyan-600 to-blue-600 text-white rounded-xl text-sm font-semibold hover:from-cyan-700 hover:to-blue-700 transition-colors shadow-sm flex items-center justify-center gap-2"
+                    >
+                        <Search size={16} />
+                        Search
+                    </button>
+                    {!!onClear && (
+                        <button
+                            type="button"
+                            onClick={onClear}
+                            className="h-11 px-5 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors shadow-sm"
+                        >
+                            Clear
+                        </button>
+                    )}
+                </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">

@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Ban, Edit, PlusCircle, Trash2, Unlock, Wallet, X } from 'lucide-react';
-import { Modal } from 'antd';
 import type { Student } from '../service/useGetStudents';
 import { useStudentIsActive } from '../service/useStudentIsActive';
 import { useSoftDeleteStudent } from '../service/useSoftDeleteStudent';
@@ -21,6 +20,7 @@ interface StudentMoreModalProps {
     onClose: () => void;
     onRefetch: () => void;
     deleteMode?: boolean;
+    initialAction?: ConfirmAction | null;
 }
 
 export const StudentMoreModal: React.FC<StudentMoreModalProps> = ({
@@ -29,6 +29,7 @@ export const StudentMoreModal: React.FC<StudentMoreModalProps> = ({
     onClose,
     onRefetch,
     deleteMode = false,
+    initialAction = null,
 }) => {
     const [activeTab, setActiveTab] = useState<Tab>('info');
     const [view, setView] = useState<ModalView>('more');
@@ -40,6 +41,14 @@ export const StudentMoreModal: React.FC<StudentMoreModalProps> = ({
     const { mutate: hardDeleteStudent, isPending: isHardDeleting } = useHardDeleteStudent();
 
     const shouldShowHardDelete = deleteMode || !!student?.isDeleted;
+
+    useEffect(() => {
+        if (!open) return;
+        if (!student?.id) return;
+        if (!initialAction) return;
+        setConfirmAction(initialAction);
+        setView('confirm');
+    }, [open, student?.id, initialAction]);
 
     const closeAll = () => {
         setView('more');
@@ -248,16 +257,8 @@ export const StudentMoreModal: React.FC<StudentMoreModalProps> = ({
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        Modal.confirm({
-                                            title: 'Recover student?',
-                                            content: 'Deleted studentni tiklashni tasdiqlaysizmi?',
-                                            okText: 'Recover',
-                                            cancelText: 'Cancel',
-                                            onOk: async () => {
-                                                setConfirmAction('restore');
-                                                setView('confirm');
-                                            },
-                                        });
+                                        setConfirmAction('restore');
+                                        setView('confirm');
                                     }}
                                     disabled={isSoftDeleting}
                                     className="px-4 py-2.5 bg-green-700 text-white rounded text-sm font-medium hover:bg-green-800 disabled:bg-green-300 transition-colors flex items-center justify-center gap-2"

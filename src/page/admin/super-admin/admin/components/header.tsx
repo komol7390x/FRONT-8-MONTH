@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 
 interface HeaderProps {
     setPage: (page: number) => void;
@@ -31,17 +31,47 @@ export const Header: React.FC<HeaderProps> = ({ setPage, onSearch, openCreateMod
                 )}
             </div>
 
-            <div className="mt-4">
-                <input
-                    type="text"
-                    placeholder="Search by username, phone or role"
-                    value={localSearch}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                        setLocalSearch(e.target.value);
-                        setPage(1);
-                    }}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200"
-                />
+            <div className="mt-4 p-4 rounded-2xl border border-gray-200 bg-linear-to-r from-white to-gray-50 shadow-sm">
+                <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="flex-1 relative">
+                        <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+                        <input
+                            type="text"
+                            placeholder="Search by username, phone or role"
+                            value={localSearch}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                setLocalSearch(e.target.value);
+                                setPage(1);
+                            }}
+                            className="w-full h-11 pl-11 pr-4 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-cyan-200 text-sm shadow-sm"
+                        />
+                    </div>
+
+                    <div className="flex gap-2">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                onSearch(localSearch);
+                                setPage(1);
+                            }}
+                            className="h-11 px-5 bg-linear-to-r from-cyan-600 to-blue-600 text-white rounded-xl text-sm font-semibold hover:from-cyan-700 hover:to-blue-700 transition-colors shadow-sm flex items-center justify-center gap-2"
+                        >
+                            <Search size={16} />
+                            Search
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setLocalSearch('');
+                                onSearch('');
+                                setPage(1);
+                            }}
+                            className="h-11 px-5 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors shadow-sm"
+                        >
+                            Clear
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     );
