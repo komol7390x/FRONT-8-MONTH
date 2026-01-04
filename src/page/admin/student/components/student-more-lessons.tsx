@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { BookOpen, ChevronDown, Copy, DollarSign, Hash, Link2, Clock } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { BookOpen, ChevronDown, ChevronLeft, ChevronRight, Copy, DollarSign, Hash, Link2, Clock } from 'lucide-react';
 import type { Student } from '../service/useGetStudents';
 import { useStudentLessons } from '../service/useStudentLessons';
 
@@ -9,8 +9,18 @@ interface StudentMoreLessonsProps {
 
 export const StudentMoreLessons: React.FC<StudentMoreLessonsProps> = ({ student }) => {
     const [lessonStatusFilter, setLessonStatusFilter] = useState<string>('');
-    const lessonsQuery = useStudentLessons(student?.id, { page: 1, limit: 100 });
+
+    const [page, setPage] = useState<number>(1);
+    const [limit, setLimit] = useState<number>(10);
+
+    const lessonsQuery = useStudentLessons(student?.id, { page, limit });
     const lessons: any[] = lessonsQuery.data?.data || [];
+
+    const totalPages = lessonsQuery.data?.meta?.totalPages || 0;
+
+    useEffect(() => {
+        setPage(1);
+    }, [lessonStatusFilter, limit]);
 
     const filteredLessons = useMemo(() => {
         if (!lessonStatusFilter) return lessons;
@@ -151,6 +161,45 @@ export const StudentMoreLessons: React.FC<StudentMoreLessonsProps> = ({ student 
                     </div>
                 </div>
             ))}
+
+            {!!totalPages && totalPages > 1 && (
+                <div className="flex items-center justify-between gap-2 pt-1">
+                    <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                            disabled={page <= 1}
+                            className="h-9 px-3 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                        >
+                            <ChevronLeft size={14} />
+                            Prev
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setPage((p) => (totalPages ? Math.min(p + 1, totalPages) : p + 1))}
+                            disabled={totalPages ? page >= totalPages : false}
+                            className="h-9 px-3 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                        >
+                            Next
+                            <ChevronRight size={14} />
+                        </button>
+                        <span className="text-xs text-gray-600">Page {page} / {totalPages}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-600">Show</span>
+                        <select
+                            value={limit}
+                            onChange={(e) => setLimit(Number(e.target.value))}
+                            className="h-9 px-3 border border-gray-200 rounded-xl bg-white text-xs shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-gray-200"
+                        >
+                            {[5, 10, 20, 50].map((v) => (
+                                <option key={v} value={v}>{v}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

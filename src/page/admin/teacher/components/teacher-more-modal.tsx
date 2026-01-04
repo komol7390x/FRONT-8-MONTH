@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Ban, Edit, Unlock, X } from 'lucide-react';
 import type { Teacher } from '../service/useGetTeachers';
 import { useTeacherIsActive } from '../service/useTeacherIsActive';
@@ -20,6 +20,9 @@ interface TeacherMoreModalProps {
     onEdit: () => void;
     onRefetch: () => void;
     deleteMode?: boolean;
+    focusTab?: Tab;
+    focusLessonId?: number;
+    focusCertificateId?: number;
 }
 
 export const TeacherMoreModal: React.FC<TeacherMoreModalProps> = ({
@@ -29,6 +32,9 @@ export const TeacherMoreModal: React.FC<TeacherMoreModalProps> = ({
     onEdit,
     onRefetch,
     deleteMode = false,
+    focusTab,
+    focusLessonId,
+    focusCertificateId,
 }) => {
     const [activeTab, setActiveTab] = useState<Tab>('info');
     const [view, setView] = useState<ModalView>('more');
@@ -39,6 +45,13 @@ export const TeacherMoreModal: React.FC<TeacherMoreModalProps> = ({
     const { mutate: hardDeleteTeacher, isPending: isHardDeletingTeacher } = useHardDeleteTeacher();
 
     const shouldShowHardDelete = deleteMode || !!teacher?.isDeleted;
+
+    useEffect(() => {
+        if (!open) return;
+        if (view !== 'more') return;
+        if (!focusTab) return;
+        setActiveTab(focusTab);
+    }, [focusTab, open, view]);
 
     const closeAll = () => {
         setView('more');
@@ -212,8 +225,20 @@ export const TeacherMoreModal: React.FC<TeacherMoreModalProps> = ({
 
                         <div className="mt-4 space-y-3">
                             {activeTab === 'info' && <TeacherMoreInfo teacher={teacher} />}
-                            {activeTab === 'certificates' && <TeacherMoreCertificates teacher={teacher} onUpdated={onRefetch} />}
-                            {activeTab === 'lessons' && <TeacherMoreLessons teacher={teacher} onUpdated={onRefetch} />}
+                            {activeTab === 'certificates' && (
+                                <TeacherMoreCertificates
+                                    teacher={teacher}
+                                    onUpdated={onRefetch}
+                                    focusCertificateId={focusCertificateId}
+                                />
+                            )}
+                            {activeTab === 'lessons' && (
+                                <TeacherMoreLessons
+                                    teacher={teacher}
+                                    onUpdated={onRefetch}
+                                    focusLessonId={focusLessonId}
+                                />
+                            )}
 
                             <div className="flex gap-2 pt-2">
                                 {activeTab === 'info' && (

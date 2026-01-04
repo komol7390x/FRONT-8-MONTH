@@ -1,7 +1,7 @@
 import { Alert, Card, InputNumber, Select, Spin, Table, Tag, Typography, message } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useEffect, useMemo, useState } from 'react';
-import { CheckCircle2, Copy, Hash, Search, User, UserRound, X } from 'lucide-react';
+import { CheckCircle2, Hash, Search, User, UserRound, X } from 'lucide-react';
 import { Pagination } from '../admin/components/pagantion';
 import { useLessonTemplates } from './service/useLessonTemplates';
 import { useCreateLessonTemplate } from '../../teacher/service/useCreateLessonTemplate';
@@ -26,7 +26,7 @@ export const LessonPage: React.FC = () => {
     const [active, setActive] = useState<boolean | undefined>(undefined);
 
     const [selectedRow, setSelectedRow] = useState<any | null>(null);
-    const [modalOpen, setModalOpen] = useState<boolean>(false);
+    const [chooserOpen, setChooserOpen] = useState<boolean>(false);
 
     const [isCreateOpen, setIsCreateOpen] = useState<boolean>(false);
     const [createForm, setCreateForm] = useState({
@@ -42,9 +42,19 @@ export const LessonPage: React.FC = () => {
     const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
     const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
 
+    const [teacherFocusTab, setTeacherFocusTab] = useState<'info' | 'certificates' | 'lessons' | undefined>(undefined);
+    const [teacherFocusLessonId, setTeacherFocusLessonId] = useState<number | undefined>(undefined);
+
     const studentByIdQuery = useGetStudentById(selectedRow?.studentId ? Number(selectedRow.studentId) : undefined);
     const teacherByIdQuery = useGetTeacherById(selectedRow?.teacherId ? Number(selectedRow.teacherId) : undefined);
     const createTeacherByIdQuery = useGetTeacherById(isCreateOpen && createForm.teacherId ? Number(createForm.teacherId) : undefined);
+
+    useEffect(() => {
+        if (!teacherModalOpen) return;
+        const t = teacherByIdQuery.data;
+        if (!t) return;
+        setSelectedTeacher(t as any);
+    }, [teacherByIdQuery.data, teacherModalOpen]);
 
     const { mutateAsync: createLesson } = useCreateLessonTemplate() as any;
 
@@ -70,15 +80,6 @@ export const LessonPage: React.FC = () => {
     const handleLimitChange = (newLimit: string | number) => {
         setLimit(Number(newLimit));
         setPage(1);
-    };
-
-    const copyToClipboard = async (text: string) => {
-        try {
-            await navigator.clipboard.writeText(text);
-            message.success('Copied');
-        } catch {
-            message.error('Copy failed');
-        }
     };
 
     const createTeacherCertificates = (createTeacherByIdQuery.data as any)?.certificates || [];
@@ -355,7 +356,7 @@ export const LessonPage: React.FC = () => {
                         return {
                             onClick: () => {
                                 setSelectedRow(record);
-                                setModalOpen(true);
+                                setChooserOpen(true);
                             },
                         };
                     }}
@@ -374,121 +375,62 @@ export const LessonPage: React.FC = () => {
                 handleLimitChange={handleLimitChange}
             />
 
-            {modalOpen && selectedRow && (
+            {chooserOpen && selectedRow && (
                 <div
-                    className="fixed inset-0 bg-gray-300/70 bg-opacity-50 flex items-center justify-center z-50 p-4"
-                    onClick={() => {
-                        setModalOpen(false);
-                        setSelectedRow(null);
-                    }}
+                    className="fixed inset-0 bg-emerald-600/20 flex items-center justify-center z-50 p-4"
+                    onClick={() => setChooserOpen(false)}
                 >
                     <div
-                        className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto"
+                        className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-bold text-gray-900">Lesson Details</h2>
-                            <button
-                                onClick={() => {
-                                    setModalOpen(false);
-                                    setSelectedRow(null);
-                                }}
-                                className="text-gray-400 hover:text-gray-600 transition-colors"
-                            >
-                                <X size={22} />
+                            <h3 className="text-lg font-bold text-gray-900">Open details</h3>
+                            <button onClick={() => setChooserOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                                <X size={20} />
                             </button>
                         </div>
 
-                        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 mb-4">
-                            <div className="flex items-center justify-between gap-3">
-                                <div className="min-w-0">
-                                    <p className="font-semibold text-gray-900 truncate">{selectedRow?.lessonName || 'Lesson'}</p>
-                                    <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                        <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-semibold">ID:{selectedRow?.id}</span>
-                                        {!!selectedRow?.status && (
-                                            <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs font-semibold">{String(selectedRow.status)}</span>
-                                        )}
-                                        <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-semibold">T:{selectedRow?.teacherId ?? '-'}</span>
-                                        <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-semibold">S:{selectedRow?.studentId ?? '-'}</span>
-                                    </div>
-                                </div>
-                                <Tag color={selectedRow?.active ? 'green' : 'red'} className="m-0">
-                                    {selectedRow?.active ? 'Active' : 'Inactive'}
-                                </Tag>
-                            </div>
-                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setChooserOpen(false);
+                                    setTeacherFocusTab('lessons');
+                                    setTeacherFocusLessonId(selectedRow?.id ? Number(selectedRow.id) : undefined);
+                                    setTeacherModalOpen(true);
+                                }}
+                                className="h-11 px-4 bg-linear-to-r from-cyan-600 to-blue-600 text-white rounded-xl text-sm font-semibold hover:from-cyan-700 hover:to-blue-700 transition-colors shadow-sm"
+                            >
+                                Teacher details
+                            </button>
 
-                        <div className="space-y-3">
-                            <div className="border-t pt-4 space-y-2">
-                                {(
-                                    [
-                                        { label: 'ID', value: selectedRow?.id },
-                                        { label: 'TeacherId', value: selectedRow?.teacherId },
-                                        { label: 'StudentId', value: selectedRow?.studentId },
-                                        { label: 'Status', value: selectedRow?.status },
-                                        { label: 'Weekday', value: selectedRow?.weekDays },
-                                        { label: 'Start', value: selectedRow?.startTime },
-                                        { label: 'End', value: selectedRow?.endTime },
-                                        { label: 'Price', value: selectedRow?.price },
-                                        { label: 'Meet', value: selectedRow?.meetLink },
-                                        { label: 'GCal', value: selectedRow?.googleEventId },
-                                    ] as Array<{ label: string; value: any }>
-                                ).map((item) => (
-                                    <div
-                                        key={item.label}
-                                        className="group flex items-center justify-between p-2.5 bg-gray-50 rounded hover:bg-gray-100 transition-colors"
-                                    >
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-xs font-medium text-gray-500 mb-0.5">{item.label}</p>
-                                            <p className="text-sm font-semibold text-gray-900 truncate">{item.value ?? '-'}</p>
-                                        </div>
-                                        <button
-                                            type="button"
-                                            onClick={() => copyToClipboard(String(item.value ?? ''))}
-                                            className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-white rounded transition-colors"
-                                            title={`Copy ${item.label}`}
-                                        >
-                                            <Copy size={14} />
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-2">
+                            {!!selectedRow?.studentId ? (
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        const t = teacherByIdQuery.data;
-                                        if (!t) {
-                                            message.warning('Teacher not loaded');
+                                        setChooserOpen(false);
+                                        const s = studentByIdQuery.data;
+                                        if (!s) {
+                                            message.warning('Student not loaded');
                                             return;
                                         }
-                                        setSelectedTeacher(t as any);
-                                        setTeacherModalOpen(true);
+                                        setSelectedStudent(s as any);
+                                        setStudentModalOpen(true);
                                     }}
-                                    className="h-11 px-5 bg-linear-to-r from-cyan-600 to-blue-600 text-white rounded-xl text-sm font-semibold hover:from-cyan-700 hover:to-blue-700 transition-colors shadow-sm"
+                                    className="h-11 px-4 bg-linear-to-r from-emerald-600 to-green-600 text-white rounded-xl text-sm font-semibold hover:from-emerald-700 hover:to-green-700 transition-colors shadow-sm"
                                 >
-                                    Teacher details
+                                    Student details
                                 </button>
-
-                                {!!selectedRow?.studentId && (
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            const s = studentByIdQuery.data;
-                                            if (!s) {
-                                                message.warning('Student not loaded');
-                                                return;
-                                            }
-                                            setSelectedStudent(s as any);
-                                            setStudentModalOpen(true);
-                                        }}
-                                        className="h-11 px-5 bg-linear-to-r from-emerald-600 to-green-600 text-white rounded-xl text-sm font-semibold hover:from-emerald-700 hover:to-green-700 transition-colors shadow-sm"
-                                    >
-                                        Student details
-                                    </button>
-                                )}
-                            </div>
+                            ) : (
+                                <button
+                                    type="button"
+                                    disabled
+                                    className="h-11 px-4 bg-gray-100 text-gray-400 rounded-xl text-sm font-semibold cursor-not-allowed"
+                                >
+                                    Student details
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -620,9 +562,16 @@ export const LessonPage: React.FC = () => {
             <TeacherMoreModal
                 open={teacherModalOpen}
                 teacher={selectedTeacher}
-                onClose={() => setTeacherModalOpen(false)}
+                onClose={() => {
+                    setTeacherModalOpen(false);
+                    setTeacherFocusTab(undefined);
+                    setTeacherFocusLessonId(undefined);
+                    setSelectedTeacher(null);
+                }}
                 onEdit={() => { }}
                 onRefetch={() => teacherByIdQuery.refetch()}
+                focusTab={teacherFocusTab}
+                focusLessonId={teacherFocusLessonId}
             />
 
             <StudentMoreModal

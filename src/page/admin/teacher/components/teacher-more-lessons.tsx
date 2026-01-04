@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { BookOpen, ChevronDown, Clock, Copy, DollarSign, Edit, Hash, Link2, Plus } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { BookOpen, ChevronDown, ChevronLeft, ChevronRight, Clock, Copy, DollarSign, Edit, Hash, Link2, Plus } from 'lucide-react';
 import type { Teacher } from '../service/useGetTeachers';
 import { useTeacherLessons, type LessonTemplateItem } from '../service/useTeacherLessons';
 import { copyToClipboard, formatDateTime, formatNumber, toDisplay } from './teacher-utils';
@@ -9,21 +9,48 @@ import { LessonTemplateCreateModal } from './lesson-template-create-modal';
 interface TeacherMoreLessonsProps {
     teacher: Teacher;
     onUpdated: () => void;
+    focusLessonId?: number;
 }
 
-export const TeacherMoreLessons: React.FC<TeacherMoreLessonsProps> = ({ teacher, onUpdated }) => {
+export const TeacherMoreLessons: React.FC<TeacherMoreLessonsProps> = ({ teacher, onUpdated, focusLessonId }) => {
     const [lessonStatusFilter, setLessonStatusFilter] = useState<string>('');
     const [selectedLesson, setSelectedLesson] = useState<any | null>(null);
     const [isEditOpen, setIsEditOpen] = useState<boolean>(false);
     const [isCreateOpen, setIsCreateOpen] = useState<boolean>(false);
 
-    const lessonsQuery = useTeacherLessons(teacher?.id, { page: 1, limit: 100 });
+    const [page, setPage] = useState<number>(1);
+    const [limit, setLimit] = useState<number>(10);
+
+    const [highlightLessonId, setHighlightLessonId] = useState<number | undefined>(undefined);
+    const lessonRefs = useRef<Record<number, HTMLDivElement | null>>({});
+
+    const lessonsQuery = useTeacherLessons(teacher?.id, {
+        page,
+        limit,
+        status: lessonStatusFilter ? (lessonStatusFilter as any) : undefined,
+    });
     const lessons: LessonTemplateItem[] = lessonsQuery.data?.data || [];
 
-    const filteredLessons = useMemo(() => {
-        if (!lessonStatusFilter) return lessons;
-        return lessons.filter((l) => String((l as any).status || '').toLowerCase() === lessonStatusFilter);
-    }, [lessons, lessonStatusFilter]);
+    const totalPages = lessonsQuery.data?.meta?.totalPages || 0;
+    const displayTotalPages = totalPages || 1;
+
+    useEffect(() => {
+        setPage(1);
+    }, [lessonStatusFilter, limit]);
+
+    useEffect(() => {
+        if (!focusLessonId) return;
+        setHighlightLessonId(focusLessonId);
+    }, [focusLessonId]);
+
+    useEffect(() => {
+        if (!highlightLessonId) return;
+        const el = lessonRefs.current[highlightLessonId];
+        if (!el) return;
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, [highlightLessonId, lessons]);
+
+    const filteredLessons = useMemo(() => lessons, [lessons]);
 
     return (
         <div className="space-y-3">
@@ -70,7 +97,16 @@ export const TeacherMoreLessons: React.FC<TeacherMoreLessonsProps> = ({ teacher,
                 <div className="p-4 text-center text-gray-500 border border-gray-200 rounded-lg bg-gray-50">No lessons</div>
             ) : (
                 filteredLessons.map((l: any) => (
-                    <div key={l.id} className="p-3 border border-gray-200 rounded-lg bg-gray-50">
+                    <div
+                        key={l.id}
+                        ref={(el) => {
+                            if (l?.id != null) lessonRefs.current[Number(l.id)] = el;
+                        }}
+                        className={`p-3 border rounded-lg transition-colors ${Number(l?.id) === Number(highlightLessonId)
+                            ? 'bg-emerald-50 border-emerald-300 ring-2 ring-emerald-300 animate-pulse'
+                            : 'border-gray-200 bg-gray-50'
+                            }`}
+                    >
                         <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0">
                                 <div className="flex items-center gap-2 min-w-0">
@@ -157,6 +193,45 @@ export const TeacherMoreLessons: React.FC<TeacherMoreLessonsProps> = ({ teacher,
                         </div>
                     </div>
                 ))
+            )}
+
+            {filteredLessons.length > 0 && displayTotalPages > 1 && (
+                <div className="flex items-center justify-between gap-2 pt-1">
+                    <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                            disabled={page <= 1}
+                            className="h-9 px-3 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                        >
+                            <ChevronLeft size={14} />
+                            Prev
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setPage((p) => Math.min(p + 1, displayTotalPages))}
+                            disabled={page >= displayTotalPages}
+                            className="h-9 px-3 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                        >
+                            Next
+                            <ChevronRight size={14} />
+                        </button>
+                        <span className="text-xs text-gray-600">Page {page} / {displayTotalPages}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-600">Show</span>
+                        <select
+                            value={limit}
+                            onChange={(e) => setLimit(Number(e.target.value))}
+                            className="h-9 px-3 border border-gray-200 rounded-xl bg-white text-xs shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-gray-200"
+                        >
+                            {[5, 10, 20, 50].map((v) => (
+                                <option key={v} value={v}>{v}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
             )}
 
             <LessonTemplateEditModal
