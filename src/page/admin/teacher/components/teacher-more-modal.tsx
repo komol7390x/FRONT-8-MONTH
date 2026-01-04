@@ -10,7 +10,8 @@ import { TeacherMoreLessons } from './teacher-more-lessons';
 import { getInitials } from './teacher-utils';
 
 type Tab = 'info' | 'certificates' | 'lessons';
-type ModalView = 'more' | 'hardDeleteConfirm';
+type ConfirmAction = 'toggleActive' | 'softDelete' | 'restore';
+type ModalView = 'more' | 'hardDeleteConfirm' | 'confirm';
 
 interface TeacherMoreModalProps {
     open: boolean;
@@ -31,6 +32,7 @@ export const TeacherMoreModal: React.FC<TeacherMoreModalProps> = ({
 }) => {
     const [activeTab, setActiveTab] = useState<Tab>('info');
     const [view, setView] = useState<ModalView>('more');
+    const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
 
     const { mutate: setActive, isPending: isBlocking } = useTeacherIsActive();
     const { mutate: softDeleteTeacher, isPending: isSoftDeletingTeacher } = useSoftDeleteTeacher();
@@ -40,8 +42,52 @@ export const TeacherMoreModal: React.FC<TeacherMoreModalProps> = ({
 
     const closeAll = () => {
         setView('more');
+        setConfirmAction(null);
         setActiveTab('info');
         onClose();
+    };
+
+    const confirmNow = () => {
+        if (!teacher?.id || !confirmAction) return;
+
+        if (confirmAction === 'toggleActive') {
+            const current = !!teacher.isActive;
+            setActive(
+                { id: teacher.id, active: !current },
+                {
+                    onSuccess: () => {
+                        closeAll();
+                        onRefetch();
+                    },
+                } as any,
+            );
+            return;
+        }
+
+        if (confirmAction === 'softDelete') {
+            softDeleteTeacher(
+                { id: teacher.id, status: true },
+                {
+                    onSuccess: () => {
+                        closeAll();
+                        onRefetch();
+                    },
+                } as any,
+            );
+            return;
+        }
+
+        if (confirmAction === 'restore') {
+            softDeleteTeacher(
+                { id: teacher.id, status: false },
+                {
+                    onSuccess: () => {
+                        closeAll();
+                        onRefetch();
+                    },
+                } as any,
+            );
+        }
     };
 
     if (!open || !teacher) return null;
@@ -86,6 +132,42 @@ export const TeacherMoreModal: React.FC<TeacherMoreModalProps> = ({
                                 className="flex-1 px-4 py-2.5 bg-red-700 text-white rounded text-sm font-medium hover:bg-red-800 disabled:bg-red-300 transition-colors"
                             >
                                 {isHardDeletingTeacher ? 'Deleting...' : 'Confirm Hard Delete'}
+                            </button>
+                        </div>
+                    </div>
+                ) : view === 'confirm' ? (
+                    <div className="space-y-4">
+                        <div className={`p-4 border rounded-lg ${confirmAction === 'softDelete' ? 'border-red-200 bg-red-50' : confirmAction === 'restore' ? 'border-green-200 bg-green-50' : 'border-amber-200 bg-amber-50'}`}>
+                            <p className={`text-sm font-semibold ${confirmAction === 'softDelete' ? 'text-red-800' : confirmAction === 'restore' ? 'text-green-800' : 'text-amber-800'}`}>
+                                {confirmAction === 'softDelete'
+                                    ? 'Delete qilishni tasdiqlaysizmi?'
+                                    : confirmAction === 'restore'
+                                        ? 'Restore qilishni tasdiqlaysizmi?'
+                                        : teacher.isActive
+                                            ? 'Block qilishni tasdiqlaysizmi?'
+                                            : 'Unblock qilishni tasdiqlaysizmi?'}
+                            </p>
+                            <p className="text-xs mt-1 text-gray-700">Teacher: {teacher.fullname} (ID: {teacher.id})</p>
+                        </div>
+
+                        <div className="flex gap-2">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setView('more');
+                                    setConfirmAction(null);
+                                }}
+                                className="flex-1 px-4 py-2.5 border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                disabled={isBlocking || isSoftDeletingTeacher}
+                                onClick={confirmNow}
+                                className={`flex-1 px-4 py-2.5 text-white rounded text-sm font-medium transition-colors ${confirmAction === 'softDelete' ? 'bg-red-700 hover:bg-red-800 disabled:bg-red-300' : confirmAction === 'restore' ? 'bg-green-700 hover:bg-green-800 disabled:bg-green-300' : 'bg-amber-700 hover:bg-amber-800 disabled:bg-amber-300'}`}
+                            >
+                                Confirm
                             </button>
                         </div>
                     </div>
@@ -150,16 +232,8 @@ export const TeacherMoreModal: React.FC<TeacherMoreModalProps> = ({
                                     onClick={() => {
                                         if (!teacher?.id) return;
                                         if (teacher.isDeleted) return;
-                                        const current = !!teacher.isActive;
-                                        setActive(
-                                            { id: teacher.id, active: !current },
-                                            {
-                                                onSuccess: () => {
-                                                    closeAll();
-                                                    onRefetch();
-                                                },
-                                            } as any,
-                                        );
+                                        setConfirmAction('toggleActive');
+                                        setView('confirm');
                                     }}
                                     disabled={isBlocking || !!teacher.isDeleted}
                                     className={`flex-1 px-4 py-2.5 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2 ${teacher.isActive
@@ -180,15 +254,8 @@ export const TeacherMoreModal: React.FC<TeacherMoreModalProps> = ({
                                         setView('hardDeleteConfirm');
                                         return;
                                     }
-                                    softDeleteTeacher(
-                                        { id: teacher.id, status: true },
-                                        {
-                                            onSuccess: () => {
-                                                closeAll();
-                                                onRefetch();
-                                            },
-                                        } as any,
-                                    );
+                                    setConfirmAction('softDelete');
+                                    setView('confirm');
                                 }}
                                 disabled={isSoftDeletingTeacher || isHardDeletingTeacher}
                                 className="w-full px-4 py-2.5 bg-red-600 text-white rounded text-sm font-medium hover:bg-red-700 disabled:bg-red-300 transition-colors flex items-center justify-center gap-2"
@@ -207,15 +274,8 @@ export const TeacherMoreModal: React.FC<TeacherMoreModalProps> = ({
                                     type="button"
                                     onClick={() => {
                                         if (!teacher?.id) return;
-                                        softDeleteTeacher(
-                                            { id: teacher.id, status: false },
-                                            {
-                                                onSuccess: () => {
-                                                    closeAll();
-                                                    onRefetch();
-                                                },
-                                            } as any,
-                                        );
+                                        setConfirmAction('restore');
+                                        setView('confirm');
                                     }}
                                     disabled={isSoftDeletingTeacher}
                                     className="w-full px-4 py-2.5 bg-green-600 text-white rounded text-sm font-medium hover:bg-green-700 disabled:bg-green-300 transition-colors flex items-center justify-center gap-2"

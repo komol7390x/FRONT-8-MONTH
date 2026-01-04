@@ -194,7 +194,7 @@ export const DeleteAdmin: React.FC = () => {
           getInitials={getInitials}
           handleBlock={() => { }}
           isBlocking={false}
-          confirmMessage={pendingDelete ? 'Adminni delete qilishni tasdiqlaysizmi?' : ''}
+          confirmMessage={pendingDelete ? `Adminni delete qilishni tasdiqlaysizmi. Adminga tegishli barcha ma\'lumotlar o\'chib ketadi !!!` : ''}
           onConfirm={pendingDelete ? confirmHardDelete : undefined}
           confirmTone={pendingDelete ? 'danger' : undefined}
           otpSent={false}

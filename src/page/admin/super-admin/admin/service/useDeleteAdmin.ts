@@ -8,15 +8,24 @@ interface DeleteAdminResponse {
 }
 
 export const useDeleteAdmin = () => {
-    return useMutation<DeleteAdminResponse, Error, number>({
-        mutationFn: async (id: number) => {
+    return useMutation<DeleteAdminResponse, Error, { id: number; status: boolean }>({
+        mutationFn: async ({ id, status }: { id: number; status: boolean }) => {
             try {
-                const res = await request.delete<DeleteAdminResponse>(`/admin/soft-delete/${id}`);
+                const res = await request.delete<DeleteAdminResponse>(`/admin/soft-delete/${id}`,
+                    {
+                        params: { status: String(status) },
+                    },
+                );
                 return res.data;
             } catch (error: any) {
                 const status = error?.response?.status;
                 if (status === 405 || status === 404) {
-                    const res = await request.patch<DeleteAdminResponse>(`/admin/soft-delete/${id}`);
+                    const res = await request.patch<DeleteAdminResponse>(`/admin/soft-delete/${id}`,
+                        undefined,
+                        {
+                            params: { status: String(status) },
+                        },
+                    );
                     return res.data;
                 }
                 throw error;

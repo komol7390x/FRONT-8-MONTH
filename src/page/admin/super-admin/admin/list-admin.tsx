@@ -81,7 +81,7 @@ export const ListAdmin: React.FC = () => {
   const confirmDelete = (): void => {
     if (!pendingDelete) return;
 
-    deleteAdmin(pendingDelete.id, {
+    deleteAdmin({ id: pendingDelete.id, status: true }, {
       onSuccess: () => {
         setDeletedIds(prev => (prev.includes(pendingDelete.id) ? prev : [...prev, pendingDelete.id]));
         closeModal();
