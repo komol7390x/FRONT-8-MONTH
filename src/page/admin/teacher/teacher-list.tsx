@@ -293,7 +293,7 @@ export const TeacherList: React.FC<TeacherListProps> = ({ mode = 'all' }) => {
 
         // OTP ixtiyoriy: faqat siz "Send OTP" bosgan bo'lsangizgina tekshiramiz
         if ((editPhoneOtpSent && !editPhoneVerified) || (editEmailOtpSent && !editEmailVerified)) {
-            message.warning('OTP noto‘g‘ri yoki kiritilmagan. Iltimos OTP ni to‘g‘ri kiriting.');
+            message.warning('OTP noto\'g\'ri yoki kiritilmagan. Iltimos OTP ni to\'g\'ri kiriting.');
             return;
         }
 
@@ -1174,7 +1174,7 @@ export const TeacherList: React.FC<TeacherListProps> = ({ mode = 'all' }) => {
                                             <input
                                                 value={editForm.fullname}
                                                 onChange={(e) => setEditForm((p) => ({ ...p, fullname: e.target.value }))}
-                                                className="w-full px-3.5 py-2.5 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent transition-all duration-200"
+                                                className="w-full px-3.5 py-2.5 bg-linear-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent transition-all duration-200"
                                                 placeholder="Ali Valiyev"
                                             />
                                         </div>
@@ -1185,7 +1185,7 @@ export const TeacherList: React.FC<TeacherListProps> = ({ mode = 'all' }) => {
                                                 type="number"
                                                 value={editForm.expirence}
                                                 onChange={(e) => setEditForm((p) => ({ ...p, expirence: Number(e.target.value) }))}
-                                                className="w-full px-3.5 py-2.5 bg-gradient-to-r from-sky-50 to-cyan-50 border border-sky-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-300 focus:border-transparent transition-all duration-200"
+                                                className="w-full px-3.5 py-2.5 bg-linear-to-r from-sky-50 to-cyan-50 border border-sky-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-300 focus:border-transparent transition-all duration-200"
                                                 placeholder="3"
                                             />
                                         </div>
@@ -1196,7 +1196,7 @@ export const TeacherList: React.FC<TeacherListProps> = ({ mode = 'all' }) => {
                                                 <input
                                                     value={editForm.email}
                                                     onChange={(e) => setEditForm((p) => ({ ...p, email: e.target.value }))}
-                                                    className={`flex-1 px-3.5 py-2.5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all duration-200 ${editEmailChanged ? 'ring-2 ring-orange-300' : ''}`}
+                                                    className={`flex-1 px-3.5 py-2.5 bg-linear-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all duration-200 ${editEmailChanged ? 'ring-2 ring-orange-300' : ''}`}
                                                     placeholder="teacher@mail.com"
                                                 />
                                                 {editEmailChanged && (
@@ -1221,7 +1221,7 @@ export const TeacherList: React.FC<TeacherListProps> = ({ mode = 'all' }) => {
                                                 <input
                                                     value={editForm.phoneNumber}
                                                     onChange={(e) => setEditForm((p) => ({ ...p, phoneNumber: e.target.value }))}
-                                                    className={`flex-1 px-3.5 py-2.5 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-300 focus:border-transparent transition-all duration-200 ${editPhoneChanged ? 'ring-2 ring-orange-300' : ''}`}
+                                                    className={`flex-1 px-3.5 py-2.5 bg-linear-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-300 focus:border-transparent transition-all duration-200 ${editPhoneChanged ? 'ring-2 ring-orange-300' : ''}`}
                                                     placeholder="+998901234567"
                                                 />
                                                 {editPhoneChanged && (
@@ -1246,7 +1246,7 @@ export const TeacherList: React.FC<TeacherListProps> = ({ mode = 'all' }) => {
                                                 type="password"
                                                 value={editForm.password}
                                                 onChange={(e) => setEditForm((p) => ({ ...p, password: e.target.value }))}
-                                                className="w-full px-3.5 py-2.5 bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-transparent transition-all duration-200"
+                                                className="w-full px-3.5 py-2.5 bg-linear-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-transparent transition-all duration-200"
                                                 placeholder="@Komol12345"
                                             />
                                         </div>
@@ -1256,7 +1256,7 @@ export const TeacherList: React.FC<TeacherListProps> = ({ mode = 'all' }) => {
                                             <input
                                                 value={editForm.cardNumber}
                                                 onChange={(e) => setEditForm((p) => ({ ...p, cardNumber: e.target.value }))}
-                                                className="w-full px-3.5 py-2.5 bg-gradient-to-r from-violet-50 to-fuchsia-50 border border-violet-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-transparent transition-all duration-200"
+                                                className="w-full px-3.5 py-2.5 bg-linear-to-r from-violet-50 to-fuchsia-50 border border-violet-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-transparent transition-all duration-200"
                                                 placeholder="8600123412341234"
                                             />
                                         </div>
@@ -1266,7 +1266,7 @@ export const TeacherList: React.FC<TeacherListProps> = ({ mode = 'all' }) => {
                                             <input
                                                 value={editForm.portfolioLink}
                                                 onChange={(e) => setEditForm((p) => ({ ...p, portfolioLink: e.target.value }))}
-                                                className="w-full px-3.5 py-2.5 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-transparent transition-all duration-200"
+                                                className="w-full px-3.5 py-2.5 bg-linear-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-transparent transition-all duration-200"
                                                 placeholder="https://github.com/teacher"
                                             />
                                         </div>
@@ -1308,7 +1308,7 @@ export const TeacherList: React.FC<TeacherListProps> = ({ mode = 'all' }) => {
                                                             value={editPhoneOtp}
                                                             onChange={(e) => setEditPhoneOtp(e.target.value)}
                                                             placeholder="Enter phone OTP"
-                                                            className="mt-2 w-full px-3.5 py-2.5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all duration-200"
+                                                            className="mt-2 w-full px-3.5 py-2.5 bg-linear-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all duration-200"
                                                         />
                                                     </div>
                                                 )}
@@ -1327,7 +1327,7 @@ export const TeacherList: React.FC<TeacherListProps> = ({ mode = 'all' }) => {
                                                             value={editEmailOtp}
                                                             onChange={(e) => setEditEmailOtp(e.target.value)}
                                                             placeholder="Enter email OTP"
-                                                            className="mt-2 w-full px-3.5 py-2.5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all duration-200"
+                                                            className="mt-2 w-full px-3.5 py-2.5 bg-linear-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all duration-200"
                                                         />
                                                     </div>
                                                 )}
@@ -1348,7 +1348,7 @@ export const TeacherList: React.FC<TeacherListProps> = ({ mode = 'all' }) => {
                                             type="button"
                                             onClick={handleUpdateTeacher}
                                             disabled={isUpdatingTeacher || (editPhoneOtpSent && !editPhoneVerified) || (editEmailOtpSent && !editEmailVerified)}
-                                            className="flex-1 px-4 py-2.5 bg-gradient-to-r from-gray-800 to-gray-900 text-white rounded-lg text-sm font-semibold hover:from-gray-900 hover:to-black disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
+                                            className="flex-1 px-4 py-2.5 bg-linear-to-r from-gray-800 to-gray-900 text-white rounded-lg text-sm font-semibold hover:from-gray-900 hover:to-black disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
                                         >
                                             {isUpdatingTeacher ? 'Saving...' : 'Save Changes'}
                                         </button>
