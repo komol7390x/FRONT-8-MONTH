@@ -1,5 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { request } from "../../../../../config/request";
+import { message } from "antd";
 
 interface DeleteAdminResponse {
     message: string;
@@ -9,14 +10,24 @@ interface DeleteAdminResponse {
 export const useDeleteAdmin = () => {
     return useMutation<DeleteAdminResponse, Error, number>({
         mutationFn: async (id: number) => {
-            const res = await request.delete<DeleteAdminResponse>(`/admin/delete/${id}`);
-            return res.data;
+            try {
+                const res = await request.delete<DeleteAdminResponse>(`/admin/soft-delete/${id}`);
+                return res.data;
+            } catch (error: any) {
+                const status = error?.response?.status;
+                if (status === 405 || status === 404) {
+                    const res = await request.patch<DeleteAdminResponse>(`/admin/soft-delete/${id}`);
+                    return res.data;
+                }
+                throw error;
+            }
         },
         onSuccess: (data) => {
-            console.log('Admin deleted successfully:', data);
+            message.success(data?.message || 'Admin deleted successfully');
         },
-        onError: (error) => {
-            console.error('Error deleting admin:', error);
+        onError: (error: any) => {
+            const errorMessage = error?.response?.data?.message || error?.message || 'Error deleting admin';
+            message.error(errorMessage);
         }
     });
 };

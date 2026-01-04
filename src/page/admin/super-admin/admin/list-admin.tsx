@@ -23,11 +23,12 @@ interface EditForm {
   password: string;
 }
 
-type ModalType = 'edit' | 'more' | 'create' | '';
+type ModalType = 'edit' | 'more' | 'create' | 'confirm' | '';
 
 export const ListAdmin: React.FC = () => {
   const [page, setPage] = useState<number>(1);
   const [status, setStatus] = useState<boolean | undefined>(undefined);
+  const [deletedIds, setDeletedIds] = useState<number[]>([]);
   const [sort, setSort] = useState<SortState>({
     field: SortEnum.USERNAME,
     order: 'desc'
@@ -36,6 +37,8 @@ export const ListAdmin: React.FC = () => {
   const [showModal, setShowModal] = useState<boolean>(false);
   const [modalType, setModalType] = useState<ModalType>('');
   const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
+  const [pendingBlock, setPendingBlock] = useState<{ id: number; currentActive: boolean } | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<{ id: number } | null>(null);
   const [editForm, setEditForm] = useState<EditForm>({
     username: '',
     fullname: '',
@@ -73,6 +76,17 @@ export const ListAdmin: React.FC = () => {
       order: prev.field === field && prev.order === 'asc' ? 'desc' : 'asc'
     }));
     setPage(1);
+  };
+
+  const confirmDelete = (): void => {
+    if (!pendingDelete) return;
+
+    deleteAdmin(pendingDelete.id, {
+      onSuccess: () => {
+        setDeletedIds(prev => (prev.includes(pendingDelete.id) ? prev : [...prev, pendingDelete.id]));
+        closeModal();
+      }
+    } as any);
   };
 
   const handleLimitChange = (newLimit: string | number): void => {
@@ -131,6 +145,8 @@ export const ListAdmin: React.FC = () => {
   const closeModal = (): void => {
     setShowModal(false);
     setSelectedAdmin(null);
+    setPendingBlock(null);
+    setPendingDelete(null);
     setEditForm({ username: '', fullname: '', phoneNumber: '', password: '' });
     // Reset OTP states
     setOtpSent(false);
@@ -185,28 +201,33 @@ export const ListAdmin: React.FC = () => {
   };
 
   const handleSoftDelete = async (id: number): Promise<void> => {
-    if (window.confirm('Adminni o\'chirishni tasdiqlaysizmi?')) {
-      try {
-        deleteAdmin(id, {
-          onSuccess: () => {
-            refetch();
-          }
-        } as any);
-      } catch (error) {
-        console.error('Delete error:', error);
-      }
+    const admin = admins.find(a => a.id === id) || selectedAdmin;
+    if (admin) {
+      setSelectedAdmin(admin);
     }
+    setPendingDelete({ id });
+    setModalType('confirm');
+    setShowModal(true);
   };
 
   const handleBlock = (id: number, currentActive: boolean): void => {
-    const actionText = currentActive ? 'blokirovka qilmoqchimisiz?' : 'unblok qilmoqchimisiz?';
-    if (window.confirm(`Adminni ${actionText}`)) {
-      blockAdmin({ id, active: !currentActive }, {
-        onSuccess: () => {
-          closeModal();
-        }
-      } as any);
+    const admin = admins.find(a => a.id === id) || selectedAdmin;
+    if (admin) {
+      setSelectedAdmin(admin);
     }
+    setPendingBlock({ id, currentActive });
+    setModalType('confirm');
+    setShowModal(true);
+  };
+
+  const confirmBlock = (): void => {
+    if (!pendingBlock) return;
+
+    blockAdmin({ id: pendingBlock.id, active: !pendingBlock.currentActive }, {
+      onSuccess: () => {
+        closeModal();
+      }
+    } as any);
   };
 
   const getInitials = (name: string): string => {
@@ -305,6 +326,7 @@ export const ListAdmin: React.FC = () => {
         {/* Admin List */}
         <AdminCard
           admins={admins}
+          deletedIds={deletedIds}
           getInitials={getInitials}
           openModal={openModal}
           showMore={true}
@@ -346,6 +368,15 @@ export const ListAdmin: React.FC = () => {
           getInitials={getInitials}
           handleBlock={handleBlock}
           isBlocking={isBlocking}
+          confirmMessage={
+            pendingDelete
+              ? 'Adminni delete qilishni tasdiqlaysizmi?'
+              : pendingBlock
+                ? `Adminni ${pendingBlock.currentActive ? 'block' : 'active'} qilishni tasdiqlaysizmi?`
+                : ''
+          }
+          onConfirm={pendingDelete ? confirmDelete : confirmBlock}
+          confirmTone={pendingDelete ? 'danger' : pendingBlock?.currentActive ? 'danger' : 'success'}
           otpSent={otpSent}
           otpVerified={otpVerified}
           receivedOtp={receivedOtp}

@@ -10,7 +10,7 @@ interface EditForm {
     password: string;
 }
 
-type ModalType = 'edit' | 'more' | 'create' | '';
+type ModalType = 'edit' | 'more' | 'create' | 'confirm' | '';
 
 interface AdminModalsProps {
     showModal: boolean;
@@ -36,6 +36,10 @@ interface AdminModalsProps {
     setOtpVerified?: (verified: boolean) => void;
     setReceivedOtp?: (otp: string) => void;
     setOtp?: (otp: string) => void;
+
+    confirmMessage?: string;
+    onConfirm?: () => void;
+    confirmTone?: 'success' | 'danger';
 }
 
 export const AdminModals: React.FC<AdminModalsProps> = ({
@@ -60,9 +64,13 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
     setOtpSent,
     setOtpVerified,
     setReceivedOtp,
-    setOtp
+    setOtp,
+    confirmMessage,
+    onConfirm,
+    confirmTone
 }) => {
     const { mutate: sendOtp, isPending: isSendingOtp } = useSendOtp();
+    const tone: 'success' | 'danger' = confirmTone || 'success';
 
     const handleSendOtp = () => {
         if (!editForm.phoneNumber.trim()) {
@@ -98,7 +106,7 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
 
     return (
         <div>
-            {(showModal && (selectedAdmin || modalType === 'create')) && (
+            {(showModal && (selectedAdmin || modalType === 'create' || modalType === 'confirm')) && (
                 <div
                     className="fixed inset-0 bg-gray-300/70 bg-opacity-50 flex items-center justify-center z-50 p-4"
                     onClick={closeModal}
@@ -109,7 +117,7 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
                     >
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-2xl font-bold text-gray-900">
-                                {modalType === 'edit' ? 'Edit Admin' : modalType === 'create' ? 'Create Admin' : 'Admin Details'}
+                                {modalType === 'edit' ? 'Edit Admin' : modalType === 'create' ? 'Create Admin' : modalType === 'confirm' ? 'Confirm Action' : 'Admin Details'}
                             </h2>
                             <button
                                 onClick={closeModal}
@@ -118,6 +126,57 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
                                 <X size={24} />
                             </button>
                         </div>
+
+                        {modalType === 'confirm' && (
+                            <div className="space-y-5">
+                                {selectedAdmin && (
+                                    <div className="flex items-center gap-4 p-4 bg-white rounded-lg border border-gray-200">
+                                        {selectedAdmin.avatarUrl ? (
+                                            <img
+                                                src={selectedAdmin.avatarUrl}
+                                                alt={selectedAdmin.fullname}
+                                                className="w-12 h-12 rounded-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+                                                {getInitials(selectedAdmin.fullname)}
+                                            </div>
+                                        )}
+
+                                        <div className="min-w-0 flex-1">
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <p className="text-sm font-semibold text-gray-900 truncate">{selectedAdmin.fullname}</p>
+                                                <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-semibold">ID:{selectedAdmin.id}</span>
+                                            </div>
+                                            <p className="text-xs text-gray-600 truncate">@{selectedAdmin.username}</p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className={`p-4 rounded-lg border ${tone === 'danger' ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'}`}>
+                                    <p className={`text-sm font-medium ${tone === 'danger' ? 'text-red-900' : 'text-green-900'}`}>
+                                        {confirmMessage || 'Tasdiqlaysizmi?'}
+                                    </p>
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={closeModal}
+                                        className="flex-1 px-4 py-3 bg-white border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            onConfirm?.();
+                                        }}
+                                        className={`flex-1 px-4 py-3 text-white rounded text-sm font-medium transition-colors ${tone === 'danger' ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}`}
+                                    >
+                                        Confirm
+                                    </button>
+                                </div>
+                            </div>
+                        )}
 
                         {modalType === 'more' && (
                             <div className="space-y-4">
@@ -288,9 +347,9 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
                                                 handleBlock(selectedAdmin.id, selectedAdmin.isActive);
                                             }
                                         }}
-                                        disabled={isBlocking}
+                                        disabled={isBlocking || !!selectedAdmin?.isDeleted}
                                         className={`flex-1 px-4 py-3 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2 ${selectedAdmin?.isActive
-                                            ? 'bg-gray-900 text-white hover:bg-gray-800 disabled:bg-gray-400'
+                                            ? 'bg-red-600 text-white hover:bg-red-700 disabled:bg-red-400'
                                             : 'bg-green-600 text-white hover:bg-green-700 disabled:bg-green-400'
                                             }`}
                                     >
@@ -315,10 +374,10 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
                                         onClick={async () => {
                                             if (selectedAdmin) {
                                                 await handleSoftDelete(selectedAdmin.id);
-                                                closeModal();
                                             }
                                         }}
-                                        className="flex-1 px-4 py-3 bg-red-600 text-white rounded text-sm font-medium hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
+                                        disabled={!!selectedAdmin?.isDeleted}
+                                        className="flex-1 px-4 py-3 bg-red-600 text-white rounded text-sm font-medium hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                                     >
                                         <Trash2 size={16} />
                                         Delete

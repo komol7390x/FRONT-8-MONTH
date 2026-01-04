@@ -22,10 +22,12 @@ interface EditForm {
   password: string;
 }
 
-type ModalType = 'edit' | 'more' | 'create' | '';
+type ModalType = 'edit' | 'more' | 'create' | 'confirm' | '';
 
 const AdminPanel: React.FC = () => {
   const [page, setPage] = useState<number>(1);
+  const status: boolean = false;
+  const [deletedIds, setDeletedIds] = useState<number[]>([]);
   const [sort, setSort] = useState<SortState>({
     field: SortEnum.USERNAME,
     order: 'desc'
@@ -34,6 +36,8 @@ const AdminPanel: React.FC = () => {
   const [showModal, setShowModal] = useState<boolean>(false);
   const [modalType, setModalType] = useState<ModalType>('');
   const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
+  const [pendingBlock, setPendingBlock] = useState<{ id: number; currentActive: boolean } | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<{ id: number } | null>(null);
   const [editForm, setEditForm] = useState<EditForm>({
     username: '',
     fullname: '',
@@ -52,7 +56,7 @@ const AdminPanel: React.FC = () => {
     page,
     search,
     sort,
-    status: false
+    status
   });
 
   const { mutate: updateAdmin, isPending: isUpdating } = useUpdateAdmin();
@@ -97,7 +101,25 @@ const AdminPanel: React.FC = () => {
   const closeModal = (): void => {
     setShowModal(false);
     setSelectedAdmin(null);
+    setPendingBlock(null);
+    setPendingDelete(null);
     setEditForm({ username: '', fullname: '', phoneNumber: '', password: '' });
+    setOtpSent(false);
+    setOtpVerified(false);
+    setReceivedOtp('');
+    setOtp('');
+  };
+
+  const switchToEdit = (): void => {
+    if (selectedAdmin) {
+      setEditForm({
+        username: selectedAdmin.username,
+        fullname: selectedAdmin.fullname,
+        phoneNumber: selectedAdmin.phoneNumber,
+        password: ''
+      });
+      setModalType('edit');
+    }
   };
 
   const handleEdit = async (): Promise<void> => {
@@ -122,29 +144,45 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-  const handleSoftDelete = async (id: number): Promise<void> => {
-    if (window.confirm('Adminni o\'chirishni tasdiqlaysizmi?')) {
-      try {
-        deleteAdmin(id, {
-          onSuccess: () => {
-            refetch();
-          }
-        } as any);
-      } catch (e) {
-        console.error('Delete error:', e);
+  const confirmDelete = (): void => {
+    if (!pendingDelete) return;
+
+    deleteAdmin(pendingDelete.id, {
+      onSuccess: () => {
+        setDeletedIds(prev => (prev.includes(pendingDelete.id) ? prev : [...prev, pendingDelete.id]));
+        closeModal();
       }
+    } as any);
+  };
+
+  const handleSoftDelete = async (id: number): Promise<void> => {
+    const admin = admins.find(a => a.id === id) || selectedAdmin;
+    if (admin) {
+      setSelectedAdmin(admin);
     }
+    setPendingDelete({ id });
+    setModalType('confirm');
+    setShowModal(true);
   };
 
   const handleBlock = (id: number, currentActive: boolean): void => {
-    const actionText = currentActive ? 'blokirovka qilmoqchimisiz?' : 'unblok qilmoqchimisiz?';
-    if (window.confirm(`Adminni ${actionText}`)) {
-      blockAdmin({ id, active: !currentActive }, {
-        onSuccess: () => {
-          closeModal();
-        }
-      } as any);
+    const admin = admins.find(a => a.id === id) || selectedAdmin;
+    if (admin) {
+      setSelectedAdmin(admin);
     }
+    setPendingBlock({ id, currentActive });
+    setModalType('confirm');
+    setShowModal(true);
+  };
+
+  const confirmBlock = (): void => {
+    if (!pendingBlock) return;
+
+    blockAdmin({ id: pendingBlock.id, active: !pendingBlock.currentActive }, {
+      onSuccess: () => {
+        closeModal();
+      }
+    } as any);
   };
 
   const getInitials = (name: string): string => {
@@ -170,9 +208,8 @@ const AdminPanel: React.FC = () => {
           <button
             onClick={() => refetch()}
             className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
-          >
-            Try Again
-          </button>
+          />
+          Try Again
         </div>
       </div>
     );
@@ -196,9 +233,12 @@ const AdminPanel: React.FC = () => {
 
         <AdminCard
           admins={admins}
+          deletedIds={deletedIds}
           getInitials={getInitials}
           openModal={openModal}
-          showMore={false}
+          showMore={true}
+          showEdit={false}
+          showBlock={true}
           showDelete={false}
           handleSoftDelete={handleSoftDelete}
           handleBlock={handleBlock}
@@ -228,11 +268,20 @@ const AdminPanel: React.FC = () => {
           handleEdit={handleEdit}
           handleCreate={async () => { }}
           setEditForm={setEditForm}
-          switchToEdit={() => setModalType('edit')}
+          switchToEdit={switchToEdit}
           isUpdating={isUpdating}
           getInitials={getInitials}
           handleBlock={handleBlock}
           isBlocking={isBlocking}
+          confirmMessage={
+            pendingDelete
+              ? 'Adminni delete qilishni tasdiqlaysizmi?'
+              : pendingBlock
+                ? `Adminni ${pendingBlock.currentActive ? 'block' : 'active'} qilishni tasdiqlaysizmi?`
+                : ''
+          }
+          onConfirm={pendingDelete ? confirmDelete : confirmBlock}
+          confirmTone={pendingDelete ? 'danger' : pendingBlock?.currentActive ? 'danger' : 'success'}
           otpSent={otpSent}
           otpVerified={otpVerified}
           receivedOtp={receivedOtp}
@@ -245,6 +294,5 @@ const AdminPanel: React.FC = () => {
       </div>
     </div>
   );
-};
-
+}
 export default AdminPanel;
