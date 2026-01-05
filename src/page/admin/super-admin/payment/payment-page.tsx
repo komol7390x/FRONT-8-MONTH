@@ -36,10 +36,19 @@ export const PaymentPage: React.FC = () => {
         status,
     });
 
-    const dataSource = (query.data?.data || []).map((row: any, idx: number) => ({
-        key: row?.id ?? idx,
-        ...row,
-    }));
+    const dataSource = (query.data?.data || []).map((row: any, idx: number) => {
+        const normalizedActive = typeof row?.active === 'boolean'
+            ? row.active
+            : typeof row?.isActive === 'boolean'
+                ? row.isActive
+                : undefined;
+
+        return {
+            key: row?.id ?? idx,
+            ...row,
+            active: normalizedActive,
+        };
+    });
 
     const totalCount = query.data?.meta?.totalItems || dataSource.length;
     const totalPages = query.data?.meta?.totalPages || 0;

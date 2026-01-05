@@ -1,7 +1,7 @@
-import { Alert, Button, InputNumber, Select, Spin, Table, Tag, Typography } from 'antd';
+import { Alert, InputNumber, Select, Spin, Table, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Award, CalendarDays, CheckCircle2, Hash, Search, User } from 'lucide-react';
+import { Award, CalendarDays, CheckCircle2, Hash, Plus, Search, User } from 'lucide-react';
 import { CertificateUpsertModal } from '../teacher/components/certificate-upsert-modal';
 import { Pagination } from '../admin/components/pagantion';
 import { useCertificates } from './service/useCertificates';
@@ -139,9 +139,22 @@ export const CertificatePage: React.FC = () => {
     return (
         <div className="min-h-screen bg-gray-50 p-3 sm:p-6">
             <div className="max-w-7xl mx-auto space-y-4">
-                <Typography.Title level={3} style={{ margin: 0 }}>
-                    Certificate
-                </Typography.Title>
+                <div className="flex items-center justify-between gap-3">
+                    <Typography.Title level={3} style={{ margin: 0 }}>
+                        Certificate
+                    </Typography.Title>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setModalCertificate(null);
+                            setUpsertOpen(true);
+                        }}
+                        className="h-11 px-5 bg-linear-to-r from-emerald-600 to-green-600 text-white rounded-xl text-sm font-semibold hover:from-emerald-700 hover:to-green-700 transition-colors shadow-sm flex items-center justify-center gap-2"
+                    >
+                        <Plus size={16} />
+                        Add Certificate
+                    </button>
+                </div>
 
                 <div className="mt-4 p-4 rounded-2xl border border-gray-200 bg-linear-to-r from-white to-gray-50 shadow-sm space-y-3">
                     <div className="flex flex-col sm:flex-row gap-2">
@@ -234,16 +247,6 @@ export const CertificatePage: React.FC = () => {
                             min={1}
                             controls={false}
                         />
-
-                        <Button
-                            className="w-full"
-                            onClick={() => {
-                                setModalCertificate(null);
-                                setUpsertOpen(true);
-                            }}
-                        >
-                            Add Certificate
-                        </Button>
                     </div>
 
                 </div>

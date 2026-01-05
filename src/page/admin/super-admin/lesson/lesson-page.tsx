@@ -1,7 +1,7 @@
-import { Alert, Card, InputNumber, Select, Spin, Table, Tag, Typography, message } from 'antd';
+import { Alert, Card, InputNumber, Select, Spin, Table, Typography, message } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useEffect, useMemo, useState } from 'react';
-import { CheckCircle2, Hash, Search, User, UserRound, X } from 'lucide-react';
+import { CheckCircle2, Hash, Plus, Search, User, UserRound, X } from 'lucide-react';
 import { Pagination } from '../admin/components/pagantion';
 import { useLessonTemplates } from './service/useLessonTemplates';
 import { StudentMoreModal } from '../student/components/student-more-modal';
@@ -131,7 +131,7 @@ export const LessonPage: React.FC = () => {
             {
                 title: '№',
                 key: 'sn',
-                width: 60,
+                width: 50,
                 render: (_: any, __: any, idx: number) => (
                     <span className="text-sm font-semibold text-gray-700">{(page - 1) * limit + idx + 1}</span>
                 ),
@@ -140,33 +140,22 @@ export const LessonPage: React.FC = () => {
                 title: <span className="inline-flex items-center gap-1"><CheckCircle2 size={14} />Active</span>,
                 dataIndex: 'active',
                 key: 'active',
-                width: 100,
+                width: 95,
                 render: (v) => (
                     <span className={`inline-block px-3 py-1.5 rounded text-sm font-medium text-white min-w-22 text-center ${v ? 'bg-green-600' : 'bg-red-600'}`}>
                         {v ? 'Active' : 'Blocked'}
                     </span>
                 ),
             },
-            { title: <span className="inline-flex items-center gap-1"><Hash size={14} />ID</span>, dataIndex: 'id', key: 'id', width: 90, responsive: ['sm'] },
-            { title: 'Status', dataIndex: 'status', key: 'status', width: 120, responsive: ['md'] },
-            { title: 'Name', dataIndex: 'lessonName', key: 'lessonName', width: 200 },
-            {
-                title: 'Price',
-                dataIndex: 'price',
-                key: 'price',
-                width: 120,
-                render: (v) => (
-                    <Tag color="gold" className="m-0">
-                        {v ?? '-'}
-                    </Tag>
-                ),
-            },
-            { title: 'Start', dataIndex: 'startTime', key: 'startTime', width: 190, responsive: ['md'], render: (v) => formatStartEnd(v) },
-            { title: 'End', dataIndex: 'endTime', key: 'endTime', width: 190, responsive: ['md'], render: (v) => formatStartEnd(v) },
-            { title: <span className="inline-flex items-center gap-1"><User size={14} />TeacherId</span>, dataIndex: 'teacherId', key: 'teacherId', width: 110, responsive: ['lg'] },
-            { title: <span className="inline-flex items-center gap-1"><UserRound size={14} />StudentId</span>, dataIndex: 'studentId', key: 'studentId', width: 110, responsive: ['lg'] },
+            { title: <span className="inline-flex items-center gap-1"><Hash size={14} />ID</span>, dataIndex: 'id', key: 'id', width: 70, responsive: ['sm'] },
+            { title: 'Status', dataIndex: 'status', key: 'status', width: 110, responsive: ['md'] },
+            { title: 'Name', dataIndex: 'lessonName', key: 'lessonName', width: 170 },
+            { title: 'Start time', dataIndex: 'startTime', key: 'startTime', width: 170, responsive: ['md'], render: (v) => formatStartEnd(v) },
+            { title: 'End time', dataIndex: 'endTime', key: 'endTime', width: 170, responsive: ['md'], render: (v) => formatStartEnd(v) },
+            { title: <span className="inline-flex items-center gap-1"><User size={14} />TeacherId</span>, dataIndex: 'teacherId', key: 'teacherId', width: 95, responsive: ['lg'] },
+            { title: <span className="inline-flex items-center gap-1"><UserRound size={14} />StudentId</span>, dataIndex: 'studentId', key: 'studentId', width: 95, responsive: ['lg'] },
         ],
-        [formatStartEnd, limit, page]
+        [limit, page]
     );
 
     if (query.isPending) {
@@ -189,7 +178,7 @@ export const LessonPage: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 p-3 sm:p-6">
+        <div className="min-h-screen bg-gray-50 p-3 sm:p-6 overflow-x-hidden">
             <div className="max-w-7xl mx-auto space-y-4">
                 <div className="flex items-center justify-between gap-3">
                     <Typography.Title level={3} style={{ margin: 0 }}>
@@ -202,8 +191,9 @@ export const LessonPage: React.FC = () => {
                             setCreateForm({ teacherId: 0, lessonName: '', lessonPrice: 0, startTime: '', finishTime: '' });
                             setIsCreateOpen(true);
                         }}
-                        className="h-11 px-5 bg-linear-to-r from-cyan-600 to-blue-600 text-white rounded-xl text-sm font-semibold hover:from-cyan-700 hover:to-blue-700 transition-colors shadow-sm"
+                        className="h-11 px-5 bg-linear-to-r from-emerald-600 to-green-600 text-white rounded-xl text-sm font-semibold hover:from-emerald-700 hover:to-green-700 transition-colors shadow-sm flex items-center justify-center gap-2"
                     >
+                        <Plus size={16} />
                         Add Lesson
                     </button>
                 </div>
@@ -344,6 +334,7 @@ export const LessonPage: React.FC = () => {
                         columns={columns}
                         dataSource={dataSource}
                         size="small"
+                        tableLayout="fixed"
                         rowClassName={() => 'h-12'}
                         onRow={(record) => {
                             return {
