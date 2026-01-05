@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { BookOpen, ChevronDown, Clock, Copy, DollarSign, Edit, Hash, Link2, Plus } from 'lucide-react';
 import type { Teacher } from '../service/useGetTeachers';
 import { useTeacherLessons, type LessonTemplateItem } from '../service/useTeacherLessons';
-import { Pagination } from '../../super-admin/admin/components/pagantion';
+import { Pagination } from '../../admin/components/pagantion';
 import { copyToClipboard, formatDateTime, formatNumber, toDisplay } from './teacher-utils';
 import { LessonTemplateEditModal } from './lesson-template-edit-modal';
 import { LessonTemplateCreateModal } from './lesson-template-create-modal';

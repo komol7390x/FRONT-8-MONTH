@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Ban, Edit, PlusCircle, Trash2, Unlock, Wallet, X } from 'lucide-react';
-import { ConfirmModal } from '../../../../components/confirm-modal';
+import { ConfirmModal } from '../../../../../components/confirm-modal';
 import type { Student } from '../service/useGetStudents';
 import { useStudentIsActive } from '../service/useStudentIsActive';
 import { useSoftDeleteStudent } from '../service/useSoftDeleteStudent';

@@ -1,5 +1,6 @@
 import type React from 'react';
 import { X, Copy, Edit, Ban, Unlock, Trash2 } from 'lucide-react';
+import { ConfirmModal } from '../../../../../components/confirm-modal';
 import type { Admin } from '../service/useGetList';
 import { useSendOtp } from '../service/useCreateAdmin';
 
@@ -72,6 +73,63 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
     const { mutate: sendOtp, isPending: isSendingOtp } = useSendOtp();
     const tone: 'success' | 'danger' = confirmTone || 'success';
 
+    const messageText = String(confirmMessage || '').toLowerCase();
+    const confirmVariant = (
+        messageText.includes('hard') || messageText.includes("butunlay") || messageText.includes("o'ch")
+            ? 'hard_delete'
+            : messageText.includes('block')
+                ? 'block'
+                : messageText.includes('active') || messageText.includes('unblock')
+                    ? 'unblock'
+                    : tone === 'danger'
+                        ? 'delete'
+                        : 'restore'
+    );
+
+    if (showModal && modalType === 'confirm') {
+        return (
+            <ConfirmModal
+                open={true}
+                title="Confirm Action"
+                subject={
+                    selectedAdmin ? (
+                        <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                            {selectedAdmin.avatarUrl ? (
+                                <img
+                                    src={selectedAdmin.avatarUrl}
+                                    alt={selectedAdmin.fullname}
+                                    className="w-12 h-12 rounded-full object-cover"
+                                />
+                            ) : (
+                                <div className="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+                                    {getInitials(selectedAdmin.fullname)}
+                                </div>
+                            )}
+
+                            <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <p className="text-sm font-semibold text-gray-900 truncate">{selectedAdmin.fullname}</p>
+                                    <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-semibold">ID:{selectedAdmin.id}</span>
+                                </div>
+                                <p className="text-xs text-gray-600 truncate">@{selectedAdmin.username}</p>
+                            </div>
+                        </div>
+                    ) : undefined
+                }
+                variant={confirmVariant as any}
+                message={confirmMessage || 'Tasdiqlaysizmi?'}
+                note={selectedAdmin ? `Admin: ${selectedAdmin.fullname} (ID: ${selectedAdmin.id})` : undefined}
+                confirmText={confirmVariant === 'hard_delete' ? 'Confirm Hard Delete' : 'Confirm'}
+                cancelText="Cancel"
+                loading={false}
+                onCancel={closeModal}
+                onConfirm={() => {
+                    onConfirm?.();
+                }}
+            />
+        );
+    }
+
     const handleSendOtp = () => {
         if (!editForm.phoneNumber.trim()) {
             alert('Please enter phone number');
@@ -126,57 +184,6 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
                                 <X size={24} />
                             </button>
                         </div>
-
-                        {modalType === 'confirm' && (
-                            <div className="space-y-5">
-                                {selectedAdmin && (
-                                    <div className="flex items-center gap-4 p-4 bg-white rounded-lg border border-gray-200">
-                                        {selectedAdmin.avatarUrl ? (
-                                            <img
-                                                src={selectedAdmin.avatarUrl}
-                                                alt={selectedAdmin.fullname}
-                                                className="w-12 h-12 rounded-full object-cover"
-                                            />
-                                        ) : (
-                                            <div className="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
-                                                {getInitials(selectedAdmin.fullname)}
-                                            </div>
-                                        )}
-
-                                        <div className="min-w-0 flex-1">
-                                            <div className="flex items-center gap-2 flex-wrap">
-                                                <p className="text-sm font-semibold text-gray-900 truncate">{selectedAdmin.fullname}</p>
-                                                <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-semibold">ID:{selectedAdmin.id}</span>
-                                            </div>
-                                            <p className="text-xs text-gray-600 truncate">@{selectedAdmin.username}</p>
-                                        </div>
-                                    </div>
-                                )}
-
-                                <div className={`p-4 rounded-lg border ${tone === 'danger' ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'}`}>
-                                    <p className={`text-sm font-medium ${tone === 'danger' ? 'text-red-900' : 'text-green-900'}`}>
-                                        {confirmMessage || 'Tasdiqlaysizmi?'}
-                                    </p>
-                                </div>
-
-                                <div className="flex gap-3">
-                                    <button
-                                        onClick={closeModal}
-                                        className="flex-1 px-4 py-3 bg-white border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            onConfirm?.();
-                                        }}
-                                        className={`flex-1 px-4 py-3 text-white rounded text-sm font-medium transition-colors ${tone === 'danger' ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}`}
-                                    >
-                                        Confirm
-                                    </button>
-                                </div>
-                            </div>
-                        )}
 
                         {modalType === 'more' && (
                             <div className="space-y-4">

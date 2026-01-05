@@ -1,7 +1,7 @@
-import { Alert, Button, Card, InputNumber, Select, Spin, Table, Tag, Typography } from 'antd';
+import { Alert, Button, InputNumber, Select, Spin, Table, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Award, CheckCircle2, Hash, Search, User, X } from 'lucide-react';
+import { Award, CalendarDays, CheckCircle2, Hash, Search, User } from 'lucide-react';
 import { CertificateUpsertModal } from '../../teacher/components/certificate-upsert-modal';
 import { Pagination } from '../admin/components/pagantion';
 import { useCertificates } from './service/useCertificates';
@@ -16,14 +16,14 @@ export const CertificatePage: React.FC = () => {
     const [searchInput, setSearchInput] = useState<string>('');
     const [search, setSearch] = useState<string>('');
 
-    const [status, setStatus] = useState<boolean | undefined>(undefined);
+    const [active, setActive] = useState<boolean | undefined>(undefined);
     const [isDeleted, setIsDeleted] = useState<boolean | undefined>(undefined);
 
+    const [teacherId, setTeacherId] = useState<number | undefined>(undefined);
+
     const [selectedRow, setSelectedRow] = useState<any | null>(null);
-    const [chooserOpen, setChooserOpen] = useState<boolean>(false);
     const [upsertOpen, setUpsertOpen] = useState<boolean>(false);
     const [modalCertificate, setModalCertificate] = useState<any | null>(null);
-    const [newTeacherId, setNewTeacherId] = useState<number | undefined>(undefined);
 
     const [teacherModalOpen, setTeacherModalOpen] = useState(false);
     const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
@@ -40,7 +40,7 @@ export const CertificatePage: React.FC = () => {
         setSelectedTeacher(t as any);
     }, [teacherByIdQuery.data, teacherModalOpen]);
 
-    const query = useCertificates({ page, limit, search, status, isDeleted });
+    const query = useCertificates({ page, limit, search, active, isDeleted, teacherId });
 
     const dataSource = (query.data?.data || []).map((row: any, idx: number) => ({
         key: row?.id ?? idx,
@@ -53,6 +53,21 @@ export const CertificatePage: React.FC = () => {
     const handleLimitChange = (newLimit: string | number) => {
         setLimit(Number(newLimit));
         setPage(1);
+    };
+
+    const formatDateTime = (v: any) => {
+        if (!v) return '-';
+        const d = new Date(v);
+        if (Number.isNaN(d.getTime())) return String(v);
+        const day = d.toLocaleDateString('uz-UZ', { weekday: 'short' });
+        const date = d.toLocaleDateString('uz-UZ', { year: 'numeric', month: '2-digit', day: '2-digit' });
+        const time = d.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
+        return (
+            <div className="leading-tight">
+                <div className="text-xs font-semibold text-gray-800">{day} {date}</div>
+                <div className="text-[11px] text-gray-500">{time}</div>
+            </div>
+        );
     };
 
     const columns: ColumnsType<any> = useMemo(
@@ -86,6 +101,13 @@ export const CertificatePage: React.FC = () => {
                 key: 'isActive',
                 width: 110,
                 render: (v) => <Tag color={v ? 'green' : 'red'} className="m-0">{v ? 'Active' : 'Inactive'}</Tag>,
+            },
+            {
+                title: <span className="inline-flex items-center gap-1"><CalendarDays size={14} />Created</span>,
+                dataIndex: 'createdAt',
+                key: 'createdAt',
+                width: 190,
+                render: (v) => formatDateTime(v),
             },
         ],
         [limit, page]
@@ -152,8 +174,9 @@ export const CertificatePage: React.FC = () => {
                             onClick={() => {
                                 setSearchInput('');
                                 setSearch('');
-                                setStatus(undefined);
+                                setActive(undefined);
                                 setIsDeleted(undefined);
+                                setTeacherId(undefined);
                                 setPage(1);
                                 setLimit(10);
                             }}
@@ -167,12 +190,12 @@ export const CertificatePage: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
                     <Select
                         allowClear
-                        value={status === undefined ? undefined : status ? 'true' : 'false'}
+                        value={active === undefined ? undefined : active ? 'true' : 'false'}
                         onChange={(v) => {
-                            setStatus(v === undefined ? undefined : v === 'true');
+                            setActive(v === undefined ? undefined : v === 'true');
                             setPage(1);
                         }}
-                        placeholder="Status"
+                        placeholder="Active"
                         style={{ width: '100%' }}
                         options={[
                             { value: 'true', label: 'Active' },
@@ -196,8 +219,11 @@ export const CertificatePage: React.FC = () => {
                     />
 
                     <InputNumber
-                        value={newTeacherId}
-                        onChange={(v) => setNewTeacherId(v === null ? undefined : Number(v))}
+                        value={teacherId}
+                        onChange={(v) => {
+                            setTeacherId(v === null ? undefined : Number(v));
+                            setPage(1);
+                        }}
                         placeholder="Teacher ID"
                         style={{ width: '100%' }}
                         min={1}
@@ -214,30 +240,31 @@ export const CertificatePage: React.FC = () => {
                         Add Certificate
                     </Button>
                 </div>
+
             </div>
 
-            <Card>
-                <Table
-                    columns={columns}
-                    dataSource={dataSource}
-                    size="small"
-                    rowClassName={() => 'h-12'}
-                    onRow={(record) => {
-                        return {
-                            onClick: () => {
-                                setSelectedRow(record);
-                                setChooserOpen(true);
-                            },
-                            onDoubleClick: () => {
-                                setModalCertificate(record);
-                                setUpsertOpen(true);
-                            },
-                        };
-                    }}
-                    pagination={false}
-                    scroll={{ x: 1200, y: 520 }}
-                />
-            </Card>
+            <Table
+                columns={columns}
+                dataSource={dataSource}
+                pagination={false}
+                bordered
+                size="middle"
+                rowClassName={() => 'cursor-pointer'}
+                onRow={(record) => {
+                    return {
+                        onClick: () => {
+                            setSelectedRow(record);
+                            setTeacherFocusTab('certificates');
+                            setTeacherFocusCertificateId(record?.id ? Number(record.id) : undefined);
+                            setTeacherModalOpen(true);
+                        },
+                        onDoubleClick: () => {
+                            setModalCertificate(record);
+                            setUpsertOpen(true);
+                        },
+                    };
+                }}
+            />
 
             <Pagination
                 page={page}
@@ -249,51 +276,15 @@ export const CertificatePage: React.FC = () => {
                 handleLimitChange={handleLimitChange}
             />
 
-            {chooserOpen && selectedRow && (
-                <div
-                    className="fixed inset-0 bg-emerald-600/20 flex items-center justify-center z-50 p-4"
-                    onClick={() => setChooserOpen(false)}
-                >
-                    <div
-                        className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-bold text-gray-900">Open details</h3>
-                            <button onClick={() => setChooserOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
-                                <X size={20} />
-                            </button>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setChooserOpen(false);
-                                    setTeacherFocusTab('certificates');
-                                    setTeacherFocusCertificateId(selectedRow?.id ? Number(selectedRow.id) : undefined);
-                                    setTeacherModalOpen(true);
-                                }}
-                                className="h-11 px-4 bg-linear-to-r from-cyan-600 to-blue-600 text-white rounded-xl text-sm font-semibold hover:from-cyan-700 hover:to-blue-700 transition-colors shadow-sm col-span-2"
-                            >
-                                Teacher details
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
             <CertificateUpsertModal
                 open={upsertOpen}
                 certificate={modalCertificate}
-                teacherId={modalCertificate?.teacherId || newTeacherId}
+                teacherId={teacherId}
                 onClose={() => {
                     setUpsertOpen(false);
                     setModalCertificate(null);
                 }}
                 onSaved={() => {
-                    setUpsertOpen(false);
-                    setModalCertificate(null);
                     query.refetch();
                 }}
             />
@@ -303,6 +294,7 @@ export const CertificatePage: React.FC = () => {
                 teacher={selectedTeacher}
                 onClose={() => {
                     setTeacherModalOpen(false);
+                    setSelectedRow(null);
                     setTeacherFocusTab(undefined);
                     setTeacherFocusCertificateId(undefined);
                     setSelectedTeacher(null);

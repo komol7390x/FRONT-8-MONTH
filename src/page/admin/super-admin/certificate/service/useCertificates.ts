@@ -12,7 +12,17 @@ export interface CertificateListResponse {
     };
 }
 
-export const useCertificates = (params: { page?: number; limit?: number; search?: string; status?: boolean; isDeleted?: boolean } = {}) => {
+export const useCertificates = (
+    params: {
+        page?: number;
+        limit?: number;
+        search?: string;
+        active?: boolean;
+        teacherId?: number;
+        status?: boolean;
+        isDeleted?: boolean;
+    } = {},
+) => {
     return useQuery<CertificateListResponse>({
         queryKey: ['certificate-list', params],
         queryFn: async () => {
@@ -22,8 +32,10 @@ export const useCertificates = (params: { page?: number; limit?: number; search?
             };
 
             if (params.search?.trim()) queryParams.search = params.search.trim();
-            if (params.status !== undefined) queryParams.status = params.status;
+            const activeParam = typeof params.active === 'boolean' ? params.active : params.status;
+            if (typeof activeParam === 'boolean') queryParams.active = activeParam;
             if (params.isDeleted !== undefined) queryParams.isDeleted = params.isDeleted;
+            if (typeof params.teacherId === 'number') queryParams.teacherId = params.teacherId;
 
             const res = await request.get<any>('/certificate', { params: queryParams });
             const raw = res.data;
