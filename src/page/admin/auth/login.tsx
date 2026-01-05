@@ -37,7 +37,7 @@ export const LoginAdmin = () => {
                     navigate('/super-admin/admin/statistics')
                 }
                 else if (res.data.user.role == Roles.ADMIN) {
-                    navigate('/admin/dashboard')
+                    navigate('/admin/teacher/all')
                 } else {
                     navigate('/admin/login')
                 }

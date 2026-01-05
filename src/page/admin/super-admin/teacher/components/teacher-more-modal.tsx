@@ -9,6 +9,10 @@ import { TeacherMoreCertificates } from './teacher-more-certificates';
 import { TeacherMoreInfo } from './teacher-more-info';
 import { TeacherMoreLessons } from './teacher-more-lessons';
 import { getInitials } from './teacher-utils';
+import Cookies from 'js-cookie';
+import { TokenName } from '../../../../../config/enum';
+import { jwtDecode } from 'jwt-decode';
+import { Roles } from '../../../../../config/roles';
 
 type Tab = 'info' | 'certificates' | 'lessons';
 type ConfirmAction = 'toggleActive' | 'softDelete' | 'restore';
@@ -45,7 +49,16 @@ export const TeacherMoreModal: React.FC<TeacherMoreModalProps> = ({
     const { mutate: softDeleteTeacher, isPending: isSoftDeletingTeacher } = useSoftDeleteTeacher();
     const { mutate: hardDeleteTeacher, isPending: isHardDeletingTeacher } = useHardDeleteTeacher();
 
-    const shouldShowHardDelete = deleteMode || !!teacher?.isDeleted;
+    const token = Cookies.get(TokenName.TOKEN_NAME);
+    let role: string | undefined;
+    try {
+        role = token ? (jwtDecode<any>(token) as any)?.role : undefined;
+    } catch {
+        role = undefined;
+    }
+
+    const isAdminRole = String(role || '').toUpperCase() === String(Roles.ADMIN).toUpperCase();
+    const shouldShowHardDelete = !isAdminRole && (deleteMode || !!teacher?.isDeleted);
 
     useEffect(() => {
         if (!open) return;

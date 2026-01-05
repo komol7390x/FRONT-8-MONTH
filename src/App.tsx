@@ -24,6 +24,7 @@ import { CertificatePage } from './page/admin/super-admin/certificate/certificat
 import { PaymentPage } from './page/admin/super-admin/payment/payment-page';
 import { SettingsPage } from './page/admin/super-admin/settings/settings-page';
 import { NotificationPage } from './page/admin/super-admin/notification/notification-page';
+import { Navigate } from 'react-router-dom';
 
 function App() {
   return (
@@ -65,10 +66,24 @@ function App() {
       </Route>
 
       <Route path="/admin" element={<AdminDashboard />}>
-        <Route path="dashboard" element={<div>Admin Dashboard Page</div>} />
-        <Route path="statistics" element={<div>Statistics Page</div>} />
-        <Route path="analytics" element={<div>Analytics Page</div>} />
-        <Route path="users" element={<div>Users List Page</div>} />
+        <Route index element={<Navigate to="teacher/all" replace />} />
+        <Route path='teacher'>
+          <Route path='statistics' element={<TeacherStatistics />} />
+          <Route path="all" element={<TeacherList />} />
+          <Route path="blocked" element={<TeacherBlocked />} />
+        </Route>
+
+        <Route path='student'>
+          <Route path='statistics' element={<StudentStatistics />} />
+          <Route path="all" element={<StudentList />} />
+          <Route path="blocked" element={<StudentBlocked />} />
+        </Route>
+
+        <Route path='lesson' element={<LessonPage />} />
+        <Route path='certificate' element={<CertificatePage />} />
+        <Route path='payment' element={<PaymentPage />} />
+        <Route path='notification' element={<NotificationPage />} />
+        <Route path='settings' element={<SettingsPage />} />
       </Route>
     </Routes>
   );

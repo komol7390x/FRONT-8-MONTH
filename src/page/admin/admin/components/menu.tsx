@@ -1,5 +1,5 @@
 import { Badge, type MenuProps } from 'antd';
-import { Settings, Users } from 'lucide-react';
+import { BarChart3, CreditCard, UserLock, Users, Video, FileBadge2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 
@@ -20,19 +20,58 @@ export const items: MenuItem[] = [
         icon: <Users size={20} />,
         children: [
             {
-                key: '3',
-                label: <Link to={'/admin/users'} className="font-medium">All Users</Link>,
+                key: 'teacher-stats',
+                label: <Link to={'/admin/teacher/statistics'} className="font-medium">Statistics</Link>,
+                icon: <BarChart3 size={16} />,
             },
             {
-                key: '4',
-                label: <Link to={'/admin/roles'} className="font-medium">Roles & Permissions</Link>,
+                key: 'teacher-all',
+                label: <Link to={'/admin/teacher/all'} className="font-medium">List</Link>,
+            },
+            {
+                key: 'teacher-blocked',
+                label: <Link to={'/admin/teacher/blocked'} className="font-medium">Blocked</Link>,
+                icon: <UserLock size={16} />
+            },
+        ],
+    },
+
+    // STUDENT
+    {
+        key: 'sub3',
+        label: <span className="font-semibold">Student</span>,
+        icon: <Users size={20} />,
+        children: [
+            {
+                key: 'student-stats',
+                label: <Link to={'/admin/student/statistics'} className="font-medium">Statistics</Link>,
+                icon: <BarChart3 size={16} />,
+            },
+            {
+                key: 'student-all',
+                label: <Link to={'/admin/student/all'} className="font-medium">List</Link>,
+            },
+            {
+                key: 'student-blocked',
+                label: <Link to={'/admin/student/blocked'} className="font-medium">Blocked</Link>,
+                icon: <UserLock size={16} />
             },
         ],
     },
 
     {
-        key: '7',
-        label: <span className="font-semibold">Settings</span>,
-        icon: <Settings size={20} />,
+        key: 'lesson-page',
+        label: <Link to={'/admin/lesson'} className="font-semibold">Lesson</Link>,
+        icon: <Video size={20} />,
+    },
+    {
+        key: 'certificate-page',
+        label: <Link to={'/admin/certificate'} className="font-semibold">Certificate</Link>,
+        icon: <FileBadge2 size={20} />,
+    },
+    {
+        key: 'payment-page',
+        label: <Link to={'/admin/payment'} className="font-semibold">Payment</Link>,
+        icon: <CreditCard size={20} />,
     },
 ];

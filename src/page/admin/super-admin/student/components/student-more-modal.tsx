@@ -9,6 +9,10 @@ import { getInitials } from './student-utils';
 import { StudentMoreInfo } from './student-more-info';
 import { StudentMoreLessons } from './student-more-lessons';
 import { StudentEditModal } from './student-edit-modal';
+import Cookies from 'js-cookie';
+import { TokenName } from '../../../../../config/enum';
+import { jwtDecode } from 'jwt-decode';
+import { Roles } from '../../../../../config/roles';
 
 type Tab = 'info' | 'lessons';
 type ConfirmAction = 'toggleActive' | 'softDelete' | 'restore' | 'hardDelete';
@@ -41,7 +45,16 @@ export const StudentMoreModal: React.FC<StudentMoreModalProps> = ({
     const { mutate: softDeleteStudent, isPending: isSoftDeleting } = useSoftDeleteStudent();
     const { mutate: hardDeleteStudent, isPending: isHardDeleting } = useHardDeleteStudent();
 
-    const shouldShowHardDelete = deleteMode || !!student?.isDeleted;
+    const token = Cookies.get(TokenName.TOKEN_NAME);
+    let role: string | undefined;
+    try {
+        role = token ? (jwtDecode<any>(token) as any)?.role : undefined;
+    } catch {
+        role = undefined;
+    }
+
+    const isAdminRole = String(role || '').toUpperCase() === String(Roles.ADMIN).toUpperCase();
+    const shouldShowHardDelete = !isAdminRole && (deleteMode || !!student?.isDeleted);
 
     useEffect(() => {
         if (!open) return;
@@ -89,6 +102,7 @@ export const StudentMoreModal: React.FC<StudentMoreModalProps> = ({
         }
 
         if (confirmAction === 'restore') {
+            if (isAdminRole) return;
             softDeleteStudent(
                 { id: student.id, status: false },
                 {
@@ -243,18 +257,20 @@ export const StudentMoreModal: React.FC<StudentMoreModalProps> = ({
                     </button>
 
                     {student.isDeleted ? (
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setConfirmAction('restore');
-                                setView('confirm');
-                            }}
-                            disabled={isSoftDeleting}
-                            className="px-4 py-2.5 bg-green-600 text-white rounded text-sm font-medium hover:bg-green-700 disabled:bg-green-300 transition-colors flex items-center justify-center gap-2"
-                        >
-                            <Unlock size={16} />
-                            {isSoftDeleting ? '...' : 'Recover'}
-                        </button>
+                        !isAdminRole ? (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setConfirmAction('restore');
+                                    setView('confirm');
+                                }}
+                                disabled={isSoftDeleting}
+                                className="px-4 py-2.5 bg-green-600 text-white rounded text-sm font-medium hover:bg-green-700 disabled:bg-green-300 transition-colors flex items-center justify-center gap-2"
+                            >
+                                <Unlock size={16} />
+                                {isSoftDeleting ? '...' : 'Recover'}
+                            </button>
+                        ) : null
                     ) : (
                         <button
                             type="button"

@@ -6,9 +6,11 @@ import { Pagination } from '../admin/components/pagantion';
 import { Roles } from '../../../../config/roles';
 import { PaymentStatus, usePayments } from './service/usePayments';
 import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 export const PaymentPage: React.FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [page, setPage] = useState<number>(1);
     const [limit, setLimit] = useState<number>(10);
 
@@ -43,10 +45,19 @@ export const PaymentPage: React.FC = () => {
                 ? row.isActive
                 : undefined;
 
+        const normalizedAmount =
+            row?.amount ??
+            row?.price ??
+            row?.sum ??
+            row?.total ??
+            row?.paymentAmount ??
+            row?.value;
+
         return {
             key: row?.id ?? idx,
             ...row,
             active: normalizedActive,
+            amount: normalizedAmount,
         };
     });
 
@@ -72,18 +83,20 @@ export const PaymentPage: React.FC = () => {
         const targetId = getTargetId(row);
         const r = String(row?.role || '').toUpperCase();
 
+        const base = location.pathname.startsWith('/admin') ? '/admin' : '/super-admin';
+
         if (!targetId || !r) return;
 
         if (r === String(Roles.TEACHER).toUpperCase()) {
-            navigate('/super-admin/teacher/all', { state: { openTeacherId: targetId } });
+            navigate(`${base}/teacher/all`, { state: { openTeacherId: targetId } });
             return;
         }
         if (r === String(Roles.STUDENT).toUpperCase()) {
-            navigate('/super-admin/student/all', { state: { openStudentId: targetId } });
+            navigate(`${base}/student/all`, { state: { openStudentId: targetId } });
             return;
         }
         if (r === String(Roles.ADMIN).toUpperCase() || r === String(Roles.SUPER_ADMIN).toUpperCase()) {
-            navigate('/super-admin/admin/list', { state: { openAdminId: targetId } });
+            navigate(`${base}/admin/list`, { state: { openAdminId: targetId } });
         }
     };
 

@@ -66,7 +66,7 @@ export const useGetStudents = (params: GetStudentsParams = {}) => {
             if (params.sort) queryParams.sort = params.sort;
             if (typeof params.isDeleted === 'boolean') queryParams.isDeleted = params.isDeleted;
 
-            const res = await request.get<GetStudentsResponse>('/student', {
+            const res = await request.get<GetStudentsResponse>('/student/all', {
                 params: queryParams,
             });
 

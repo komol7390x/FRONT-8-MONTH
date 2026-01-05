@@ -7,6 +7,10 @@ import { StudentMoreModal } from './components/student-more-modal';
 import { StudentTable } from './components/student-table';
 import { StudentSort, type Student } from './service/useGetStudents';
 import { useGetStudents } from './service/useGetStudents';
+import Cookies from 'js-cookie';
+import { TokenName } from '../../../../config/enum';
+import { jwtDecode } from 'jwt-decode';
+import { Roles } from '../../../../config/roles';
 
 export const StudentDelete: React.FC = () => {
     const [page, setPage] = useState<number>(1);
@@ -21,6 +25,15 @@ export const StudentDelete: React.FC = () => {
     const [isMoreOpen, setIsMoreOpen] = useState<boolean>(false);
 
     const [initialAction, setInitialAction] = useState<any>(null);
+
+    const token = Cookies.get(TokenName.TOKEN_NAME);
+    let role: string | undefined;
+    try {
+        role = token ? (jwtDecode<any>(token) as any)?.role : undefined;
+    } catch {
+        role = undefined;
+    }
+    const isAdminRole = String(role || '').toUpperCase() === String(Roles.ADMIN).toUpperCase();
 
     const applySearchNow = () => {
         setSearch(searchInput);
@@ -57,6 +70,7 @@ export const StudentDelete: React.FC = () => {
     };
 
     const handleRecover = (id: number) => {
+        if (isAdminRole) return;
         const s = students.find((x) => x.id === id);
         if (!s) return;
         setSelectedStudent(s);
@@ -123,7 +137,7 @@ export const StudentDelete: React.FC = () => {
                         setInitialAction(null);
                         setIsMoreOpen(true);
                     }}
-                    showRecover={true}
+                    showRecover={!isAdminRole}
                     onRecover={handleRecover}
                     isRecovering={false}
                 />
