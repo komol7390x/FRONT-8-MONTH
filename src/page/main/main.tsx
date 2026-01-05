@@ -59,7 +59,7 @@ export const MainPage = () => {
                             </Button>
                         </Link>
 
-                        <Link to="/teacher">
+                        <Link to="/teacher/login">
                             <Button
                                 style={{
                                     background: 'linear-gradient(to right, #4dd454, #14b8a6)',

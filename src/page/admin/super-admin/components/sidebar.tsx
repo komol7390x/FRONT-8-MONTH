@@ -1,14 +1,14 @@
-import { Bell, ChevronLeft, ChevronRight, Settings } from 'lucide-react';
+import { Bell, ChevronLeft, ChevronRight, Settings, User } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react'
 import logo from '@/assets/img/logo.png'
-import { ConfigProvider, Menu } from 'antd';
+import { Avatar, ConfigProvider, Menu } from 'antd';
 import { items } from './menu';
 import { Link, useLocation } from 'react-router-dom';
 import { useGetMe } from '../admin/service/get-me';
 
 export const Sidebar = () => {
     const [collapsed, setCollapsed] = useState(false);
-    const {  isPending, isError } = useGetMe()
+    const { data, isPending, isError } = useGetMe()
     const location = useLocation();
 
     const { selectedKeys, openKeys: openKeysByPath } = useMemo(() => {
@@ -51,7 +51,7 @@ export const Sidebar = () => {
     useEffect(() => {
         setOpenKeys(openKeysByPath);
     }, [openKeysByPath]);
-    
+
     if (isPending) {
         return <div className="animate-pulse bg-white/10 h-10 w-full rounded-xl" />;
     }
@@ -178,7 +178,16 @@ export const Sidebar = () => {
                     </div>
                 </Link>
 
-               
+                <div className={`mt-auto mb-6 mx-2 p-3 rounded-xl bg-white/5 border border-white/10 shrink-0 ${collapsed ? 'w-12 mx-auto px-0' : 'px-4'}`}>
+                    <div className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
+                        <Avatar
+                            size={40}
+                            className="shrink-0"
+                            src={data?.avatarUrl?.length === 0 ? <User size={22} className='text-cyan-200' /> : data?.avatarUrl}
+                        />
+                        {!collapsed && <div className="text-white text-xs truncate">{data?.fullname}</div>}
+                    </div>
+                </div>
             </div>
         </div>
     )

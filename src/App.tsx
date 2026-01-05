@@ -25,6 +25,12 @@ import { PaymentPage } from './page/admin/super-admin/payment/payment-page';
 import { SettingsPage } from './page/admin/super-admin/settings/settings-page';
 import { NotificationPage } from './page/admin/super-admin/notification/notification-page';
 import { Navigate } from 'react-router-dom';
+import { TeacherDashboard } from './page/teacher/panel/dashboard';
+import { TeacherStatisticsPage } from './page/teacher/panel/pages/statistics-page';
+import { TeacherLessonsPage } from './page/teacher/panel/pages/lessons-page';
+import { TeacherCreateLessonPage } from './page/teacher/panel/pages/create-lesson-page';
+import { TeacherPaymentPage } from './page/teacher/panel/pages/payment-page';
+import { TeacherSettingsPage } from './page/teacher/panel/pages/settings-page';
 
 function App() {
   return (
@@ -32,8 +38,17 @@ function App() {
       <Route path="/" element={<MainPage />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/admin/login" element={<LoginAdmin />} />
-      <Route path="/teacher" element={<LoginTeacher />} />
+      <Route path="/teacher/login" element={<LoginTeacher />} />
       <Route path="/teacher/register" element={<RegisterTeacher />} />
+
+      <Route path="/teacher-panel" element={<TeacherDashboard />}>
+        <Route index element={<Navigate to="statistics" replace />} />
+        <Route path="statistics" element={<TeacherStatisticsPage />} />
+        <Route path="lessons" element={<TeacherLessonsPage />} />
+        <Route path="create-lesson" element={<TeacherCreateLessonPage />} />
+        <Route path="payment" element={<TeacherPaymentPage />} />
+        <Route path="settings" element={<TeacherSettingsPage />} />
+      </Route>
 
       <Route path="/super-admin" element={<SuperAdminDashboard />}>
         <Route path='admin'>

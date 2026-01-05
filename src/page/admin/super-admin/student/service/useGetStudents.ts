@@ -66,11 +66,22 @@ export const useGetStudents = (params: GetStudentsParams = {}) => {
             if (params.sort) queryParams.sort = params.sort;
             if (typeof params.isDeleted === 'boolean') queryParams.isDeleted = params.isDeleted;
 
-            const res = await request.get<GetStudentsResponse>('/student/all', {
-                params: queryParams,
-            });
+            try {
+                const res = await request.get<GetStudentsResponse>('/student/all', {
+                    params: queryParams,
+                });
 
-            return res.data;
+                return res.data;
+            } catch (err: any) {
+                const status = err?.response?.status;
+                if (status !== 403) throw err;
+
+                const res = await request.get<GetStudentsResponse>('/admin/student/all', {
+                    params: queryParams,
+                });
+
+                return res.data;
+            }
         },
         staleTime: 0,
         refetchOnWindowFocus: false,
