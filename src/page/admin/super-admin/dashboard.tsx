@@ -13,13 +13,13 @@ export const SuperAdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const token = Cookies.get(TokenName.TOKEN_NAME);
   if (!token) {
-    return <Navigate to="/admin" replace />;
+    return <Navigate to="/admin/login" replace />;
   }
   const decoded: any = jwtDecode(token);
   const role = decoded.role
   const handleLogout = () => {
     Cookies.remove(TokenName.TOKEN_NAME);
-    navigate('/admin', { replace: true });
+    navigate('/admin/login', { replace: true });
   };
   return (
     <Layout style={{ minHeight: '100vh' }} hasSider>

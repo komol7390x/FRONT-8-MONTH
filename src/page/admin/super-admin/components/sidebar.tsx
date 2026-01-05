@@ -1,15 +1,14 @@
-import { Bell, ChevronLeft, ChevronRight, User } from 'lucide-react';
+import { Bell, ChevronLeft, ChevronRight, Settings } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react'
 import logo from '@/assets/img/logo.png'
-import { Avatar, ConfigProvider, Menu } from 'antd';
+import { ConfigProvider, Menu } from 'antd';
 import { items } from './menu';
 import { Link, useLocation } from 'react-router-dom';
 import { useGetMe } from '../admin/service/get-me';
 
 export const Sidebar = () => {
     const [collapsed, setCollapsed] = useState(false);
-    const { data, isPending, isError } = useGetMe()
-    const [activeTab, setActiveTab] = useState<string>('');
+    const {  isPending, isError } = useGetMe()
     const location = useLocation();
 
     const { selectedKeys, openKeys: openKeysByPath } = useMemo(() => {
@@ -41,7 +40,8 @@ export const Sidebar = () => {
         if (p.startsWith('/super-admin/lesson')) return { selectedKeys: ['lesson-page'], openKeys: [] };
         if (p.startsWith('/super-admin/certificate')) return { selectedKeys: ['certificate-page'], openKeys: [] };
         if (p.startsWith('/super-admin/payment')) return { selectedKeys: ['payment-page'], openKeys: [] };
-        if (p.startsWith('/super-admin/settings')) return { selectedKeys: ['settings-key'], openKeys: [] };
+        if (p.startsWith('/super-admin/notification')) return { selectedKeys: [], openKeys: [] };
+        if (p.startsWith('/super-admin/settings')) return { selectedKeys: [], openKeys: [] };
 
         return { selectedKeys: [], openKeys: [] };
     }, [location.pathname]);
@@ -51,12 +51,17 @@ export const Sidebar = () => {
     useEffect(() => {
         setOpenKeys(openKeysByPath);
     }, [openKeysByPath]);
+    
     if (isPending) {
         return <div className="animate-pulse bg-white/10 h-10 w-full rounded-xl" />;
     }
     if (isError) {
         return <div className="text-rose-500 text-xs text-center">Ma'lumot yuklanmadi</div>;
     }
+
+    const isNotificationActive = location.pathname.startsWith('/super-admin/notification');
+    const isSettingsActive = location.pathname.startsWith('/super-admin/settings');
+
     return (
         <div>
             {/* --- SIDEBAR QISMI --- */}
@@ -126,51 +131,54 @@ export const Sidebar = () => {
                 </div>
 
                 {/* --- Notification SECTION --- */}
-                <div
-                    onClick={() => setActiveTab('notifications')}
-                    className={`mx-2 py-4 mb-4 cursor-pointer rounded-xl border transition-all shrink-0 
-                            ${collapsed ? 'p-2 w-12 mx-auto' : 'px-6 py-4'}
-                            ${activeTab === 'notifications'
-                            ? 'bg-cyan-500/5 border-cyan-200 shadow-[0_0_15px_rgba(6,182,212,0.2)]' // Bosilgandagi holat
-                            : 'border-cyan-500/5 hover:border-cyan-500/40' // Oddiy holat
-                        }`}
-                >
-                    <div className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
-                        <Bell
-                            size={18}
-                            className={`shrink-0 transition-colors ${activeTab === 'notifications' ? 'text-cyan-400' : 'text-white'}`}
-                        />
-                        {!collapsed && (
-                            <span className={`text-sm transition-colors ${activeTab === 'notifications' ? 'text-cyan-400 font-bold' : 'text-white'}`}>
-                                Updates
-                            </span>
-                        )}
+                <Link to={'/super-admin/notification'}>
+                    <div
+                        className={`mx-2 py-4 mb-2 cursor-pointer rounded-xl border transition-all shrink-0 
+                                ${collapsed ? 'p-2 w-12 mx-auto' : 'px-6 py-4'}
+                                ${isNotificationActive
+                                ? 'bg-cyan-500/5 border-cyan-200 shadow-[0_0_15px_rgba(6,182,212,0.2)]'
+                                : 'border-cyan-500/5 hover:border-cyan-500/40'
+                            }`}
+                    >
+                        <div className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
+                            <Bell
+                                size={18}
+                                className={`shrink-0 transition-colors ${isNotificationActive ? 'text-cyan-400' : 'text-white'}`}
+                            />
+                            {!collapsed && (
+                                <span className={`text-sm transition-colors ${isNotificationActive ? 'text-cyan-400 font-bold' : 'text-white'}`}>
+                                    Notification
+                                </span>
+                            )}
+                        </div>
                     </div>
-                </div>
+                </Link>
 
-                {/* --- User Profile SECTION --- */}
-                <div
-                    onClick={() => setActiveTab('profile')}
-                    className={`mt-auto mb-6 mx-2 p-3 rounded-xl cursor-pointer border transition-all shrink-0 
-                            ${collapsed ? 'w-12 mx-auto px-0' : 'px-4'}
-                            ${activeTab === 'profile'
-                            ? 'bg-cyan-500/5 border-cyan-200 shadow-[0_0_15px_rgba(6,182,212,0.2)]' // Bosilgandagi holat
-                            : 'border-cyan-500/5 hover:border-cyan-500/40' // Oddiy holat
-                        }`}
-                >
-                    <div className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
-                        <Avatar
-                            size={40}
-                            className={`shrink-0 border transition-all ${activeTab === 'profile' ? 'border-cyan-400' : 'border-transparent'}`}
-                            src={data?.avatarUrl?.length === 0 ? <User size={22} className='text-cyan-200' /> : data?.avatarUrl}
-                        />
-                        {!collapsed && (
-                            <div className={`text-[16px] truncate transition-colors ${activeTab === 'profile' ? 'text-cyan-400 font-bold' : 'text-cyan-200'}`}>
-                                {data?.fullname}
-                            </div>
-                        )}
+                {/* --- Settings SECTION --- */}
+                <Link to={'/super-admin/settings'}>
+                    <div
+                        className={`mx-2 py-4 mb-4 cursor-pointer rounded-xl border transition-all shrink-0 
+                                ${collapsed ? 'p-2 w-12 mx-auto' : 'px-6 py-4'}
+                                ${isSettingsActive
+                                ? 'bg-cyan-500/5 border-cyan-200 shadow-[0_0_15px_rgba(6,182,212,0.2)]'
+                                : 'border-cyan-500/5 hover:border-cyan-500/40'
+                            }`}
+                    >
+                        <div className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
+                            <Settings
+                                size={18}
+                                className={`shrink-0 transition-colors ${isSettingsActive ? 'text-cyan-400' : 'text-white'}`}
+                            />
+                            {!collapsed && (
+                                <span className={`text-sm transition-colors ${isSettingsActive ? 'text-cyan-400 font-bold' : 'text-white'}`}>
+                                    Settings
+                                </span>
+                            )}
+                        </div>
                     </div>
-                </div>
+                </Link>
+
+               
             </div>
         </div>
     )

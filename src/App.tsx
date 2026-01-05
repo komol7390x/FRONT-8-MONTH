@@ -23,13 +23,14 @@ import { LessonPage } from './page/admin/super-admin/lesson/lesson-page';
 import { CertificatePage } from './page/admin/super-admin/certificate/certificate-page';
 import { PaymentPage } from './page/admin/super-admin/payment/payment-page';
 import { SettingsPage } from './page/admin/super-admin/settings/settings-page';
+import { NotificationPage } from './page/admin/super-admin/notification/notification-page';
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<MainPage />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-      <Route path="/admin" element={<LoginAdmin />} />
+      <Route path="/admin/login" element={<LoginAdmin />} />
       <Route path="/teacher" element={<LoginTeacher />} />
       <Route path="/teacher/register" element={<RegisterTeacher />} />
 
@@ -59,6 +60,7 @@ function App() {
         <Route path='lesson' element={<LessonPage />} />
         <Route path='certificate' element={<CertificatePage />} />
         <Route path='payment' element={<PaymentPage />} />
+        <Route path='notification' element={<NotificationPage />} />
         <Route path='settings' element={<SettingsPage />} />
       </Route>
 

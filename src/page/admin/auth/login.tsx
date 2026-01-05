@@ -39,9 +39,10 @@ export const LoginAdmin = () => {
                 else if (res.data.user.role == Roles.ADMIN) {
                     navigate('/admin/dashboard')
                 } else {
-                    navigate('/')
+                    navigate('/admin/login')
                 }
             },
+
             onError: (err: any) => {
                 console.error("3. Xatolik yuz berdi:", err);
                 message.error(err?.response?.data?.message || "Login yoki parol xato");
