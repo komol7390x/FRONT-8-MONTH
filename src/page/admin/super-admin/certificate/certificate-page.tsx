@@ -100,7 +100,11 @@ export const CertificatePage: React.FC = () => {
                 dataIndex: 'isActive',
                 key: 'isActive',
                 width: 110,
-                render: (v) => <Tag color={v ? 'green' : 'red'} className="m-0">{v ? 'Active' : 'Inactive'}</Tag>,
+                render: (v) => (
+                    <span className={`inline-block px-3 py-1.5 rounded text-sm font-medium text-white min-w-22 text-center ${v ? 'bg-green-600' : 'bg-red-600'}`}>
+                        {v ? 'Active' : 'Inactive'}
+                    </span>
+                ),
             },
             {
                 title: <span className="inline-flex items-center gap-1"><CalendarDays size={14} />Created</span>,
@@ -133,7 +137,7 @@ export const CertificatePage: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
+        <div className="min-h-screen bg-gray-50 p-3 sm:p-6">
             <div className="max-w-7xl mx-auto space-y-4">
                 <Typography.Title level={3} style={{ margin: 0 }}>
                     Certificate

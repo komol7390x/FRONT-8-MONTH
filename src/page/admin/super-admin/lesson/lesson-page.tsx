@@ -4,9 +4,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, Hash, Search, User, UserRound, X } from 'lucide-react';
 import { Pagination } from '../admin/components/pagantion';
 import { useLessonTemplates } from './service/useLessonTemplates';
-import { useCreateLessonTemplate } from '../teacher/service/useCreateLessonTemplate';
 import { StudentMoreModal } from '../student/components/student-more-modal';
 import { TeacherMoreModal } from '../teacher/components/teacher-more-modal';
+import { LessonTemplateCreateModal } from '../teacher/components/lesson-template-create-modal';
 import type { Student } from '../student/service/useGetStudents';
 import type { Teacher } from '../teacher/service/useGetTeachers';
 import { useGetStudentById } from '../student/service/useGetStudentById';
@@ -55,8 +55,6 @@ export const LessonPage: React.FC = () => {
         if (!t) return;
         setSelectedTeacher(t as any);
     }, [teacherByIdQuery.data, teacherModalOpen]);
-
-    const { mutateAsync: createLesson } = useCreateLessonTemplate() as any;
 
     const query = useLessonTemplates({
         status,
@@ -113,12 +111,6 @@ export const LessonPage: React.FC = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [createTeacherByIdQuery.isPending, isCreateOpen, lessonNameOptions]);
 
-    const toUnixSeconds = (v: string) => {
-        const d = new Date(v);
-        if (Number.isNaN(d.getTime())) return null;
-        return Math.floor(d.getTime() / 1000);
-    };
-
     const formatStartEnd = (v: any) => {
         if (!v) return '-';
         const d = new Date(v);
@@ -150,13 +142,13 @@ export const LessonPage: React.FC = () => {
                 key: 'active',
                 width: 100,
                 render: (v) => (
-                    <Tag color={v ? 'green' : 'red'} className="m-0">
+                    <span className={`inline-block px-3 py-1.5 rounded text-sm font-medium text-white min-w-22 text-center ${v ? 'bg-green-600' : 'bg-red-600'}`}>
                         {v ? 'Active' : 'Blocked'}
-                    </Tag>
+                    </span>
                 ),
             },
-            { title: <span className="inline-flex items-center gap-1"><Hash size={14} />ID</span>, dataIndex: 'id', key: 'id', width: 90 },
-            { title: 'Status', dataIndex: 'status', key: 'status', width: 120 },
+            { title: <span className="inline-flex items-center gap-1"><Hash size={14} />ID</span>, dataIndex: 'id', key: 'id', width: 90, responsive: ['sm'] },
+            { title: 'Status', dataIndex: 'status', key: 'status', width: 120, responsive: ['md'] },
             { title: 'Name', dataIndex: 'lessonName', key: 'lessonName', width: 200 },
             {
                 title: 'Price',
@@ -169,10 +161,10 @@ export const LessonPage: React.FC = () => {
                     </Tag>
                 ),
             },
-            { title: 'Start', dataIndex: 'startTime', key: 'startTime', width: 190, render: (v) => formatStartEnd(v) },
-            { title: 'End', dataIndex: 'endTime', key: 'endTime', width: 190, render: (v) => formatStartEnd(v) },
-            { title: <span className="inline-flex items-center gap-1"><User size={14} />TeacherId</span>, dataIndex: 'teacherId', key: 'teacherId', width: 110 },
-            { title: <span className="inline-flex items-center gap-1"><UserRound size={14} />StudentId</span>, dataIndex: 'studentId', key: 'studentId', width: 110 },
+            { title: 'Start', dataIndex: 'startTime', key: 'startTime', width: 190, responsive: ['md'], render: (v) => formatStartEnd(v) },
+            { title: 'End', dataIndex: 'endTime', key: 'endTime', width: 190, responsive: ['md'], render: (v) => formatStartEnd(v) },
+            { title: <span className="inline-flex items-center gap-1"><User size={14} />TeacherId</span>, dataIndex: 'teacherId', key: 'teacherId', width: 110, responsive: ['lg'] },
+            { title: <span className="inline-flex items-center gap-1"><UserRound size={14} />StudentId</span>, dataIndex: 'studentId', key: 'studentId', width: 110, responsive: ['lg'] },
         ],
         [formatStartEnd, limit, page]
     );
@@ -197,7 +189,7 @@ export const LessonPage: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
+        <div className="min-h-screen bg-gray-50 p-3 sm:p-6">
             <div className="max-w-7xl mx-auto space-y-4">
                 <div className="flex items-center justify-between gap-3">
                     <Typography.Title level={3} style={{ margin: 0 }}>
@@ -362,7 +354,7 @@ export const LessonPage: React.FC = () => {
                             };
                         }}
                         pagination={false}
-                        scroll={{ x: 1200, y: 520 }}
+                        scroll={{ y: 520 }}
                     />
                 </Card>
 
@@ -437,128 +429,28 @@ export const LessonPage: React.FC = () => {
                     </div>
                 )}
 
-                {isCreateOpen && (
-                    <div
-                        className="fixed inset-0 bg-gray-300/70 bg-opacity-50 flex items-center justify-center z-50 p-4"
-                        onClick={() => setIsCreateOpen(false)}
-                    >
-                        <div
-                            className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-xl font-bold text-gray-900">Add Lesson</h2>
-                                <button onClick={() => setIsCreateOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
-                                    <X size={22} />
-                                </button>
-                            </div>
-
-                            <div className="space-y-4">
-                                <InputNumber
-                                    value={createForm.teacherId}
-                                    onChange={(v) => {
-                                        const nextTeacherId = v === null ? 0 : Number(v);
-                                        setCreateForm((p) => ({
-                                            ...p,
-                                            teacherId: nextTeacherId,
-                                            lessonName: '',
-                                            lessonPrice: 0,
-                                        }));
-                                    }}
-                                    placeholder="Teacher ID"
-                                    style={{ width: '100%' }}
-                                    min={1}
-                                />
-
-                                <Select
-                                    showSearch
-                                    value={createForm.lessonName || undefined}
-                                    onChange={(v) => {
-                                        const name = String(v || '');
-                                        setCreateForm((p) => ({
-                                            ...p,
-                                            lessonName: name,
-                                            lessonPrice: getHourPriceByName(name) || p.lessonPrice,
-                                        }));
-                                    }}
-                                    placeholder={
-                                        createForm.teacherId
-                                            ? createTeacherByIdQuery.isPending
-                                                ? 'Loading certificates...'
-                                                : lessonNameOptions.length
-                                                    ? 'Select lesson name'
-                                                    : 'No certificates found'
-                                            : 'Enter teacherId first'
-                                    }
-                                    disabled={!createForm.teacherId || createTeacherByIdQuery.isPending}
-                                    options={lessonNameOptions.map((n) => ({ value: n, label: n }))}
-                                    style={{ width: '100%' }}
-                                />
-
-                                <InputNumber
-                                    value={createForm.lessonPrice}
-                                    onChange={(v) => setCreateForm((p) => ({ ...p, lessonPrice: v === null ? 0 : Number(v) }))}
-                                    placeholder="Price"
-                                    style={{ width: '100%' }}
-                                    min={0}
-                                />
-                                <input
-                                    type="datetime-local"
-                                    value={createForm.startTime}
-                                    onChange={(e) => setCreateForm((p) => ({ ...p, startTime: e.target.value }))}
-                                    className="w-full h-11 px-4 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-cyan-200 text-sm shadow-sm"
-                                />
-                                <input
-                                    type="datetime-local"
-                                    value={createForm.finishTime}
-                                    onChange={(e) => setCreateForm((p) => ({ ...p, finishTime: e.target.value }))}
-                                    className="w-full h-11 px-4 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-cyan-200 text-sm shadow-sm"
-                                />
-
-                                <div className="flex gap-2 pt-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsCreateOpen(false)}
-                                        className="flex-1 h-11 px-4 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors shadow-sm"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={async () => {
-                                            if (!createForm.teacherId) {
-                                                message.warning('Teacher ID is required');
-                                                return;
-                                            }
-                                            if (!createForm.lessonName.trim()) {
-                                                message.warning('Lesson name is required');
-                                                return;
-                                            }
-                                            const st = toUnixSeconds(createForm.startTime);
-                                            const ft = toUnixSeconds(createForm.finishTime);
-                                            if (!st || !ft) {
-                                                message.warning('Start/Finish time is required');
-                                                return;
-                                            }
-                                            await createLesson({
-                                                teacherId: Number(createForm.teacherId),
-                                                lessonName: createForm.lessonName,
-                                                lessonPrice: Number(createForm.lessonPrice) || 0,
-                                                startTime: st,
-                                                finishTime: ft,
-                                            });
-                                            setIsCreateOpen(false);
-                                            query.refetch();
-                                        }}
-                                        className="flex-1 h-11 px-4 bg-linear-to-r from-cyan-600 to-blue-600 text-white rounded-xl text-sm font-semibold hover:from-cyan-700 hover:to-blue-700 transition-colors shadow-sm"
-                                    >
-                                        Create
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                <LessonTemplateCreateModal
+                    open={isCreateOpen}
+                    teacherId={Number(createForm.teacherId) || 0}
+                    certificates={createTeacherCertificates}
+                    existingLessons={(createTeacherByIdQuery.data as any)?.lessons || []}
+                    showTeacherIdInput={true}
+                    onTeacherIdChange={(id: number) => {
+                        setCreateForm((p) => ({
+                            ...p,
+                            teacherId: id,
+                            lessonName: '',
+                            lessonPrice: 0,
+                            startTime: '',
+                            finishTime: '',
+                        }));
+                    }}
+                    onClose={() => setIsCreateOpen(false)}
+                    onCreated={() => {
+                        setIsCreateOpen(false);
+                        query.refetch();
+                    }}
+                />
 
                 <TeacherMoreModal
                     open={teacherModalOpen}

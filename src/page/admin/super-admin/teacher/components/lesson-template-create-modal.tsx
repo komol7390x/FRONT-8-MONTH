@@ -9,11 +9,13 @@ interface LessonTemplateCreateModalProps {
     teacherId: number;
     existingLessons?: any[];
     certificates?: any[];
+    showTeacherIdInput?: boolean;
+    onTeacherIdChange?: (id: number) => void;
     onClose: () => void;
     onCreated: () => void;
 }
 
-export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps> = ({ open, teacherId, existingLessons = [], certificates = [], onClose, onCreated }) => {
+export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps> = ({ open, teacherId, existingLessons = [], certificates = [], showTeacherIdInput = false, onTeacherIdChange, onClose, onCreated }) => {
     const { mutateAsync: createLesson } = useCreateLessonTemplate() as any;
 
     const [selectedOffsets, setSelectedOffsets] = useState<number[]>([0, 1, 2, 3, 4]);
@@ -201,6 +203,23 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
                 </div>
 
                 <div className="space-y-4">
+                    {showTeacherIdInput && (
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Teacher ID</label>
+                            <input
+                                type="number"
+                                value={teacherId || ''}
+                                onChange={(e) => {
+                                    const n = Number(e.target.value);
+                                    onTeacherIdChange?.(Number.isFinite(n) && n > 0 ? n : 0);
+                                }}
+                                className="w-full h-11 px-4 border border-gray-300 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 text-sm"
+                                placeholder="Enter teacher id"
+                                min={1}
+                            />
+                        </div>
+                    )}
+
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Lesson Name</label>
                         <div className="relative">

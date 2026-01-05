@@ -85,6 +85,14 @@ export const PaymentPage: React.FC = () => {
 
     const columns: ColumnsType<any> = useMemo(
         () => [
+            {
+                title: '№',
+                key: 'sn',
+                width: 60,
+                render: (_: any, __: any, idx: number) => (
+                    <span className="text-sm font-semibold text-gray-700">{(page - 1) * limit + idx + 1}</span>
+                ),
+            },
             { title: 'ID', dataIndex: 'id', key: 'id', width: 90 },
             {
                 title: 'Role',
@@ -109,12 +117,16 @@ export const PaymentPage: React.FC = () => {
                 dataIndex: 'active',
                 key: 'active',
                 width: 110,
-                render: (v) => <Tag className="m-0" color={v ? 'green' : 'red'}>{v ? 'Active' : 'Inactive'}</Tag>,
+                render: (v) => (
+                    <span className={`inline-block px-3 py-1.5 rounded text-sm font-medium text-white min-w-22 text-center ${v ? 'bg-green-600' : 'bg-red-600'}`}>
+                        {v ? 'Active' : 'Inactive'}
+                    </span>
+                ),
             },
             { title: 'Amount', dataIndex: 'amount', key: 'amount', width: 140, render: (v) => <Tag className="m-0" color="gold">{v ?? '-'}</Tag> },
             { title: 'Created', dataIndex: 'createdAt', key: 'createdAt', width: 190, render: (v) => (v ? String(v) : '-') },
         ],
-        [],
+        [limit, page],
     );
 
     if (query.isPending) {
@@ -137,7 +149,7 @@ export const PaymentPage: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
+        <div className="min-h-screen bg-gray-50 p-3 sm:p-6">
             <div className="max-w-7xl mx-auto space-y-4">
                 <Typography.Title level={3} style={{ margin: 0 }}>
                     Payment
