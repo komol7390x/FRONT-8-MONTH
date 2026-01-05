@@ -15,7 +15,7 @@ export const TeacherDashboard: React.FC = () => {
     const token = Cookies.get(TokenName.TOKEN_NAME);
 
     if (!token) {
-        return <Navigate to="/teacher" replace />;
+        return <Navigate to="/teacher/login" replace />;
     }
 
     let role: string | undefined;
@@ -26,12 +26,12 @@ export const TeacherDashboard: React.FC = () => {
     }
 
     if (String(role || '').toUpperCase() !== String(Roles.TEACHER).toUpperCase()) {
-        return <Navigate to="/teacher" replace />;
+        return <Navigate to="/teacher/login" replace />;
     }
 
     const handleLogout = () => {
         Cookies.remove(TokenName.TOKEN_NAME);
-        navigate('/teacher', { replace: true });
+        navigate('/teacher/login', { replace: true });
     };
 
     return (
