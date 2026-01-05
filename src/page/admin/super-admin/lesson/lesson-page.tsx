@@ -4,13 +4,13 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, Hash, Search, User, UserRound, X } from 'lucide-react';
 import { Pagination } from '../admin/components/pagantion';
 import { useLessonTemplates } from './service/useLessonTemplates';
-import { useCreateLessonTemplate } from '../../teacher/service/useCreateLessonTemplate';
+import { useCreateLessonTemplate } from '../teacher/service/useCreateLessonTemplate';
 import { StudentMoreModal } from '../student/components/student-more-modal';
-import { TeacherMoreModal } from '../../teacher/components/teacher-more-modal';
+import { TeacherMoreModal } from '../teacher/components/teacher-more-modal';
 import type { Student } from '../student/service/useGetStudents';
-import type { Teacher } from '../../teacher/service/useGetTeachers';
+import type { Teacher } from '../teacher/service/useGetTeachers';
 import { useGetStudentById } from '../student/service/useGetStudentById';
-import { useGetTeacherById } from '../../teacher/service/useGetTeacherById';
+import { useGetTeacherById } from '../teacher/service/useGetTeacherById';
 
 export const LessonPage: React.FC = () => {
     const [page, setPage] = useState<number>(1);

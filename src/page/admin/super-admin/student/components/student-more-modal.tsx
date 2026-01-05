@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Ban, Edit, PlusCircle, Trash2, Unlock, Wallet, X } from 'lucide-react';
+import { Ban, Edit, PlusCircle, Trash2, Unlock, X } from 'lucide-react';
 import { ConfirmModal } from '../../../../../components/confirm-modal';
 import type { Student } from '../service/useGetStudents';
 import { useStudentIsActive } from '../service/useStudentIsActive';
@@ -124,14 +124,8 @@ export const StudentMoreModal: React.FC<StudentMoreModalProps> = ({
                 <div className="min-w-0">
                     <p className="font-semibold text-gray-900 truncate">{fullname || '-'}</p>
                     <p className="text-xs text-gray-600 truncate">@{student.tgUsername || '-'}</p>
+                    <p className="text-xs text-gray-600 truncate">TG ID: {student.tgId ?? '-'}</p>
                 </div>
-            </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-                <span className="px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs font-semibold">ID:{student.id}</span>
-                <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-semibold">TG:{student.tgId}</span>
-                <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-semibold flex items-center gap-1">
-                    <Wallet size={12} /> {student.wallet}
-                </span>
             </div>
         </div>
     );
@@ -194,25 +188,7 @@ export const StudentMoreModal: React.FC<StudentMoreModalProps> = ({
                     </button>
                 </div>
 
-                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                            {getInitials(fullname)}
-                        </div>
-                        <div className="min-w-0">
-                            <p className="font-semibold text-gray-900 truncate">{fullname || '-'}</p>
-                            <p className="text-xs text-gray-600 truncate">@{student.tgUsername || '-'}</p>
-                        </div>
-                    </div>
-
-                    <div className="mt-3 flex flex-wrap gap-2">
-                        <span className="px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs font-semibold">ID:{student.id}</span>
-                        <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-semibold">TG:{student.tgId}</span>
-                        <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-semibold flex items-center gap-1">
-                            <Wallet size={12} /> {student.wallet}
-                        </span>
-                    </div>
-                </div>
+                {subject}
 
                 <div className="flex flex-wrap gap-2 mt-4">
                     <button
@@ -258,8 +234,8 @@ export const StudentMoreModal: React.FC<StudentMoreModalProps> = ({
                         }}
                         disabled={isBlocking || !!student.isDeleted}
                         className={`px-4 py-2.5 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2 ${student.isActive
-                            ? 'bg-red-700 text-white hover:bg-red-800 disabled:bg-red-300'
-                            : 'bg-green-700 text-white hover:bg-green-800 disabled:bg-green-300'
+                            ? 'bg-red-600 text-white hover:bg-red-700 disabled:bg-red-300'
+                            : 'bg-green-600 text-white hover:bg-green-700 disabled:bg-green-300'
                             }`}
                     >
                         {student.isActive ? <Ban size={16} /> : <Unlock size={16} />}
@@ -274,7 +250,7 @@ export const StudentMoreModal: React.FC<StudentMoreModalProps> = ({
                                 setView('confirm');
                             }}
                             disabled={isSoftDeleting}
-                            className="px-4 py-2.5 bg-green-700 text-white rounded text-sm font-medium hover:bg-green-800 disabled:bg-green-300 transition-colors flex items-center justify-center gap-2"
+                            className="px-4 py-2.5 bg-green-600 text-white rounded text-sm font-medium hover:bg-green-700 disabled:bg-green-300 transition-colors flex items-center justify-center gap-2"
                         >
                             <Unlock size={16} />
                             {isSoftDeleting ? '...' : 'Recover'}
@@ -287,7 +263,7 @@ export const StudentMoreModal: React.FC<StudentMoreModalProps> = ({
                                 setView('confirm');
                             }}
                             disabled={isSoftDeleting}
-                            className="px-4 py-2.5 bg-red-800 text-white rounded text-sm font-medium hover:bg-red-900 disabled:bg-red-300 transition-colors flex items-center justify-center gap-2"
+                            className="px-4 py-2.5 bg-red-600 text-white rounded text-sm font-medium hover:bg-red-700 disabled:bg-red-300 transition-colors flex items-center justify-center gap-2"
                         >
                             <Trash2 size={16} />
                             {isSoftDeleting ? '...' : 'Delete'}
@@ -302,7 +278,7 @@ export const StudentMoreModal: React.FC<StudentMoreModalProps> = ({
                                 setView('confirm');
                             }}
                             disabled={isHardDeleting}
-                            className="col-span-2 px-4 py-2.5 bg-red-900 text-white rounded text-sm font-medium hover:bg-black disabled:bg-red-300 transition-colors flex items-center justify-center gap-2"
+                            className="col-span-2 px-4 py-2.5 bg-red-600 text-white rounded text-sm font-medium hover:bg-red-700 disabled:bg-red-300 transition-colors flex items-center justify-center gap-2"
                         >
                             <PlusCircle size={16} />
                             {isHardDeleting ? 'Deleting...' : 'Hard Delete'}

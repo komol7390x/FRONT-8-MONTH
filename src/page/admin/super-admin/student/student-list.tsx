@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Loader2, UserPlus } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 import { Pagination } from '../admin/components/pagantion';
 import { StudentFilters } from './components/student-filters';
@@ -10,6 +11,7 @@ import { StudentSort, type Student } from './service/useGetStudents';
 import { useGetStudents } from './service/useGetStudents';
 
 export const StudentList: React.FC = () => {
+    const location = useLocation();
     const [page, setPage] = useState<number>(1);
     const [limit, setLimit] = useState<number>(10);
     const [searchInput, setSearchInput] = useState<string>('');
@@ -50,6 +52,20 @@ export const StudentList: React.FC = () => {
     const students = data?.data || [];
     const totalCount = data?.meta?.totalItems || students.length;
     const totalPages = data?.meta?.totalPages || 0;
+
+    const openStudentId = useMemo(() => {
+        const raw = (location.state as any)?.openStudentId;
+        const n = Number(raw);
+        return Number.isFinite(n) && n > 0 ? n : undefined;
+    }, [location.state]);
+
+    useEffect(() => {
+        if (!openStudentId) return;
+        const s = students.find((x: any) => Number(x?.id) === openStudentId);
+        if (!s) return;
+        setSelectedStudent(s);
+        setIsMoreOpen(true);
+    }, [openStudentId, students]);
 
     const handleLimitChange = (newLimit: string | number) => {
         setLimit(Number(newLimit));

@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Loader2, Plus, UserPlus } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 import { useGetTeachers, TeacherSort, type Teacher } from './service/useGetTeachers';
 import { Pagination } from '../admin/components/pagantion';
@@ -11,6 +12,7 @@ import { TeacherCreateModal } from './components/teacher-create-modal';
 import { CertificateUpsertModal } from './components/certificate-upsert-modal';
 
 export const TeacherList: React.FC = () => {
+    const location = useLocation();
     const [page, setPage] = useState<number>(1);
     const [limit, setLimit] = useState<number>(10);
     const [searchInput, setSearchInput] = useState<string>('');
@@ -55,6 +57,20 @@ export const TeacherList: React.FC = () => {
     const teachers = data?.data || [];
     const totalCount = data?.meta?.totalItems || teachers.length;
     const totalPages = data?.meta?.totalPages || 0;
+
+    const openTeacherId = useMemo(() => {
+        const raw = (location.state as any)?.openTeacherId;
+        const n = Number(raw);
+        return Number.isFinite(n) && n > 0 ? n : undefined;
+    }, [location.state]);
+
+    useEffect(() => {
+        if (!openTeacherId) return;
+        const t = teachers.find((x: any) => Number(x?.id) === openTeacherId);
+        if (!t) return;
+        setSelectedTeacher(t);
+        setIsMoreOpen(true);
+    }, [openTeacherId, teachers]);
 
     const handleLimitChange = (newLimit: string | number) => {
         setLimit(Number(newLimit));

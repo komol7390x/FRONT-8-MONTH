@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Select } from 'antd';
+import { useLocation } from 'react-router-dom';
 import { SortEnum, useGetList, type Admin, } from './service/useGetList';
 import { useUpdateAdmin } from './service/useUpdateAdmin';
 import { useBlockAdmin } from './service/useBlockAdmin';
@@ -27,6 +28,7 @@ interface EditForm {
 type ModalType = 'edit' | 'more' | 'create' | 'confirm' | '';
 
 export const ListAdmin: React.FC = () => {
+  const location = useLocation();
   const [page, setPage] = useState<number>(1);
   const [status, setStatus] = useState<boolean | undefined>(undefined);
   const [isDeleted, setIsDeleted] = useState<boolean | undefined>(undefined);
@@ -72,6 +74,19 @@ export const ListAdmin: React.FC = () => {
   const admins: Admin[] = data?.data || [];
   const totalCount: number = data?.meta?.totalItems || 0;
   const totalPages: number = data?.meta?.totalPages || 0;
+
+  const openAdminId = useMemo(() => {
+    const raw = (location.state as any)?.openAdminId;
+    const n = Number(raw);
+    return Number.isFinite(n) && n > 0 ? n : undefined;
+  }, [location.state]);
+
+  useEffect(() => {
+    if (!openAdminId) return;
+    const a = admins.find((x: any) => Number(x?.id) === openAdminId);
+    if (!a) return;
+    openModal('more', a);
+  }, [admins, openAdminId]);
 
   const handleSort = (field: typeof SortEnum[keyof typeof SortEnum]): void => {
     setSort({ field, order: 'desc' });

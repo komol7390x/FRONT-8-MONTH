@@ -10,11 +10,11 @@ import { StatisticsAdmin } from './page/admin/super-admin/admin/statistics-admin
 import AdminPanel from './page/admin/super-admin/admin/blocked-admin';
 import { DeleteAdmin } from './page/admin/super-admin/admin/delete-admin';
 import { ListAdmin } from './page/admin/super-admin/admin/list-admin';
-import { TeacherList } from './page/admin/teacher/teacher-list';
-import { TeacherBlocked } from './page/admin/teacher/teacher-blocked';
-import { TeacherDelete } from './page/admin/teacher/teacher-delete';
-import { TeacherConfirm } from './page/admin/teacher/teacher-confirm';
-import { TeacherStatistics } from './page/admin/teacher/teacher-statistics';
+import { TeacherList } from './page/admin/super-admin/teacher/teacher-list';
+import { TeacherBlocked } from './page/admin/super-admin/teacher/teacher-blocked';
+import { TeacherDelete } from './page/admin/super-admin/teacher/teacher-delete';
+import { TeacherConfirm } from './page/admin/super-admin/teacher/teacher-confirm';
+import { TeacherStatistics } from './page/admin/super-admin/teacher/teacher-statistics';
 import { StudentList } from './page/admin/super-admin/student/student-list';
 import { StudentBlocked } from './page/admin/super-admin/student/student-blocked';
 import { StudentDelete } from './page/admin/super-admin/student/student-delete';

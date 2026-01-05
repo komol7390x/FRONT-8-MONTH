@@ -2,12 +2,12 @@ import { Alert, Button, InputNumber, Select, Spin, Table, Tag, Typography } from
 import type { ColumnsType } from 'antd/es/table';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Award, CalendarDays, CheckCircle2, Hash, Search, User } from 'lucide-react';
-import { CertificateUpsertModal } from '../../teacher/components/certificate-upsert-modal';
+import { CertificateUpsertModal } from '../teacher/components/certificate-upsert-modal';
 import { Pagination } from '../admin/components/pagantion';
 import { useCertificates } from './service/useCertificates';
-import { TeacherMoreModal } from '../../teacher/components/teacher-more-modal';
-import type { Teacher } from '../../teacher/service/useGetTeachers';
-import { useGetTeacherById } from '../../teacher/service/useGetTeacherById';
+import { TeacherMoreModal } from '../teacher/components/teacher-more-modal';
+import type { Teacher } from '../teacher/service/useGetTeachers';
+import { useGetTeacherById } from '../teacher/service/useGetTeacherById';
 
 export const CertificatePage: React.FC = () => {
     const [page, setPage] = useState<number>(1);

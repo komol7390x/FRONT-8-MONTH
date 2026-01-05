@@ -187,34 +187,28 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
 
                         {modalType === 'more' && (
                             <div className="space-y-4">
-                                <div className="flex items-center gap-4 mb-6">
-                                    {selectedAdmin?.avatarUrl ? (
-                                        <img
-                                            src={selectedAdmin.avatarUrl}
-                                            alt={selectedAdmin?.fullname || ''}
-                                            className="w-16 h-16 rounded-full object-cover"
-                                        />
-                                    ) : (
-                                        <div className="w-16 h-16 bg-gray-600 rounded-full flex items-center justify-center text-white font-semibold text-2xl">
-                                            {getInitials(selectedAdmin?.fullname || '')}
+                                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                    <div className="flex items-center gap-3">
+                                        {selectedAdmin?.avatarUrl ? (
+                                            <img
+                                                src={selectedAdmin.avatarUrl}
+                                                alt={selectedAdmin?.fullname || ''}
+                                                className="w-10 h-10 rounded-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                                                {getInitials(selectedAdmin?.fullname || '')}
+                                            </div>
+                                        )}
+                                        <div className="min-w-0">
+                                            <p className="font-semibold text-gray-900 truncate">{selectedAdmin?.fullname}</p>
+                                            <p className="text-xs text-gray-600 truncate">@{selectedAdmin?.username}</p>
+                                            <p className="text-xs text-gray-600 truncate">{selectedAdmin?.phoneNumber}</p>
                                         </div>
-                                    )}
-                                    <div>
-                                        <div className="flex items-center gap-3">
-                                            <span className="px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs font-semibold">ID:{selectedAdmin?.id}</span>
-                                            <h3 className="text-xl font-semibold text-gray-900">{selectedAdmin?.fullname}</h3>
-                                        </div>
-                                        <p className="text-sm text-gray-600 mt-1">@{selectedAdmin?.username}</p>
-                                        <span className={`inline-block px-3 py-1 rounded text-xs font-semibold mt-2 ${selectedAdmin?.role === 'SUPERADMIN'
-                                            ? 'bg-red-100 text-red-700'
-                                            : 'bg-blue-100 text-blue-700'
-                                            }`}>
-                                            {selectedAdmin?.role}
-                                        </span>
                                     </div>
                                 </div>
 
-                                <div className="border-t pt-4 space-y-2">
+                                <div className="space-y-2">
                                     <div className="group flex items-center justify-between p-2.5 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
                                         <div className="flex-1">
                                             <p className="text-xs font-medium text-gray-500 mb-0.5">ID</p>
@@ -274,10 +268,7 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
                                     <div className="flex items-center justify-between p-2.5 bg-gray-50 rounded">
                                         <div className="flex-1">
                                             <p className="text-xs font-medium text-gray-500 mb-0.5">Role</p>
-                                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${selectedAdmin?.role === 'SUPERADMIN'
-                                                ? 'bg-red-100 text-red-700'
-                                                : 'bg-blue-100 text-blue-700'
-                                                }`}>
+                                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-gray-200 text-gray-800">
                                                 {selectedAdmin?.role}
                                             </span>
                                         </div>

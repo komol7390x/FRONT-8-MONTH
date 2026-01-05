@@ -5,8 +5,10 @@ import { Search } from 'lucide-react';
 import { Pagination } from '../admin/components/pagantion';
 import { Roles } from '../../../../config/roles';
 import { PaymentStatus, usePayments } from './service/usePayments';
+import { useNavigate } from 'react-router-dom';
 
 export const PaymentPage: React.FC = () => {
+    const navigate = useNavigate();
     const [page, setPage] = useState<number>(1);
     const [limit, setLimit] = useState<number>(10);
 
@@ -41,6 +43,40 @@ export const PaymentPage: React.FC = () => {
 
     const totalCount = query.data?.meta?.totalItems || dataSource.length;
     const totalPages = query.data?.meta?.totalPages || 0;
+
+    const getTargetId = (row: any): number | undefined => {
+        const v =
+            row?.userId ??
+            row?.ownerId ??
+            row?.teacherId ??
+            row?.studentId ??
+            row?.adminId ??
+            row?.user?.id ??
+            row?.teacher?.id ??
+            row?.student?.id ??
+            row?.admin?.id;
+        const n = Number(v);
+        return Number.isFinite(n) && n > 0 ? n : undefined;
+    };
+
+    const handleRowClick = (row: any) => {
+        const targetId = getTargetId(row);
+        const r = String(row?.role || '').toUpperCase();
+
+        if (!targetId || !r) return;
+
+        if (r === String(Roles.TEACHER).toUpperCase()) {
+            navigate('/super-admin/teacher/all', { state: { openTeacherId: targetId } });
+            return;
+        }
+        if (r === String(Roles.STUDENT).toUpperCase()) {
+            navigate('/super-admin/student/all', { state: { openStudentId: targetId } });
+            return;
+        }
+        if (r === String(Roles.ADMIN).toUpperCase() || r === String(Roles.SUPER_ADMIN).toUpperCase()) {
+            navigate('/super-admin/admin/list', { state: { openAdminId: targetId } });
+        }
+    };
 
     const handleLimitChange = (newLimit: string | number) => {
         setLimit(Number(newLimit));
@@ -214,6 +250,10 @@ export const PaymentPage: React.FC = () => {
                     pagination={false}
                     bordered
                     size="middle"
+                    rowClassName={() => 'cursor-pointer'}
+                    onRow={(record) => ({
+                        onClick: () => handleRowClick(record),
+                    })}
                 />
             </Card>
 
