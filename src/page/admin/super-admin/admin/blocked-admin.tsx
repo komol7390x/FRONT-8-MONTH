@@ -200,21 +200,22 @@ const AdminPanel: React.FC = () => {
   if (isError) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center p-3 sm:p-6 space-y-4">
           <p className="text-xl text-red-600 mb-4">Error: {(error as Error)?.message}</p>
           <button
             onClick={() => refetch()}
             className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
-          />
-          Try Again
+          >
+            Try Again
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gray-50 p-3 sm:p-6">
+      <div className="max-w-7xl mx-auto space-y-4">
 
         <Header
           setPage={setPage}

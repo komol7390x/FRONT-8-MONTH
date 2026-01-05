@@ -35,13 +35,13 @@ export const AdminCard: React.FC<AdminCardProps> = ({ admins, getInitials, openM
                     <div className="bg-white rounded-lg shadow-sm overflow-hidden">
 
                         {/* Table Header: 7 equal columns for consistent spacing */}
-                        <div className="grid grid-cols-7 px-3 sm:px-4 bg-gray-50 py-3 sm:py-4 border-b border-gray-200 font-semibold text-sm text-gray-700">
-                            <div className="col-span-1 pr-5">№</div>
-                            <div className="col-span-1 pr-5">ID</div>
-                            <div className="col-span-1 pr-5">Name</div>
-                            <div className="col-span-1 pr-5">Status</div>
-                            <div className="col-span-1 pr-5">Phone</div>
-                            <div className="col-span-1 pr-2 sm:pr-4 lg:pr-6">Created At</div>
+                        <div className="grid grid-cols-4 sm:grid-cols-7 px-3 sm:px-4 bg-gray-50 py-3 sm:py-4 border-b border-gray-200 font-semibold text-sm text-gray-700">
+                            <div className="col-span-1 pr-3 sm:pr-5">№</div>
+                            <div className="hidden sm:block col-span-1 pr-5">ID</div>
+                            <div className="col-span-2 sm:col-span-1 pr-3 sm:pr-5">Name</div>
+                            <div className="col-span-1 pr-3 sm:pr-5">Status</div>
+                            <div className="hidden sm:block col-span-1 pr-5">Phone</div>
+                            <div className="hidden sm:block col-span-1 pr-2 sm:pr-4 lg:pr-6">Created At</div>
                             <div className="col-span-1 text-right">Action</div>
                         </div>
 
@@ -51,24 +51,28 @@ export const AdminCard: React.FC<AdminCardProps> = ({ admins, getInitials, openM
                             return (
                                 <div
                                     key={admin.id}
-                                    className={`grid grid-cols-7 px-3 sm:px-4 py-3 sm:py-4 border-b items-center transition-colors ${isDeletedRow
+                                    onClick={() => {
+                                        if (!showMore) return;
+                                        openModal('more', admin);
+                                    }}
+                                    className={`grid grid-cols-4 sm:grid-cols-7 px-3 sm:px-4 py-3 sm:py-4 border-b items-center transition-colors ${isDeletedRow
                                         ? 'bg-red-50 border-red-200'
                                         : 'border-gray-200 hover:bg-gray-50'
-                                        }`}
+                                        } ${showMore ? 'cursor-pointer' : ''}`}
                                 >
 
                                     {/* Number Column */}
-                                    <div className="col-span-1 pr-5">
+                                    <div className="col-span-1 pr-3 sm:pr-5">
                                         <span className="text-sm font-semibold text-gray-700">{((page - 1) * limit) + index + 1}</span>
                                     </div>
 
                                     {/* ID Column */}
-                                    <div className="col-span-1 pr-5">
+                                    <div className="hidden sm:block col-span-1 pr-5">
                                         <span className="px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs font-semibold">ID:{admin.id}</span>
                                     </div>
 
                                     {/* Name Column */}
-                                    <div className="col-span-1 pr-5">
+                                    <div className="col-span-2 sm:col-span-1 pr-3 sm:pr-5 min-w-0">
                                         <div className="flex items-center gap-2">
 
                                             {admin.avatarUrl ? (
@@ -87,13 +91,13 @@ export const AdminCard: React.FC<AdminCardProps> = ({ admins, getInitials, openM
                                             )}
                                             <div className="leading-tight">
                                                 <p className="text-sm font-medium text-gray-900">{admin.fullname}</p>
-                                                <p className="text-xs text-gray-500">@{admin.username}</p>
+                                                <p className="text-xs text-gray-500 truncate">@{admin.username}</p>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Status Column */}
-                                    <div className="col-span-1 pr-5">
+                                    <div className="col-span-1 pr-3 sm:pr-5">
                                         {isDeletedRow ? (
                                             <span className="inline-block px-3 py-1.5 rounded text-sm font-medium bg-red-700 text-white min-w-22 text-center">
                                                 Deleted
@@ -110,7 +114,7 @@ export const AdminCard: React.FC<AdminCardProps> = ({ admins, getInitials, openM
                                     </div>
 
                                     {/* Phone Column */}
-                                    <div className="col-span-1 min-w-0 pr-5">
+                                    <div className="hidden sm:block col-span-1 min-w-0 pr-5">
                                         <div className="flex items-center gap-1 text-sm text-gray-600 min-w-0">
 
                                             <Phone size={14} className="shrink-0" />
@@ -119,7 +123,7 @@ export const AdminCard: React.FC<AdminCardProps> = ({ admins, getInitials, openM
                                     </div>
 
                                     {/* Created At Column */}
-                                    <div className="col-span-1 pr-2 sm:pr-4 lg:pr-6">
+                                    <div className="hidden sm:block col-span-1 pr-2 sm:pr-4 lg:pr-6">
                                         <span className="text-xs font-medium text-emerald-700 whitespace-nowrap">
 
                                             {new Date(admin.createdAt || '').toLocaleString('uz-UZ', {
@@ -137,7 +141,10 @@ export const AdminCard: React.FC<AdminCardProps> = ({ admins, getInitials, openM
 
                                         {showMore && (
                                             <button
-                                                onClick={() => openModal('more', admin)}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    openModal('more', admin);
+                                                }}
                                                 className="px-3 py-1.5 bg-sky-500 text-white rounded text-sm font-medium hover:bg-sky-600 transition-colors flex items-center gap-2"
                                             >
                                                 <MoreHorizontal size={12} />
@@ -146,7 +153,10 @@ export const AdminCard: React.FC<AdminCardProps> = ({ admins, getInitials, openM
                                         )}
                                         {showEdit && (
                                             <button
-                                                onClick={() => openModal('edit', admin)}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    openModal('edit', admin);
+                                                }}
                                                 className="flex-1 px-2 py-1.5 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
                                             >
                                                 <Edit size={12} />
@@ -157,7 +167,10 @@ export const AdminCard: React.FC<AdminCardProps> = ({ admins, getInitials, openM
                                             <>
                                                 {admin.isActive ? (
                                                     <button
-                                                        onClick={() => handleBlock(admin.id, admin.isActive)}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleBlock(admin.id, admin.isActive);
+                                                        }}
                                                         disabled={isBlocking || isDeletedRow}
                                                         className="flex-1 px-2 py-1.5 bg-red-600 text-white rounded text-sm font-medium hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1"
                                                     >
@@ -166,7 +179,10 @@ export const AdminCard: React.FC<AdminCardProps> = ({ admins, getInitials, openM
                                                     </button>
                                                 ) : (
                                                     <button
-                                                        onClick={() => handleBlock(admin.id, admin.isActive)}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleBlock(admin.id, admin.isActive);
+                                                        }}
                                                         disabled={isBlocking || isDeletedRow}
                                                         className="flex-1 px-2 py-1.5 bg-green-600 text-white rounded text-sm font-medium hover:bg-green-700 disabled:bg-green-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1"
                                                     >
@@ -178,7 +194,10 @@ export const AdminCard: React.FC<AdminCardProps> = ({ admins, getInitials, openM
                                         )}
                                         {showDelete && (
                                             <button
-                                                onClick={() => handleSoftDelete(admin.id)}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleSoftDelete(admin.id);
+                                                }}
                                                 disabled={isDeleting}
                                                 className="flex-1 px-2 py-1.5 bg-red-600 text-white rounded text-sm font-medium hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1"
                                             >
@@ -188,7 +207,10 @@ export const AdminCard: React.FC<AdminCardProps> = ({ admins, getInitials, openM
                                         )}
                                         {showRecover && isDeletedRow && (
                                             <button
-                                                onClick={() => handleRecover?.(admin.id)}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleRecover?.(admin.id);
+                                                }}
                                                 disabled={isDeleting}
                                                 className="flex-1 px-2 py-1.5 bg-green-600 text-white rounded text-sm font-medium hover:bg-green-700 disabled:bg-green-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1"
                                             >

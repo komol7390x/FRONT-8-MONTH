@@ -197,389 +197,391 @@ export const LessonPage: React.FC = () => {
     }
 
     return (
-        <div className="space-y-4">
-            <div className="flex items-center justify-between gap-3">
-                <Typography.Title level={3} style={{ margin: 0 }}>
-                    Lesson
-                </Typography.Title>
+        <div className="min-h-screen bg-gray-50 p-6">
+            <div className="max-w-7xl mx-auto space-y-4">
+                <div className="flex items-center justify-between gap-3">
+                    <Typography.Title level={3} style={{ margin: 0 }}>
+                        Lesson
+                    </Typography.Title>
 
-                <button
-                    type="button"
-                    onClick={() => {
-                        setCreateForm({ teacherId: 0, lessonName: '', lessonPrice: 0, startTime: '', finishTime: '' });
-                        setIsCreateOpen(true);
-                    }}
-                    className="h-11 px-5 bg-linear-to-r from-cyan-600 to-blue-600 text-white rounded-xl text-sm font-semibold hover:from-cyan-700 hover:to-blue-700 transition-colors shadow-sm"
-                >
-                    Add Lesson
-                </button>
-            </div>
-
-            <div className="mt-4 p-4 rounded-2xl border border-gray-200 bg-linear-to-r from-white to-gray-50 shadow-sm space-y-3">
-                <div className="flex flex-col sm:flex-row gap-2">
-                    <div className="flex-1 relative">
-                        <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
-                        <input
-                            type="text"
-                            placeholder="Search by lesson/teacher/student id"
-                            value={searchInput}
-                            onChange={(e) => setSearchInput(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    setSearch(searchInput);
-                                    setPage(1);
-                                }
-                            }}
-                            className="w-full h-11 pl-11 pr-4 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-cyan-200 text-sm shadow-sm"
-                        />
-                    </div>
-
-                    <div className="flex gap-2">
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setSearch(searchInput);
-                                setPage(1);
-                            }}
-                            className="h-11 px-5 bg-linear-to-r from-cyan-600 to-blue-600 text-white rounded-xl text-sm font-semibold hover:from-cyan-700 hover:to-blue-700 transition-colors shadow-sm flex items-center justify-center gap-2"
-                        >
-                            <Search size={16} />
-                            Search
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setSearchInput('');
-                                setSearch('');
-                                setActive(undefined);
-                                setWeekday(undefined);
-                                setStatus(undefined);
-                                setTeacherId(undefined);
-                                setStudentId(undefined);
-                                setPage(1);
-                                setLimit(10);
-                            }}
-                            className="h-11 px-5 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors shadow-sm"
-                        >
-                            Clear
-                        </button>
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-                    <Select
-                        allowClear
-                        value={status || undefined}
-                        onChange={(v) => {
-                            setStatus((v as any) ?? undefined);
-                            setPage(1);
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setCreateForm({ teacherId: 0, lessonName: '', lessonPrice: 0, startTime: '', finishTime: '' });
+                            setIsCreateOpen(true);
                         }}
-                        placeholder="Status"
-                        style={{ width: '100%' }}
-                        options={[
-                            { value: 'available', label: 'Available' },
-                            { value: 'booked', label: 'Booked' },
-                            { value: 'completed', label: 'Completed' },
-                            { value: 'cancelled', label: 'Cancelled' },
-                            { value: 'expired', label: 'Expired' },
-                        ]}
-                    />
-
-                    <Select
-                        allowClear
-                        value={active === undefined ? undefined : active ? 'true' : 'false'}
-                        onChange={(v) => {
-                            setActive(v === undefined ? undefined : v === 'true');
-                            setPage(1);
-                        }}
-                        placeholder="Active"
-                        style={{ width: '100%' }}
-                        options={[
-                            { value: 'true', label: 'Active' },
-                            { value: 'false', label: 'Inactive' },
-                        ]}
-                    />
-
-                    <Select
-                        allowClear
-                        value={weekday || undefined}
-                        onChange={(v) => {
-                            setWeekday((v as any) ?? undefined);
-                            setPage(1);
-                        }}
-                        placeholder="Weekday"
-                        style={{ width: '100%' }}
-                        options={[
-                            { value: 'Monday', label: 'Monday' },
-                            { value: 'Tuesday', label: 'Tuesday' },
-                            { value: 'Wednesday', label: 'Wednesday' },
-                            { value: 'Thursday', label: 'Thursday' },
-                            { value: 'Friday', label: 'Friday' },
-                            { value: 'Saturday', label: 'Saturday' },
-                            { value: 'Sunday', label: 'Sunday' },
-                        ]}
-                    />
-
-                    <InputNumber
-                        value={teacherId}
-                        onChange={(v) => {
-                            setTeacherId(v === null ? undefined : Number(v));
-                            setPage(1);
-                        }}
-                        placeholder="Teacher ID"
-                        style={{ width: '100%' }}
-                        min={1}
-                        controls={false}
-                    />
-
-                    <InputNumber
-                        value={studentId}
-                        onChange={(v) => {
-                            setStudentId(v === null ? undefined : Number(v));
-                            setPage(1);
-                        }}
-                        placeholder="Student ID"
-                        style={{ width: '100%' }}
-                        min={1}
-                        controls={false}
-                    />
-                </div>
-            </div>
-
-            <Card>
-                <Table
-                    columns={columns}
-                    dataSource={dataSource}
-                    size="small"
-                    rowClassName={() => 'h-12'}
-                    onRow={(record) => {
-                        return {
-                            onClick: () => {
-                                setSelectedRow(record);
-                                setChooserOpen(true);
-                            },
-                        };
-                    }}
-                    pagination={false}
-                    scroll={{ x: 1200, y: 520 }}
-                />
-            </Card>
-
-            <Pagination
-                page={page}
-                limit={limit}
-                totalPages={totalPages}
-                totalCount={totalCount}
-                admins={dataSource as any}
-                setPage={setPage}
-                handleLimitChange={handleLimitChange}
-            />
-
-            {chooserOpen && selectedRow && (
-                <div
-                    className="fixed inset-0 bg-emerald-600/20 flex items-center justify-center z-50 p-4"
-                    onClick={() => setChooserOpen(false)}
-                >
-                    <div
-                        className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6"
-                        onClick={(e) => e.stopPropagation()}
+                        className="h-11 px-5 bg-linear-to-r from-cyan-600 to-blue-600 text-white rounded-xl text-sm font-semibold hover:from-cyan-700 hover:to-blue-700 transition-colors shadow-sm"
                     >
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-bold text-gray-900">Open details</h3>
-                            <button onClick={() => setChooserOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
-                                <X size={20} />
-                            </button>
+                        Add Lesson
+                    </button>
+                </div>
+
+                <div className="mt-4 p-4 rounded-2xl border border-gray-200 bg-linear-to-r from-white to-gray-50 shadow-sm space-y-3">
+                    <div className="flex flex-col sm:flex-row gap-2">
+                        <div className="flex-1 relative">
+                            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+                            <input
+                                type="text"
+                                placeholder="Search by lesson/teacher/student id"
+                                value={searchInput}
+                                onChange={(e) => setSearchInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        setSearch(searchInput);
+                                        setPage(1);
+                                    }
+                                }}
+                                className="w-full h-11 pl-11 pr-4 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-cyan-200 text-sm shadow-sm"
+                            />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="flex gap-2">
                             <button
                                 type="button"
                                 onClick={() => {
-                                    setChooserOpen(false);
-                                    setTeacherFocusTab('lessons');
-                                    setTeacherFocusLessonId(selectedRow?.id ? Number(selectedRow.id) : undefined);
-                                    setTeacherModalOpen(true);
+                                    setSearch(searchInput);
+                                    setPage(1);
                                 }}
-                                className="h-11 px-4 bg-linear-to-r from-cyan-600 to-blue-600 text-white rounded-xl text-sm font-semibold hover:from-cyan-700 hover:to-blue-700 transition-colors shadow-sm"
+                                className="h-11 px-5 bg-linear-to-r from-cyan-600 to-blue-600 text-white rounded-xl text-sm font-semibold hover:from-cyan-700 hover:to-blue-700 transition-colors shadow-sm flex items-center justify-center gap-2"
                             >
-                                Teacher details
+                                <Search size={16} />
+                                Search
                             </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setSearchInput('');
+                                    setSearch('');
+                                    setActive(undefined);
+                                    setWeekday(undefined);
+                                    setStatus(undefined);
+                                    setTeacherId(undefined);
+                                    setStudentId(undefined);
+                                    setPage(1);
+                                    setLimit(10);
+                                }}
+                                className="h-11 px-5 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors shadow-sm"
+                            >
+                                Clear
+                            </button>
+                        </div>
+                    </div>
 
-                            {!!selectedRow?.studentId ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                        <Select
+                            allowClear
+                            value={status || undefined}
+                            onChange={(v) => {
+                                setStatus((v as any) ?? undefined);
+                                setPage(1);
+                            }}
+                            placeholder="Status"
+                            style={{ width: '100%' }}
+                            options={[
+                                { value: 'available', label: 'Available' },
+                                { value: 'booked', label: 'Booked' },
+                                { value: 'completed', label: 'Completed' },
+                                { value: 'cancelled', label: 'Cancelled' },
+                                { value: 'expired', label: 'Expired' },
+                            ]}
+                        />
+
+                        <Select
+                            allowClear
+                            value={active === undefined ? undefined : active ? 'true' : 'false'}
+                            onChange={(v) => {
+                                setActive(v === undefined ? undefined : v === 'true');
+                                setPage(1);
+                            }}
+                            placeholder="Active"
+                            style={{ width: '100%' }}
+                            options={[
+                                { value: 'true', label: 'Active' },
+                                { value: 'false', label: 'Inactive' },
+                            ]}
+                        />
+
+                        <Select
+                            allowClear
+                            value={weekday || undefined}
+                            onChange={(v) => {
+                                setWeekday((v as any) ?? undefined);
+                                setPage(1);
+                            }}
+                            placeholder="Weekday"
+                            style={{ width: '100%' }}
+                            options={[
+                                { value: 'Monday', label: 'Monday' },
+                                { value: 'Tuesday', label: 'Tuesday' },
+                                { value: 'Wednesday', label: 'Wednesday' },
+                                { value: 'Thursday', label: 'Thursday' },
+                                { value: 'Friday', label: 'Friday' },
+                                { value: 'Saturday', label: 'Saturday' },
+                                { value: 'Sunday', label: 'Sunday' },
+                            ]}
+                        />
+
+                        <InputNumber
+                            value={teacherId}
+                            onChange={(v) => {
+                                setTeacherId(v === null ? undefined : Number(v));
+                                setPage(1);
+                            }}
+                            placeholder="Teacher ID"
+                            style={{ width: '100%' }}
+                            min={1}
+                            controls={false}
+                        />
+
+                        <InputNumber
+                            value={studentId}
+                            onChange={(v) => {
+                                setStudentId(v === null ? undefined : Number(v));
+                                setPage(1);
+                            }}
+                            placeholder="Student ID"
+                            style={{ width: '100%' }}
+                            min={1}
+                            controls={false}
+                        />
+                    </div>
+                </div>
+
+                <Card>
+                    <Table
+                        columns={columns}
+                        dataSource={dataSource}
+                        size="small"
+                        rowClassName={() => 'h-12'}
+                        onRow={(record) => {
+                            return {
+                                onClick: () => {
+                                    setSelectedRow(record);
+                                    setChooserOpen(true);
+                                },
+                            };
+                        }}
+                        pagination={false}
+                        scroll={{ x: 1200, y: 520 }}
+                    />
+                </Card>
+
+                <Pagination
+                    page={page}
+                    limit={limit}
+                    totalPages={totalPages}
+                    totalCount={totalCount}
+                    admins={dataSource as any}
+                    setPage={setPage}
+                    handleLimitChange={handleLimitChange}
+                />
+
+                {chooserOpen && selectedRow && (
+                    <div
+                        className="fixed inset-0 bg-emerald-600/20 flex items-center justify-center z-50 p-4"
+                        onClick={() => setChooserOpen(false)}
+                    >
+                        <div
+                            className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-bold text-gray-900">Open details</h3>
+                                <button onClick={() => setChooserOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2">
                                 <button
                                     type="button"
                                     onClick={() => {
                                         setChooserOpen(false);
-                                        const s = studentByIdQuery.data;
-                                        if (!s) {
-                                            message.warning('Student not loaded');
-                                            return;
-                                        }
-                                        setSelectedStudent(s as any);
-                                        setStudentModalOpen(true);
+                                        setTeacherFocusTab('lessons');
+                                        setTeacherFocusLessonId(selectedRow?.id ? Number(selectedRow.id) : undefined);
+                                        setTeacherModalOpen(true);
                                     }}
-                                    className="h-11 px-4 bg-linear-to-r from-emerald-600 to-green-600 text-white rounded-xl text-sm font-semibold hover:from-emerald-700 hover:to-green-700 transition-colors shadow-sm"
+                                    className="h-11 px-4 bg-linear-to-r from-cyan-600 to-blue-600 text-white rounded-xl text-sm font-semibold hover:from-cyan-700 hover:to-blue-700 transition-colors shadow-sm"
                                 >
-                                    Student details
+                                    Teacher details
                                 </button>
-                            ) : (
-                                <button
-                                    type="button"
-                                    disabled
-                                    className="h-11 px-4 bg-gray-100 text-gray-400 rounded-xl text-sm font-semibold cursor-not-allowed"
-                                >
-                                    Student details
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
 
-            {isCreateOpen && (
-                <div
-                    className="fixed inset-0 bg-gray-300/70 bg-opacity-50 flex items-center justify-center z-50 p-4"
-                    onClick={() => setIsCreateOpen(false)}
-                >
-                    <div
-                        className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-bold text-gray-900">Add Lesson</h2>
-                            <button onClick={() => setIsCreateOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
-                                <X size={22} />
-                            </button>
-                        </div>
-
-                        <div className="space-y-4">
-                            <InputNumber
-                                value={createForm.teacherId}
-                                onChange={(v) => {
-                                    const nextTeacherId = v === null ? 0 : Number(v);
-                                    setCreateForm((p) => ({
-                                        ...p,
-                                        teacherId: nextTeacherId,
-                                        lessonName: '',
-                                        lessonPrice: 0,
-                                    }));
-                                }}
-                                placeholder="Teacher ID"
-                                style={{ width: '100%' }}
-                                min={1}
-                            />
-
-                            <Select
-                                showSearch
-                                value={createForm.lessonName || undefined}
-                                onChange={(v) => {
-                                    const name = String(v || '');
-                                    setCreateForm((p) => ({
-                                        ...p,
-                                        lessonName: name,
-                                        lessonPrice: getHourPriceByName(name) || p.lessonPrice,
-                                    }));
-                                }}
-                                placeholder={
-                                    createForm.teacherId
-                                        ? createTeacherByIdQuery.isPending
-                                            ? 'Loading certificates...'
-                                            : lessonNameOptions.length
-                                                ? 'Select lesson name'
-                                                : 'No certificates found'
-                                        : 'Enter teacherId first'
-                                }
-                                disabled={!createForm.teacherId || createTeacherByIdQuery.isPending}
-                                options={lessonNameOptions.map((n) => ({ value: n, label: n }))}
-                                style={{ width: '100%' }}
-                            />
-
-                            <InputNumber
-                                value={createForm.lessonPrice}
-                                onChange={(v) => setCreateForm((p) => ({ ...p, lessonPrice: v === null ? 0 : Number(v) }))}
-                                placeholder="Price"
-                                style={{ width: '100%' }}
-                                min={0}
-                            />
-                            <input
-                                type="datetime-local"
-                                value={createForm.startTime}
-                                onChange={(e) => setCreateForm((p) => ({ ...p, startTime: e.target.value }))}
-                                className="w-full h-11 px-4 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-cyan-200 text-sm shadow-sm"
-                            />
-                            <input
-                                type="datetime-local"
-                                value={createForm.finishTime}
-                                onChange={(e) => setCreateForm((p) => ({ ...p, finishTime: e.target.value }))}
-                                className="w-full h-11 px-4 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-cyan-200 text-sm shadow-sm"
-                            />
-
-                            <div className="flex gap-2 pt-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsCreateOpen(false)}
-                                    className="flex-1 h-11 px-4 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors shadow-sm"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={async () => {
-                                        if (!createForm.teacherId) {
-                                            message.warning('Teacher ID is required');
-                                            return;
-                                        }
-                                        if (!createForm.lessonName.trim()) {
-                                            message.warning('Lesson name is required');
-                                            return;
-                                        }
-                                        const st = toUnixSeconds(createForm.startTime);
-                                        const ft = toUnixSeconds(createForm.finishTime);
-                                        if (!st || !ft) {
-                                            message.warning('Start/Finish time is required');
-                                            return;
-                                        }
-                                        await createLesson({
-                                            teacherId: Number(createForm.teacherId),
-                                            lessonName: createForm.lessonName,
-                                            lessonPrice: Number(createForm.lessonPrice) || 0,
-                                            startTime: st,
-                                            finishTime: ft,
-                                        });
-                                        setIsCreateOpen(false);
-                                        query.refetch();
-                                    }}
-                                    className="flex-1 h-11 px-4 bg-linear-to-r from-cyan-600 to-blue-600 text-white rounded-xl text-sm font-semibold hover:from-cyan-700 hover:to-blue-700 transition-colors shadow-sm"
-                                >
-                                    Create
-                                </button>
+                                {!!selectedRow?.studentId ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setChooserOpen(false);
+                                            const s = studentByIdQuery.data;
+                                            if (!s) {
+                                                message.warning('Student not loaded');
+                                                return;
+                                            }
+                                            setSelectedStudent(s as any);
+                                            setStudentModalOpen(true);
+                                        }}
+                                        className="h-11 px-4 bg-linear-to-r from-emerald-600 to-green-600 text-white rounded-xl text-sm font-semibold hover:from-emerald-700 hover:to-green-700 transition-colors shadow-sm"
+                                    >
+                                        Student details
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        disabled
+                                        className="h-11 px-4 bg-gray-100 text-gray-400 rounded-xl text-sm font-semibold cursor-not-allowed"
+                                    >
+                                        Student details
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
 
-            <TeacherMoreModal
-                open={teacherModalOpen}
-                teacher={selectedTeacher}
-                onClose={() => {
-                    setTeacherModalOpen(false);
-                    setTeacherFocusTab(undefined);
-                    setTeacherFocusLessonId(undefined);
-                    setSelectedTeacher(null);
-                }}
-                onEdit={() => { }}
-                onRefetch={() => teacherByIdQuery.refetch()}
-                focusTab={teacherFocusTab}
-                focusLessonId={teacherFocusLessonId}
-            />
+                {isCreateOpen && (
+                    <div
+                        className="fixed inset-0 bg-gray-300/70 bg-opacity-50 flex items-center justify-center z-50 p-4"
+                        onClick={() => setIsCreateOpen(false)}
+                    >
+                        <div
+                            className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-xl font-bold text-gray-900">Add Lesson</h2>
+                                <button onClick={() => setIsCreateOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                                    <X size={22} />
+                                </button>
+                            </div>
 
-            <StudentMoreModal
-                open={studentModalOpen}
-                student={selectedStudent}
-                onClose={() => setStudentModalOpen(false)}
-                onRefetch={() => studentByIdQuery.refetch()}
-            />
+                            <div className="space-y-4">
+                                <InputNumber
+                                    value={createForm.teacherId}
+                                    onChange={(v) => {
+                                        const nextTeacherId = v === null ? 0 : Number(v);
+                                        setCreateForm((p) => ({
+                                            ...p,
+                                            teacherId: nextTeacherId,
+                                            lessonName: '',
+                                            lessonPrice: 0,
+                                        }));
+                                    }}
+                                    placeholder="Teacher ID"
+                                    style={{ width: '100%' }}
+                                    min={1}
+                                />
+
+                                <Select
+                                    showSearch
+                                    value={createForm.lessonName || undefined}
+                                    onChange={(v) => {
+                                        const name = String(v || '');
+                                        setCreateForm((p) => ({
+                                            ...p,
+                                            lessonName: name,
+                                            lessonPrice: getHourPriceByName(name) || p.lessonPrice,
+                                        }));
+                                    }}
+                                    placeholder={
+                                        createForm.teacherId
+                                            ? createTeacherByIdQuery.isPending
+                                                ? 'Loading certificates...'
+                                                : lessonNameOptions.length
+                                                    ? 'Select lesson name'
+                                                    : 'No certificates found'
+                                            : 'Enter teacherId first'
+                                    }
+                                    disabled={!createForm.teacherId || createTeacherByIdQuery.isPending}
+                                    options={lessonNameOptions.map((n) => ({ value: n, label: n }))}
+                                    style={{ width: '100%' }}
+                                />
+
+                                <InputNumber
+                                    value={createForm.lessonPrice}
+                                    onChange={(v) => setCreateForm((p) => ({ ...p, lessonPrice: v === null ? 0 : Number(v) }))}
+                                    placeholder="Price"
+                                    style={{ width: '100%' }}
+                                    min={0}
+                                />
+                                <input
+                                    type="datetime-local"
+                                    value={createForm.startTime}
+                                    onChange={(e) => setCreateForm((p) => ({ ...p, startTime: e.target.value }))}
+                                    className="w-full h-11 px-4 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-cyan-200 text-sm shadow-sm"
+                                />
+                                <input
+                                    type="datetime-local"
+                                    value={createForm.finishTime}
+                                    onChange={(e) => setCreateForm((p) => ({ ...p, finishTime: e.target.value }))}
+                                    className="w-full h-11 px-4 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-cyan-200 text-sm shadow-sm"
+                                />
+
+                                <div className="flex gap-2 pt-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsCreateOpen(false)}
+                                        className="flex-1 h-11 px-4 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors shadow-sm"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={async () => {
+                                            if (!createForm.teacherId) {
+                                                message.warning('Teacher ID is required');
+                                                return;
+                                            }
+                                            if (!createForm.lessonName.trim()) {
+                                                message.warning('Lesson name is required');
+                                                return;
+                                            }
+                                            const st = toUnixSeconds(createForm.startTime);
+                                            const ft = toUnixSeconds(createForm.finishTime);
+                                            if (!st || !ft) {
+                                                message.warning('Start/Finish time is required');
+                                                return;
+                                            }
+                                            await createLesson({
+                                                teacherId: Number(createForm.teacherId),
+                                                lessonName: createForm.lessonName,
+                                                lessonPrice: Number(createForm.lessonPrice) || 0,
+                                                startTime: st,
+                                                finishTime: ft,
+                                            });
+                                            setIsCreateOpen(false);
+                                            query.refetch();
+                                        }}
+                                        className="flex-1 h-11 px-4 bg-linear-to-r from-cyan-600 to-blue-600 text-white rounded-xl text-sm font-semibold hover:from-cyan-700 hover:to-blue-700 transition-colors shadow-sm"
+                                    >
+                                        Create
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                <TeacherMoreModal
+                    open={teacherModalOpen}
+                    teacher={selectedTeacher}
+                    onClose={() => {
+                        setTeacherModalOpen(false);
+                        setTeacherFocusTab(undefined);
+                        setTeacherFocusLessonId(undefined);
+                        setSelectedTeacher(null);
+                    }}
+                    onEdit={() => { }}
+                    onRefetch={() => teacherByIdQuery.refetch()}
+                    focusTab={teacherFocusTab}
+                    focusLessonId={teacherFocusLessonId}
+                />
+
+                <StudentMoreModal
+                    open={studentModalOpen}
+                    student={selectedStudent}
+                    onClose={() => setStudentModalOpen(false)}
+                    onRefetch={() => studentByIdQuery.refetch()}
+                />
+            </div>
         </div>
     );
 };

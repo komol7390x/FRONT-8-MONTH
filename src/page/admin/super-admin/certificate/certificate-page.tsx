@@ -133,177 +133,179 @@ export const CertificatePage: React.FC = () => {
     }
 
     return (
-        <div className="space-y-4">
-            <Typography.Title level={3} style={{ margin: 0 }}>
-                Certificate
-            </Typography.Title>
+        <div className="min-h-screen bg-gray-50 p-6">
+            <div className="max-w-7xl mx-auto space-y-4">
+                <Typography.Title level={3} style={{ margin: 0 }}>
+                    Certificate
+                </Typography.Title>
 
-            <div className="mt-4 p-4 rounded-2xl border border-gray-200 bg-linear-to-r from-white to-gray-50 shadow-sm space-y-3">
-                <div className="flex flex-col sm:flex-row gap-2">
-                    <div className="flex-1 relative">
-                        <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
-                        <input
-                            type="text"
-                            placeholder="Search by specification/level/teacher id"
-                            value={searchInput}
-                            onChange={(e) => setSearchInput(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
+                <div className="mt-4 p-4 rounded-2xl border border-gray-200 bg-linear-to-r from-white to-gray-50 shadow-sm space-y-3">
+                    <div className="flex flex-col sm:flex-row gap-2">
+                        <div className="flex-1 relative">
+                            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+                            <input
+                                type="text"
+                                placeholder="Search by specification/level/teacher id"
+                                value={searchInput}
+                                onChange={(e) => setSearchInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        setSearch(searchInput);
+                                        setPage(1);
+                                    }
+                                }}
+                                className="w-full h-11 pl-11 pr-4 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-cyan-200 text-sm shadow-sm"
+                            />
+                        </div>
+
+                        <div className="flex gap-2">
+                            <button
+                                type="button"
+                                onClick={() => {
                                     setSearch(searchInput);
                                     setPage(1);
-                                }
+                                }}
+                                className="h-11 px-5 bg-linear-to-r from-cyan-600 to-blue-600 text-white rounded-xl text-sm font-semibold hover:from-cyan-700 hover:to-blue-700 transition-colors shadow-sm flex items-center justify-center gap-2"
+                            >
+                                <Search size={16} />
+                                Search
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setSearchInput('');
+                                    setSearch('');
+                                    setActive(undefined);
+                                    setIsDeleted(undefined);
+                                    setTeacherId(undefined);
+                                    setPage(1);
+                                    setLimit(10);
+                                }}
+                                className="h-11 px-5 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors shadow-sm"
+                            >
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                        <Select
+                            allowClear
+                            value={active === undefined ? undefined : active ? 'true' : 'false'}
+                            onChange={(v) => {
+                                setActive(v === undefined ? undefined : v === 'true');
+                                setPage(1);
                             }}
-                            className="w-full h-11 pl-11 pr-4 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-cyan-200 text-sm shadow-sm"
+                            placeholder="Active"
+                            style={{ width: '100%' }}
+                            options={[
+                                { value: 'true', label: 'Active' },
+                                { value: 'false', label: 'Inactive' },
+                            ]}
                         />
-                    </div>
 
-                    <div className="flex gap-2">
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setSearch(searchInput);
+                        <Select
+                            allowClear
+                            value={isDeleted === undefined ? undefined : isDeleted ? 'true' : 'false'}
+                            onChange={(v) => {
+                                setIsDeleted(v === undefined ? undefined : v === 'true');
                                 setPage(1);
                             }}
-                            className="h-11 px-5 bg-linear-to-r from-cyan-600 to-blue-600 text-white rounded-xl text-sm font-semibold hover:from-cyan-700 hover:to-blue-700 transition-colors shadow-sm flex items-center justify-center gap-2"
-                        >
-                            <Search size={16} />
-                            Search
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setSearchInput('');
-                                setSearch('');
-                                setActive(undefined);
-                                setIsDeleted(undefined);
-                                setTeacherId(undefined);
+                            placeholder="Deleted"
+                            style={{ width: '100%' }}
+                            options={[
+                                { value: 'true', label: 'Deleted' },
+                                { value: 'false', label: 'Not deleted' },
+                            ]}
+                        />
+
+                        <InputNumber
+                            value={teacherId}
+                            onChange={(v) => {
+                                setTeacherId(v === null ? undefined : Number(v));
                                 setPage(1);
-                                setLimit(10);
                             }}
-                            className="h-11 px-5 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors shadow-sm"
+                            placeholder="Teacher ID"
+                            style={{ width: '100%' }}
+                            min={1}
+                            controls={false}
+                        />
+
+                        <Button
+                            className="w-full"
+                            onClick={() => {
+                                setModalCertificate(null);
+                                setUpsertOpen(true);
+                            }}
                         >
-                            Clear
-                        </button>
+                            Add Certificate
+                        </Button>
                     </div>
+
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-                    <Select
-                        allowClear
-                        value={active === undefined ? undefined : active ? 'true' : 'false'}
-                        onChange={(v) => {
-                            setActive(v === undefined ? undefined : v === 'true');
-                            setPage(1);
-                        }}
-                        placeholder="Active"
-                        style={{ width: '100%' }}
-                        options={[
-                            { value: 'true', label: 'Active' },
-                            { value: 'false', label: 'Inactive' },
-                        ]}
-                    />
+                <Table
+                    columns={columns}
+                    dataSource={dataSource}
+                    pagination={false}
+                    bordered
+                    size="middle"
+                    rowClassName={() => 'cursor-pointer'}
+                    onRow={(record) => {
+                        return {
+                            onClick: () => {
+                                setSelectedRow(record);
+                                setTeacherFocusTab('certificates');
+                                setTeacherFocusCertificateId(record?.id ? Number(record.id) : undefined);
+                                setTeacherModalOpen(true);
+                            },
+                            onDoubleClick: () => {
+                                setModalCertificate(record);
+                                setUpsertOpen(true);
+                            },
+                        };
+                    }}
+                />
 
-                    <Select
-                        allowClear
-                        value={isDeleted === undefined ? undefined : isDeleted ? 'true' : 'false'}
-                        onChange={(v) => {
-                            setIsDeleted(v === undefined ? undefined : v === 'true');
-                            setPage(1);
-                        }}
-                        placeholder="Deleted"
-                        style={{ width: '100%' }}
-                        options={[
-                            { value: 'true', label: 'Deleted' },
-                            { value: 'false', label: 'Not deleted' },
-                        ]}
-                    />
+                <Pagination
+                    page={page}
+                    limit={limit}
+                    totalPages={totalPages}
+                    totalCount={totalCount}
+                    admins={dataSource as any}
+                    setPage={setPage}
+                    handleLimitChange={handleLimitChange}
+                />
 
-                    <InputNumber
-                        value={teacherId}
-                        onChange={(v) => {
-                            setTeacherId(v === null ? undefined : Number(v));
-                            setPage(1);
-                        }}
-                        placeholder="Teacher ID"
-                        style={{ width: '100%' }}
-                        min={1}
-                        controls={false}
-                    />
+                <CertificateUpsertModal
+                    open={upsertOpen}
+                    certificate={modalCertificate}
+                    teacherId={teacherId}
+                    onClose={() => {
+                        setUpsertOpen(false);
+                        setModalCertificate(null);
+                    }}
+                    onSaved={() => {
+                        query.refetch();
+                    }}
+                />
 
-                    <Button
-                        className="w-full"
-                        onClick={() => {
-                            setModalCertificate(null);
-                            setUpsertOpen(true);
-                        }}
-                    >
-                        Add Certificate
-                    </Button>
-                </div>
-
+                <TeacherMoreModal
+                    open={teacherModalOpen}
+                    teacher={selectedTeacher}
+                    onClose={() => {
+                        setTeacherModalOpen(false);
+                        setSelectedRow(null);
+                        setTeacherFocusTab(undefined);
+                        setTeacherFocusCertificateId(undefined);
+                        setSelectedTeacher(null);
+                    }}
+                    onEdit={() => { }}
+                    onRefetch={() => teacherByIdQuery.refetch()}
+                    focusTab={teacherFocusTab}
+                    focusCertificateId={teacherFocusCertificateId}
+                />
             </div>
-
-            <Table
-                columns={columns}
-                dataSource={dataSource}
-                pagination={false}
-                bordered
-                size="middle"
-                rowClassName={() => 'cursor-pointer'}
-                onRow={(record) => {
-                    return {
-                        onClick: () => {
-                            setSelectedRow(record);
-                            setTeacherFocusTab('certificates');
-                            setTeacherFocusCertificateId(record?.id ? Number(record.id) : undefined);
-                            setTeacherModalOpen(true);
-                        },
-                        onDoubleClick: () => {
-                            setModalCertificate(record);
-                            setUpsertOpen(true);
-                        },
-                    };
-                }}
-            />
-
-            <Pagination
-                page={page}
-                limit={limit}
-                totalPages={totalPages}
-                totalCount={totalCount}
-                admins={dataSource as any}
-                setPage={setPage}
-                handleLimitChange={handleLimitChange}
-            />
-
-            <CertificateUpsertModal
-                open={upsertOpen}
-                certificate={modalCertificate}
-                teacherId={teacherId}
-                onClose={() => {
-                    setUpsertOpen(false);
-                    setModalCertificate(null);
-                }}
-                onSaved={() => {
-                    query.refetch();
-                }}
-            />
-
-            <TeacherMoreModal
-                open={teacherModalOpen}
-                teacher={selectedTeacher}
-                onClose={() => {
-                    setTeacherModalOpen(false);
-                    setSelectedRow(null);
-                    setTeacherFocusTab(undefined);
-                    setTeacherFocusCertificateId(undefined);
-                    setSelectedTeacher(null);
-                }}
-                onEdit={() => { }}
-                onRefetch={() => teacherByIdQuery.refetch()}
-                focusTab={teacherFocusTab}
-                focusCertificateId={teacherFocusCertificateId}
-            />
         </div>
     );
 };

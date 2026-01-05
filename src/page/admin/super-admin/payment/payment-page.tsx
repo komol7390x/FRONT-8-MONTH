@@ -137,135 +137,137 @@ export const PaymentPage: React.FC = () => {
     }
 
     return (
-        <div className="space-y-4">
-            <Typography.Title level={3} style={{ margin: 0 }}>
-                Payment
-            </Typography.Title>
+        <div className="min-h-screen bg-gray-50 p-6">
+            <div className="max-w-7xl mx-auto space-y-4">
+                <Typography.Title level={3} style={{ margin: 0 }}>
+                    Payment
+                </Typography.Title>
 
-            <div className="mt-4 p-4 rounded-2xl border border-gray-200 bg-linear-to-r from-white to-gray-50 shadow-sm space-y-3">
-                <div className="flex flex-col sm:flex-row gap-2">
-                    <div className="flex-1 relative">
-                        <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
-                        <input
-                            type="text"
-                            placeholder="Search"
-                            value={searchInput}
-                            onChange={(e) => setSearchInput(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
+                <div className="mt-4 p-4 rounded-2xl border border-gray-200 bg-linear-to-r from-white to-gray-50 shadow-sm space-y-3">
+                    <div className="flex flex-col sm:flex-row gap-2">
+                        <div className="flex-1 relative">
+                            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+                            <input
+                                type="text"
+                                placeholder="Search"
+                                value={searchInput}
+                                onChange={(e) => setSearchInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        setSearch(searchInput);
+                                        setPage(1);
+                                    }
+                                }}
+                                className="w-full h-11 pl-11 pr-4 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-cyan-200 text-sm shadow-sm"
+                            />
+                        </div>
+
+                        <div className="flex gap-2">
+                            <button
+                                type="button"
+                                onClick={() => {
                                     setSearch(searchInput);
                                     setPage(1);
-                                }
+                                }}
+                                className="h-11 px-5 bg-linear-to-r from-cyan-600 to-blue-600 text-white rounded-xl text-sm font-semibold hover:from-cyan-700 hover:to-blue-700 transition-colors shadow-sm flex items-center justify-center gap-2"
+                            >
+                                <Search size={16} />
+                                Search
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setSearchInput('');
+                                    setSearch('');
+                                    setActive(undefined);
+                                    setRole(undefined);
+                                    setStatus(undefined);
+                                    setPage(1);
+                                    setLimit(10);
+                                }}
+                                className="h-11 px-5 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors shadow-sm"
+                            >
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                        <Select
+                            allowClear
+                            value={active === undefined ? undefined : active ? 'true' : 'false'}
+                            onChange={(v) => {
+                                setActive(v == null ? undefined : v === 'true');
+                                setPage(1);
                             }}
-                            className="w-full h-11 pl-11 pr-4 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-cyan-200 text-sm shadow-sm"
+                            placeholder="Active"
+                            style={{ width: '100%' }}
+                            options={[
+                                { value: 'true', label: 'Active' },
+                                { value: 'false', label: 'Inactive' },
+                            ]}
+                        />
+
+                        <Select
+                            allowClear
+                            value={role || undefined}
+                            onChange={(v) => {
+                                setRole((v as any) ?? undefined);
+                                setPage(1);
+                            }}
+                            placeholder="Role"
+                            style={{ width: '100%' }}
+                            options={[
+                                { value: Roles.ADMIN, label: Roles.ADMIN },
+                                { value: Roles.SUPER_ADMIN, label: Roles.SUPER_ADMIN },
+                                { value: Roles.TEACHER, label: Roles.TEACHER },
+                                { value: Roles.STUDENT, label: Roles.STUDENT },
+                            ]}
+                        />
+
+                        <Select
+                            allowClear
+                            value={status || undefined}
+                            onChange={(v) => {
+                                setStatus((v as any) ?? undefined);
+                                setPage(1);
+                            }}
+                            placeholder="Status"
+                            style={{ width: '100%' }}
+                            options={[
+                                { value: PaymentStatus.PENDING, label: PaymentStatus.PENDING },
+                                { value: PaymentStatus.PAID, label: PaymentStatus.PAID },
+                                { value: PaymentStatus.PENDING_CANCELED, label: PaymentStatus.PENDING_CANCELED },
+                                { value: PaymentStatus.PAID_CANCELED, label: PaymentStatus.PAID_CANCELED },
+                            ]}
                         />
                     </div>
-
-                    <div className="flex gap-2">
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setSearch(searchInput);
-                                setPage(1);
-                            }}
-                            className="h-11 px-5 bg-linear-to-r from-cyan-600 to-blue-600 text-white rounded-xl text-sm font-semibold hover:from-cyan-700 hover:to-blue-700 transition-colors shadow-sm flex items-center justify-center gap-2"
-                        >
-                            <Search size={16} />
-                            Search
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setSearchInput('');
-                                setSearch('');
-                                setActive(undefined);
-                                setRole(undefined);
-                                setStatus(undefined);
-                                setPage(1);
-                                setLimit(10);
-                            }}
-                            className="h-11 px-5 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors shadow-sm"
-                        >
-                            Clear
-                        </button>
-                    </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-                    <Select
-                        allowClear
-                        value={active === undefined ? undefined : active ? 'true' : 'false'}
-                        onChange={(v) => {
-                            setActive(v === undefined ? undefined : v === 'true');
-                            setPage(1);
-                        }}
-                        placeholder="Active"
-                        style={{ width: '100%' }}
-                        options={[
-                            { value: 'true', label: 'Active' },
-                            { value: 'false', label: 'Inactive' },
-                        ]}
+                <Card>
+                    <Table
+                        columns={columns}
+                        dataSource={dataSource}
+                        pagination={false}
+                        bordered
+                        size="middle"
+                        rowClassName={() => 'cursor-pointer'}
+                        onRow={(record) => ({
+                            onClick: () => handleRowClick(record),
+                        })}
                     />
+                </Card>
 
-                    <Select
-                        allowClear
-                        value={role || undefined}
-                        onChange={(v) => {
-                            setRole((v as any) ?? undefined);
-                            setPage(1);
-                        }}
-                        placeholder="Role"
-                        style={{ width: '100%' }}
-                        options={[
-                            { value: Roles.ADMIN, label: Roles.ADMIN },
-                            { value: Roles.SUPER_ADMIN, label: Roles.SUPER_ADMIN },
-                            { value: Roles.TEACHER, label: Roles.TEACHER },
-                            { value: Roles.STUDENT, label: Roles.STUDENT },
-                        ]}
-                    />
-
-                    <Select
-                        allowClear
-                        value={status || undefined}
-                        onChange={(v) => {
-                            setStatus((v as any) ?? undefined);
-                            setPage(1);
-                        }}
-                        placeholder="Status"
-                        style={{ width: '100%' }}
-                        options={[
-                            { value: PaymentStatus.PENDING, label: PaymentStatus.PENDING },
-                            { value: PaymentStatus.PAID, label: PaymentStatus.PAID },
-                            { value: PaymentStatus.PENDING_CANCELED, label: PaymentStatus.PENDING_CANCELED },
-                            { value: PaymentStatus.PAID_CANCELED, label: PaymentStatus.PAID_CANCELED },
-                        ]}
-                    />
-                </div>
-            </div>
-
-            <Card>
-                <Table
-                    columns={columns}
-                    dataSource={dataSource}
-                    pagination={false}
-                    bordered
-                    size="middle"
-                    rowClassName={() => 'cursor-pointer'}
-                    onRow={(record) => ({
-                        onClick: () => handleRowClick(record),
-                    })}
+                <Pagination
+                    page={page}
+                    limit={limit}
+                    totalPages={totalPages}
+                    totalCount={totalCount}
+                    admins={dataSource as any}
+                    setPage={setPage}
+                    handleLimitChange={handleLimitChange}
                 />
-            </Card>
-
-            <Pagination
-                page={page}
-                limit={limit}
-                totalPages={totalPages}
-                totalCount={totalCount}
-                admins={dataSource as any}
-                setPage={setPage}
-                handleLimitChange={handleLimitChange}
-            />
+            </div>
         </div>
     );
 };

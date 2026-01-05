@@ -1,8 +1,9 @@
 import type React from 'react';
-import { X, Copy, Edit, Ban, Unlock, Trash2 } from 'lucide-react';
+import { X, Edit, Ban, Unlock, Trash2 } from 'lucide-react';
 import { ConfirmModal } from '../../../../../components/confirm-modal';
 import type { Admin } from '../service/useGetList';
 import { useSendOtp } from '../service/useCreateAdmin';
+import { AdminMoreInfo } from './admin-more-info';
 
 interface EditForm {
     username: string;
@@ -158,10 +159,6 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
         }
     };
 
-    const copyToClipboard = (text: string) => {
-        navigator.clipboard.writeText(text);
-    };
-
     return (
         <div>
             {(showModal && (selectedAdmin || modalType === 'create' || modalType === 'confirm')) && (
@@ -170,18 +167,18 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
                     onClick={closeModal}
                 >
                     <div
-                        className="bg-white rounded-xl shadow-xl w-full max-w-sm p-5 max-h-[85vh] overflow-y-auto"
+                        className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-2xl font-bold text-gray-900">
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-xl font-bold text-gray-900">
                                 {modalType === 'edit' ? 'Edit Admin' : modalType === 'create' ? 'Create Admin' : modalType === 'confirm' ? 'Confirm Action' : 'Admin Details'}
                             </h2>
                             <button
                                 onClick={closeModal}
                                 className="text-gray-400 hover:text-gray-600 transition-colors"
                             >
-                                <X size={24} />
+                                <X size={20} />
                             </button>
                         </div>
 
@@ -208,133 +205,12 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
                                     </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <div className="group flex items-center justify-between p-2.5 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
-                                        <div className="flex-1">
-                                            <p className="text-xs font-medium text-gray-500 mb-0.5">ID</p>
-                                            <p className="text-sm font-semibold text-gray-900">{selectedAdmin?.id}</p>
-                                        </div>
-                                        <button
-                                            onClick={() => copyToClipboard(selectedAdmin?.id?.toString() || '')}
-                                            className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-white rounded transition-colors"
-                                            title="Copy ID"
-                                        >
-                                            <Copy size={14} />
-                                        </button>
-                                    </div>
+                                {selectedAdmin && <AdminMoreInfo admin={selectedAdmin} />}
 
-                                    <div className="group flex items-center justify-between p-2.5 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
-                                        <div className="flex-1">
-                                            <p className="text-xs font-medium text-gray-500 mb-0.5">Full Name</p>
-                                            <p className="text-sm font-semibold text-gray-900">{selectedAdmin?.fullname}</p>
-                                        </div>
-                                        <button
-                                            onClick={() => copyToClipboard(selectedAdmin?.fullname || '')}
-                                            className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-white rounded transition-colors"
-                                            title="Copy Full Name"
-                                        >
-                                            <Copy size={14} />
-                                        </button>
-                                    </div>
-
-                                    <div className="group flex items-center justify-between p-2.5 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
-                                        <div className="flex-1">
-                                            <p className="text-xs font-medium text-gray-500 mb-0.5">Username</p>
-                                            <p className="text-sm font-semibold text-gray-900">@{selectedAdmin?.username}</p>
-                                        </div>
-                                        <button
-                                            onClick={() => copyToClipboard(selectedAdmin?.username || '')}
-                                            className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-white rounded transition-colors"
-                                            title="Copy Username"
-                                        >
-                                            <Copy size={14} />
-                                        </button>
-                                    </div>
-
-                                    <div className="group flex items-center justify-between p-2.5 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
-                                        <div className="flex-1">
-                                            <p className="text-xs font-medium text-gray-500 mb-0.5">Phone Number</p>
-                                            <p className="text-sm font-semibold text-gray-900">{selectedAdmin?.phoneNumber}</p>
-                                        </div>
-                                        <button
-                                            onClick={() => copyToClipboard(selectedAdmin?.phoneNumber || '')}
-                                            className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-white rounded transition-colors"
-                                            title="Copy Phone Number"
-                                        >
-                                            <Copy size={14} />
-                                        </button>
-                                    </div>
-
-                                    <div className="flex items-center justify-between p-2.5 bg-gray-50 rounded">
-                                        <div className="flex-1">
-                                            <p className="text-xs font-medium text-gray-500 mb-0.5">Role</p>
-                                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-gray-200 text-gray-800">
-                                                {selectedAdmin?.role}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center justify-between p-2.5 bg-gray-50 rounded">
-                                        <div className="flex-1">
-                                            <p className="text-xs font-medium text-gray-500 mb-0.5">Status</p>
-                                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${selectedAdmin?.isActive
-                                                ? 'bg-green-100 text-green-700'
-                                                : 'bg-red-100 text-red-700'
-                                                }`}>
-                                                {selectedAdmin?.isActive ? 'Active' : 'Blocked'}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <div className="group flex items-center justify-between p-2.5 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
-                                        <div className="flex-1">
-                                            <p className="text-xs font-medium text-gray-500 mb-0.5">Created At</p>
-                                            <p className="text-xs font-medium text-gray-700">
-                                                {new Date(selectedAdmin?.createdAt || '').toLocaleDateString('uz-UZ', {
-                                                    year: 'numeric',
-                                                    month: 'short',
-                                                    day: 'numeric',
-                                                    hour: '2-digit',
-                                                    minute: '2-digit'
-                                                })}
-                                            </p>
-                                        </div>
-                                        <button
-                                            onClick={() => copyToClipboard(new Date(selectedAdmin?.createdAt || '').toLocaleString())}
-                                            className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-white rounded transition-colors"
-                                            title="Copy Created At"
-                                        >
-                                            <Copy size={14} />
-                                        </button>
-                                    </div>
-
-                                    <div className="group flex items-center justify-between p-2.5 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
-                                        <div className="flex-1">
-                                            <p className="text-xs font-medium text-gray-500 mb-0.5">Updated At</p>
-                                            <p className="text-xs font-medium text-gray-700">
-                                                {new Date(selectedAdmin?.updatedAt || '').toLocaleDateString('uz-UZ', {
-                                                    year: 'numeric',
-                                                    month: 'short',
-                                                    day: 'numeric',
-                                                    hour: '2-digit',
-                                                    minute: '2-digit'
-                                                })}
-                                            </p>
-                                        </div>
-                                        <button
-                                            onClick={() => copyToClipboard(new Date(selectedAdmin?.updatedAt || '').toLocaleString())}
-                                            className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-white rounded transition-colors"
-                                            title="Copy Updated At"
-                                        >
-                                            <Copy size={14} />
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-3 mt-6">
+                                <div className="flex gap-2 pt-2">
                                     <button
                                         onClick={switchToEdit}
-                                        className="flex-1 px-4 py-3 bg-gray-900 text-white rounded text-sm font-medium hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
+                                        className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
                                     >
                                         <Edit size={16} />
                                         Edit
@@ -346,7 +222,7 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
                                             }
                                         }}
                                         disabled={isBlocking || !!selectedAdmin?.isDeleted}
-                                        className={`flex-1 px-4 py-3 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2 ${selectedAdmin?.isActive
+                                        className={`flex-1 px-4 py-2.5 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2 ${selectedAdmin?.isActive
                                             ? 'bg-red-600 text-white hover:bg-red-700 disabled:bg-red-400'
                                             : 'bg-green-600 text-white hover:bg-green-700 disabled:bg-green-400'
                                             }`}
@@ -368,19 +244,21 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
                                             </>
                                         )}
                                     </button>
-                                    <button
-                                        onClick={async () => {
-                                            if (selectedAdmin) {
-                                                await handleSoftDelete(selectedAdmin.id);
-                                            }
-                                        }}
-                                        disabled={!!selectedAdmin?.isDeleted}
-                                        className="flex-1 px-4 py-3 bg-red-600 text-white rounded text-sm font-medium hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-                                    >
-                                        <Trash2 size={16} />
-                                        Delete
-                                    </button>
                                 </div>
+
+                                <button
+                                    type="button"
+                                    onClick={async () => {
+                                        if (selectedAdmin) {
+                                            await handleSoftDelete(selectedAdmin.id);
+                                        }
+                                    }}
+                                    disabled={!!selectedAdmin?.isDeleted}
+                                    className="w-full px-4 py-2.5 bg-red-600 text-white rounded text-sm font-medium hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <Trash2 size={16} />
+                                    Delete
+                                </button>
                             </div>
                         )}
 
