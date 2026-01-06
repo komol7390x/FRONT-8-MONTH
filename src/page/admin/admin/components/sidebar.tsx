@@ -50,7 +50,7 @@ export const Sidebar = () => {
     return (
         <div>
             <div
-                className={`h-screen bg-linear-to-b from-[#0a0e27] via-[#1a1f3a] to-[#0a0e27] flex flex-col shadow-2xl border-r border-white/10 relative transition-all duration-300 shrink-0 overflow-hidden ${collapsed ? 'w-20' : 'w-72'
+                className={`h-screen bg-linear-to-b from-[#1b1035] via-[#2a1a4d] to-[#1b1035] flex flex-col shadow-2xl border-r border-white/10 relative transition-all duration-300 shrink-0 overflow-hidden ${collapsed ? 'w-20' : 'w-72'
                     }`}
             >
                 {/* Collapse Button */}

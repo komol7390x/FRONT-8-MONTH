@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Alert } from 'antd';
-import { Award, Plus } from 'lucide-react';
+import { Award, CheckCircle2, Plus, XCircle } from 'lucide-react';
 import { useTeacherDetails } from '../service/useTeacherDetails';
 import { CertificateUpsertModal } from '../../../admin/super-admin/teacher/components/certificate-upsert-modal';
 import { PageLoader } from '../../../../components/page-loader';
@@ -92,9 +92,16 @@ export const TeacherCertificatesPage: React.FC = () => {
                                             <div className="text-sm font-bold text-gray-900 truncate">{String(c?.specificationName || '-')}</div>
                                             <div className="mt-1 text-xs text-gray-600 truncate">{String(c?.description || '')}</div>
                                         </div>
-                                        <span className="shrink-0 px-2 py-1 rounded text-xs font-bold bg-amber-100 text-amber-800">
-                                            {String(c?.level || '-').toUpperCase()}
-                                        </span>
+                                        <div className="shrink-0 flex items-center gap-2">
+                                            {Boolean(c?.isActive) ? (
+                                                <CheckCircle2 size={18} className="text-emerald-600" />
+                                            ) : (
+                                                <XCircle size={18} className="text-rose-600" />
+                                            )}
+                                            <span className="px-2 py-1 rounded text-xs font-bold bg-amber-100 text-amber-800">
+                                                {String(c?.level || '-').toUpperCase()}
+                                            </span>
+                                        </div>
                                     </div>
 
                                     <div className="mt-3 flex items-center justify-between">

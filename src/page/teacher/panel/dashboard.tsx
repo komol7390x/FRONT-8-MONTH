@@ -47,7 +47,7 @@ export const TeacherDashboard: React.FC = () => {
         <Layout style={{ minHeight: '100vh' }} hasSider>
             <Sidebar />
 
-            <Layout className="bg-linear-to-b from-[#0a0e27] via-[#1a1f3a] to-[#0a0e27] flex flex-col h-screen overflow-hidden">
+            <Layout className="bg-linear-to-b from-[#052e2b] via-[#0f3d3a] to-[#052e2b] flex flex-col h-screen overflow-hidden">
                 <Header className="bg-[#0a0e27]/50 backdrop-blur-md border-b border-white/10 px-6 flex items-center justify-between h-16 shrink-0">
                     <div className="flex items-center gap-3">
                         <button

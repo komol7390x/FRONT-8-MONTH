@@ -43,6 +43,7 @@ export const TeacherCreateLessonPage: React.FC = () => {
 
     const [form] = Form.useForm();
     const [submitting, setSubmitting] = useState(false);
+    const [priceTouched, setPriceTouched] = useState(false);
 
     const [selectedOffsets, setSelectedOffsets] = useState<number[]>([0]);
 
@@ -55,7 +56,8 @@ export const TeacherCreateLessonPage: React.FC = () => {
 
         return Array.from({ length: 7 }).map((_, i) => {
             const d = new Date(base);
-            d.setDate(d.getDate() + i);
+            // bugungi kunni ko'rsatmaymiz, faqat ertadan boshlab tanlanadi
+            d.setDate(d.getDate() + (i + 1));
             const dd = String(d.getDate()).padStart(2, '0');
             const label = days[d.getDay()];
             const dateLabel = `${dd}-${months[d.getMonth()]}`;
@@ -67,7 +69,7 @@ export const TeacherCreateLessonPage: React.FC = () => {
         return (lessonsQuery.data?.data || []) as any[];
     }, [lessonsQuery.data?.data]);
 
-    const disabledOffsets = useMemo(() => {
+    const lessonCountByDayKey = useMemo(() => {
         const toDate = (v: any) => {
             if (v == null) return null;
             if (typeof v === 'number') {
@@ -75,37 +77,31 @@ export const TeacherCreateLessonPage: React.FC = () => {
                 const d = new Date(ms);
                 return Number.isNaN(d.getTime()) ? null : d;
             }
-            const asNumber = Number(v);
-            if (Number.isFinite(asNumber) && String(v).trim() !== '') {
-                const ms = asNumber < 1_000_000_000_000 ? asNumber * 1000 : asNumber;
-                const d = new Date(ms);
-                return Number.isNaN(d.getTime()) ? null : d;
-            }
             const d = new Date(String(v));
             return Number.isNaN(d.getTime()) ? null : d;
         };
 
-        const slotMap = new Map<string, number>();
-        for (const s of dateSlots) {
-            slotMap.set(s.date.toDateString(), s.offset);
-        }
+        const keyOf = (d: Date) => {
+            const x = new Date(d);
+            x.setHours(0, 0, 0, 0);
+            return x.getTime();
+        };
 
-        const disabled = new Set<number>();
-        for (const l of existingLessons || []) {
-            const d = toDate((l as any)?.startTime ?? (l as any)?.start ?? (l as any)?.date);
-            if (!d) continue;
-            const offset = slotMap.get(d.toDateString());
-            if (typeof offset === 'number') disabled.add(offset);
+        const map = new Map<number, number>();
+        for (const l of existingLessons) {
+            const st = String((l as any)?.status ?? '').toLowerCase();
+            if (st && st !== 'available') continue;
+            const sd = toDate((l as any)?.startTime);
+            if (!sd) continue;
+            const k = keyOf(sd);
+            map.set(k, (map.get(k) ?? 0) + 1);
         }
-        return disabled;
-    }, [dateSlots, existingLessons]);
+        return map;
+    }, [existingLessons]);
 
     useEffect(() => {
-        setSelectedOffsets((prev) => {
-            const cleaned = prev.filter((x) => !disabledOffsets.has(x));
-            return cleaned.length ? cleaned : [0].filter((x) => !disabledOffsets.has(x));
-        });
-    }, [disabledOffsets]);
+        setSelectedOffsets([0]);
+    }, []);
 
     useEffect(() => {
         const current = String(form.getFieldValue('lessonName') || '').trim();
@@ -115,12 +111,15 @@ export const TeacherCreateLessonPage: React.FC = () => {
                     lessonName: lessonNameOptions[0],
                     lessonPrice: getHourPriceByName(lessonNameOptions[0]),
                 });
+                setPriceTouched(false);
             }
             return;
         }
-        const p = getHourPriceByName(current);
-        if (p > 0) {
-            form.setFieldsValue({ lessonPrice: p });
+        if (!priceTouched) {
+            const p = getHourPriceByName(current);
+            if (p > 0) {
+                form.setFieldsValue({ lessonPrice: p });
+            }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lessonNameOptions.join('|')]);
@@ -171,8 +170,6 @@ export const TeacherCreateLessonPage: React.FC = () => {
         for (const offset of sortedOffsets) {
             const slot = dateSlots.find((s) => s.offset === offset);
             if (!slot) continue;
-            if (disabledOffsets.has(offset)) continue;
-
             const start = new Date(slot.date);
             start.setHours(startHM.h, startHM.m, 0, 0);
 
@@ -309,8 +306,10 @@ export const TeacherCreateLessonPage: React.FC = () => {
                                                     showSearch
                                                     options={lessonNameOptions.map((x) => ({ value: x, label: x }))}
                                                     onChange={(v) => {
-                                                        const p = getHourPriceByName(String(v));
-                                                        if (p > 0) form.setFieldsValue({ lessonPrice: p });
+                                                        if (!priceTouched) {
+                                                            const p = getHourPriceByName(String(v));
+                                                            if (p > 0) form.setFieldsValue({ lessonPrice: p });
+                                                        }
                                                     }}
                                                 />
                                             ) : (
@@ -319,7 +318,12 @@ export const TeacherCreateLessonPage: React.FC = () => {
                                         </Form.Item>
 
                                         <Form.Item name="lessonPrice" label="Lesson price" rules={[{ required: true, message: 'Lesson price required' }]}>
-                                            <InputNumber min={0} className="w-full" prefix={<DollarSign size={14} />} />
+                                            <InputNumber
+                                                min={0}
+                                                className="w-full"
+                                                prefix={<DollarSign size={14} />}
+                                                disabled
+                                            />
                                         </Form.Item>
 
                                         <Form.Item name="startTime" label="Start time" rules={[{ required: true, message: 'Start time required' }]}>
@@ -345,32 +349,44 @@ export const TeacherCreateLessonPage: React.FC = () => {
                                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                                             {dateSlots.map((d) => {
                                                 const active = selectedOffsets.includes(d.offset);
-                                                const disabled = disabledOffsets.has(d.offset);
+                                                const dayKey = (() => {
+                                                    const x = new Date(d.date);
+                                                    x.setHours(0, 0, 0, 0);
+                                                    return x.getTime();
+                                                })();
+                                                const dayCount = lessonCountByDayKey.get(dayKey) ?? 0;
                                                 return (
                                                     <button
                                                         key={d.offset}
                                                         type="button"
-                                                        disabled={disabled}
                                                         onClick={() => {
-                                                            if (disabled) return;
                                                             setSelectedOffsets((prev) =>
                                                                 prev.includes(d.offset)
                                                                     ? prev.filter((x) => x !== d.offset)
                                                                     : [...prev, d.offset],
                                                             );
                                                         }}
-                                                        className={`relative h-12 rounded-xl text-xs font-semibold border flex flex-col items-center justify-center leading-tight ${disabled
-                                                            ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                                                            : active
-                                                                ? 'bg-emerald-600 text-white border-emerald-600'
-                                                                : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                                                        className={`relative h-12 rounded-xl text-xs font-semibold border flex flex-col items-center justify-center leading-tight ${active
+                                                            ? 'bg-emerald-600 text-white border-emerald-600'
+                                                            : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
                                                             }`}
                                                     >
-                                                        {active && !disabled && (
+                                                        {dayCount > 0 && (
+                                                            <span
+                                                                className={`absolute -top-2 -left-2 min-w-6 h-6 px-1 rounded-full text-[11px] font-bold flex items-center justify-center border ${active
+                                                                    ? 'bg-white text-emerald-700 border-emerald-200'
+                                                                    : 'bg-gray-900 text-white border-gray-700'
+                                                                    }`}
+                                                                title={`Bu kunda ${dayCount} ta dars bor`}
+                                                            >
+                                                                {dayCount}
+                                                            </span>
+                                                        )}
+                                                        {active && (
                                                             <CheckCircle2 size={14} className="absolute -top-1 -right-1 text-emerald-700 bg-white rounded-full" />
                                                         )}
                                                         <span>{d.label}</span>
-                                                        <span className={disabled ? 'text-gray-400' : active ? 'text-white/90' : 'text-gray-500'}>{d.dateLabel}</span>
+                                                        <span className={active ? 'text-white/90' : 'text-gray-500'}>{d.dateLabel}</span>
                                                     </button>
                                                 );
                                             })}

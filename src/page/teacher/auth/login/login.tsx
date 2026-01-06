@@ -1,14 +1,15 @@
 import { z } from 'zod';
 import { useForm, Controller } from 'react-hook-form';
-import { Button, Card, Form, Input, message, Typography } from 'antd';
+import { message } from 'antd';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import { TokenName } from '../../../../config/enum';
-import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { config } from '../../../../config/config';
 import { useTeacherLogin } from '../service/teacher-auth';
 import { ArrowLeft } from 'lucide-react';
+import { Button, Card, Form, Input, Typography } from 'antd';
+import { UserOutlined, LockOutlined } from '@ant-design/icons';
 const { Title } = Typography;
 
 const formSchema = z.object({
@@ -146,7 +147,6 @@ export const LoginTeacher = () => {
                             size="large"
                             className="h-12 text-base font-semibold rounded-md flex items-center justify-center gap-3 border border-gray-200 bg-white text-gray-900 shadow-sm hover:shadow-md"
                             onClick={() => {
-                                // Redirect to backend Google OAuth
                                 window.location.href = `${config.BACKEND_URL}/auth/google`;
                             }}
                         >

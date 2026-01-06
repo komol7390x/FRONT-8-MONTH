@@ -16,6 +16,7 @@ export const Sidebar = () => {
         if (p.startsWith('/teacher-panel/statistics')) return ['teacher-stats'];
         if (p.startsWith('/teacher-panel/lessons')) return ['teacher-lessons'];
         if (p.startsWith('/teacher-panel/create-lesson')) return ['teacher-create-lesson'];
+        if (p.startsWith('/teacher-panel/schedule')) return ['teacher-schedule'];
         if (p.startsWith('/teacher-panel/payment')) return ['teacher-payment'];
         if (p.startsWith('/teacher-panel/certificates')) return ['teacher-certificates'];
         return [];

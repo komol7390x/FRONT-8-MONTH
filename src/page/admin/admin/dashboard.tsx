@@ -35,7 +35,7 @@ export const AdminDashboard: React.FC = () => {
       {/* --- SIDEBAR QISMI --- */}
       <Sidebar />
 
-      <Layout className="bg-linear-to-b from-[#0a0e27] via-[#1a1f3a] to-[#0a0e27] flex flex-col h-screen overflow-hidden">
+      <Layout className="bg-linear-to-b from-[#1b1035] via-[#2a1a4d] to-[#1b1035] flex flex-col h-screen overflow-hidden">
 
         {/* 1. HEADER SECTION */}
         <Header className="bg-[#0a0e27]/50 backdrop-blur-md border-b border-white/10 px-6 flex items-center justify-between h-16 shrink-0">

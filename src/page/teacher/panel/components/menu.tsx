@@ -1,5 +1,5 @@
 import type { MenuProps } from 'antd';
-import { Award, BarChart3, CreditCard, PlusCircle, Video } from 'lucide-react';
+import { Award, BarChart3, CalendarDays, CreditCard, PlusCircle, Video } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 type MenuItem = Required<MenuProps>['items'][number];
@@ -19,6 +19,11 @@ export const items: MenuItem[] = [
         key: 'teacher-create-lesson',
         label: <Link to={'/teacher-panel/create-lesson'} className="font-semibold">Create Lesson</Link>,
         icon: <PlusCircle size={20} />,
+    },
+    {
+        key: 'teacher-schedule',
+        label: <Link to={'/teacher-panel/schedule'} className="font-semibold">Schedule</Link>,
+        icon: <CalendarDays size={20} />,
     },
     {
         key: 'teacher-payment',

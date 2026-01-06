@@ -37,6 +37,7 @@ import { TeacherPaymentPage } from './page/teacher/panel/pages/payment-page';
 import { TeacherSettingsPage } from './page/teacher/panel/pages/settings-page';
 import { TeacherNotificationPage } from './page/teacher/panel/pages/notification-page';
 import { TeacherCertificatesPage } from './page/teacher/panel/pages/certificates-page';
+import { TeacherSchedulePage } from './page/teacher/panel/pages/schedule-page';
 
 function App() {
   return (
@@ -56,6 +57,7 @@ function App() {
         <Route path="statistics" element={<TeacherStatisticsPage />} />
         <Route path="lessons" element={<TeacherLessonsPage />} />
         <Route path="create-lesson" element={<TeacherCreateLessonPage />} />
+        <Route path="schedule" element={<TeacherSchedulePage />} />
         <Route path="payment" element={<TeacherPaymentPage />} />
         <Route path="certificates" element={<TeacherCertificatesPage />} />
         <Route path="notification" element={<TeacherNotificationPage />} />

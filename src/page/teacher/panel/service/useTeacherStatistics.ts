@@ -12,7 +12,7 @@ export const useTeacherStatistics = (teacherId: number | undefined) => {
         queryKey: ['teacher-statistics', teacherId],
         enabled: typeof teacherId === 'number' && teacherId > 0,
         queryFn: async () => {
-            const res = await request.get(`/statistica/teacher/${teacherId}`);
+            const res = await request.get('/statistica/teacher');
             const raw: any = res.data;
             return (raw?.data ?? raw) as TeacherStatisticsResponse;
         },

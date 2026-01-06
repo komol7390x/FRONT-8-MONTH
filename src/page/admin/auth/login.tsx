@@ -1,13 +1,15 @@
 import { z } from 'zod';
 import { useForm, Controller } from 'react-hook-form';
-import { Button, Card, Form, Input, message, Typography } from "antd";
+import { message } from "antd";
 import { useLogin } from './service/use-login';
 import { useNavigate } from 'react-router-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Cookies from 'js-cookie'
 import { TokenName } from '../../../config/enum';
-import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { Roles } from '../../../config/roles';
+import { ArrowLeft } from 'lucide-react';
+import { Button, Card, Form, Input, Typography } from "antd";
+import { UserOutlined, LockOutlined } from '@ant-design/icons';
 const { Title } = Typography;
 
 const formSchema = z.object({
@@ -18,6 +20,7 @@ const formSchema = z.object({
 type LoginFormValues = z.infer<typeof formSchema>;
 
 export const LoginAdmin = () => {
+
     const { mutate, isPending } = useLogin();
     const navigate = useNavigate();
 
@@ -53,14 +56,22 @@ export const LoginAdmin = () => {
     return (
         <div className="flex justify-center items-center min-height-screen h-screen bg-[#f0f2f5] p-4">
             <Card className="w-full max-w-100 shadow-lg rounded-xl">
+                <div className="flex items-center justify-between mb-4">
+                    <button
+                        type="button"
+                        onClick={() => navigate(-1)}
+                        className="inline-flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-gray-900"
+                    >
+                        <ArrowLeft size={16} />
+                        Back
+                    </button>
+                </div>
 
                 <div className="text-center mb-6">
                     <Title level={3} className="mb-0!">Admin Panel</Title>
                 </div>
 
                 <Form layout="vertical" onFinish={handleSubmit(onSubmit)}>
-
-                    {/* Username Field */}
                     <Form.Item
                         label={<span className="font-medium">Username</span>}
                         validateStatus={errors.username ? 'error' : ''}
@@ -82,7 +93,6 @@ export const LoginAdmin = () => {
                         />
                     </Form.Item>
 
-                    {/* Password Field */}
                     <Form.Item
                         label={<span className="font-medium">Password</span>}
                         validateStatus={errors.password ? 'error' : ''}
@@ -120,7 +130,6 @@ export const LoginAdmin = () => {
                     <div className="relative my-6 text-center">
                         <p className='text-[12px]'>Admin panel - Faqat ruxsat etilgan foydalanuvchilar uchun</p>
                     </div>
-
                 </Form>
             </Card>
         </div>

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { Card, Select, Tag } from 'antd';
-import { CalendarDays, CheckCircle2, Hash, Search } from 'lucide-react';
+import { Card, Select, Tag, message } from 'antd';
+import { CalendarDays, CheckCircle2, Copy, Hash, Link2, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTeacherLessons, type TeacherLessonTemplate } from '../service/useTeacherLessons';
 import { PageLoader } from '../../../../components/page-loader';
@@ -107,6 +107,42 @@ export const TeacherLessonsPage: React.FC = () => {
 
         return map;
     }, [weekdayStatsQuery.data?.data]);
+
+    const toDisplay = (value: unknown): string => {
+        if (value === null || value === undefined) return '';
+        if (typeof value === 'string') return value;
+        if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+        try {
+            return JSON.stringify(value);
+        } catch {
+            return String(value);
+        }
+    };
+
+    const formatDateTime = (value: unknown): string => {
+        const raw = toDisplay(value);
+        if (!raw) return '-';
+        const asNumber = Number(raw);
+        const d = Number.isFinite(asNumber)
+            ? new Date(asNumber < 1_000_000_000_000 ? asNumber * 1000 : asNumber)
+            : new Date(raw);
+        if (Number.isNaN(d.getTime())) return raw;
+        const day = d.toLocaleDateString('uz-UZ', { weekday: 'short' });
+        const date = d.toLocaleDateString('uz-UZ', { year: 'numeric', month: '2-digit', day: '2-digit' });
+        const time = d.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
+        return `${day} ${date} ${time}`;
+    };
+
+    const copyToClipboard = async (value: unknown) => {
+        const text = toDisplay(value);
+        if (!text) return;
+        try {
+            await navigator.clipboard.writeText(text);
+            message.success('Copied');
+        } catch {
+            message.error('Copy failed');
+        }
+    };
 
     if (query.isPending) {
         return (
@@ -283,29 +319,29 @@ export const TeacherLessonsPage: React.FC = () => {
 
                 <Card>
                     <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                        <div className="grid grid-cols-4 sm:grid-cols-8 px-3 sm:px-4 bg-gray-50 py-3 sm:py-4 border-b border-gray-200 font-semibold text-sm text-gray-700">
-                            <div className="col-span-1 pr-3 sm:pr-5 flex items-center gap-2"><Hash size={14} /> №</div>
-                            <div className="hidden sm:flex col-span-1 pr-5 items-center gap-2"><Hash size={14} /> ID</div>
-                            <div className="col-span-2 sm:col-span-2 pr-3 sm:pr-5 flex items-center gap-2">Lesson</div>
-                            <div className="col-span-1 pr-3 sm:pr-5">Weekday</div>
-                            <div className="hidden sm:flex col-span-1 pr-5 items-center gap-2"><CheckCircle2 size={14} /> Status</div>
-                            <div className="hidden sm:block col-span-1 pr-5">Paid</div>
-                            <div className="hidden sm:block col-span-1 pr-5">Price</div>
-                            <div className="col-span-1 text-right">Info</div>
+                        <div className="grid grid-cols-8 px-3 sm:px-4 bg-gray-50 py-3 sm:py-4 border-b border-gray-200 font-semibold text-sm text-gray-700">
+                            <div className="col-span-1 pr-3 sm:pr-4 flex items-center gap-2"><Hash size={14} /> No</div>
+                            <div className="col-span-1 pr-3 sm:pr-4 flex items-center gap-2"><Hash size={14} /> Id</div>
+                            <div className="col-span-1 pr-3 sm:pr-4">Paid</div>
+                            <div className="col-span-1 pr-3 sm:pr-4 flex items-center gap-2"><CheckCircle2 size={14} /> Status</div>
+                            <div className="col-span-1 pr-3 sm:pr-4">Price</div>
+                            <div className="col-span-1 pr-3 sm:pr-4 flex items-center gap-2"><Link2 size={14} /> Meet</div>
+                            <div className="col-span-1 pr-3 sm:pr-4">Start</div>
+                            <div className="col-span-1 text-right">Finish</div>
                         </div>
 
                         <div className="overflow-x-auto">
-                            <div className="min-w-[900px]">
+                            <div className="min-w-[1100px]">
 
                                 {dataSource.length === 0 ? (
                                     <div className="p-12 text-center text-gray-500">No lessons found</div>
                                 ) : (
                                     (dataSource as any[]).map((t: TeacherLessonTemplate, idx: number) => {
-                                        const wd = String((t as any)?.weekday ?? '-');
                                         const st = String((t as any)?.status ?? '').toLowerCase();
                                         const statusColor = st === 'booked' ? 'green' : st === 'available' ? 'blue' : st ? 'gold' : 'default';
                                         const paid = Boolean((t as any)?.isPaid);
                                         const rowBg = st === 'booked' ? 'bg-green-50 border-green-200' : 'border-gray-200 hover:bg-gray-50';
+                                        const meet = toDisplay((t as any)?.meetLink);
                                         return (
                                             <div
                                                 key={(t as any)?.id ?? idx}
@@ -315,37 +351,50 @@ export const TeacherLessonsPage: React.FC = () => {
                                                     <span className="text-sm font-semibold text-gray-700">{(page - 1) * limit + idx + 1}</span>
                                                 </div>
 
-                                                <div className="col-span-1 pr-5">
+                                                <div className="col-span-1 pr-3 sm:pr-4">
                                                     <span className="px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs font-semibold">ID:{(t as any)?.id ?? '-'}</span>
                                                 </div>
 
-                                                <div className="col-span-2 pr-3 sm:pr-5 min-w-0">
-                                                    <div className="leading-tight min-w-0">
-                                                        <p className="text-sm font-medium text-gray-900 truncate">{String((t as any)?.lessonName ?? '-')}</p>
-                                                        <p className="text-xs text-gray-500 truncate">{String((t as any)?.meetLink ?? '')}</p>
-                                                    </div>
-                                                </div>
-
-                                                <div className="col-span-1 pr-3 sm:pr-5">
-                                                    <span className="text-sm font-semibold text-gray-700">{wd}</span>
-                                                </div>
-
-                                                <div className="col-span-1 pr-5">
-                                                    <Tag className="m-0" color={statusColor as any}>{String((t as any)?.status ?? '-')}</Tag>
-                                                </div>
-
-                                                <div className="col-span-1 pr-5">
+                                                <div className="col-span-1 pr-3 sm:pr-4">
                                                     <span className={`inline-block px-3 py-1.5 rounded text-sm font-medium text-white min-w-22 text-center ${paid ? 'bg-green-600' : 'bg-red-600'}`}>
                                                         {paid ? 'Yes' : 'No'}
                                                     </span>
                                                 </div>
 
-                                                <div className="col-span-1 pr-5">
+                                                <div className="col-span-1 pr-3 sm:pr-4">
+                                                    <Tag className="m-0" color={statusColor as any}>{String((t as any)?.status ?? '-')}</Tag>
+                                                </div>
+
+                                                <div className="col-span-1 pr-3 sm:pr-4">
                                                     <Tag className="m-0" color="gold">{(t as any)?.lessonPrice ?? '-'}</Tag>
                                                 </div>
 
+                                                <div className="col-span-1 pr-3 sm:pr-4 min-w-0">
+                                                    <div className="flex items-center gap-2 min-w-0">
+                                                        <span className="text-xs text-gray-700 truncate" title={meet}>{meet || '-'}</span>
+                                                        {!!meet && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => copyToClipboard(meet)}
+                                                                className="shrink-0 p-1.5 border border-gray-300 rounded-md text-gray-700 bg-gray-50 hover:bg-gray-100 transition-colors"
+                                                                title="Copy meet link"
+                                                            >
+                                                                <Copy size={14} />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                <div className="col-span-1 pr-3 sm:pr-4">
+                                                    <div className="text-xs text-gray-600" title={formatDateTime((t as any)?.startTime)}>
+                                                        {formatDateTime((t as any)?.startTime)}
+                                                    </div>
+                                                </div>
+
                                                 <div className="col-span-1 text-right">
-                                                    <div className="text-xs text-gray-600">{String((t as any)?.startTime ?? '')}</div>
+                                                    <div className="text-xs text-gray-600" title={formatDateTime((t as any)?.finishTime ?? (t as any)?.endTime)}>
+                                                        {formatDateTime((t as any)?.finishTime ?? (t as any)?.endTime)}
+                                                    </div>
                                                 </div>
                                             </div>
                                         );
