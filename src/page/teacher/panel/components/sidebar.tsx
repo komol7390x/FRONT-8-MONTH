@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, User } from 'lucide-react';
+import { Bell, ChevronLeft, ChevronRight, Settings, User } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import logo from '@/assets/img/logo.png';
 import { Avatar, ConfigProvider, Menu } from 'antd';
@@ -17,7 +17,7 @@ export const Sidebar = () => {
         if (p.startsWith('/teacher-panel/lessons')) return ['teacher-lessons'];
         if (p.startsWith('/teacher-panel/create-lesson')) return ['teacher-create-lesson'];
         if (p.startsWith('/teacher-panel/payment')) return ['teacher-payment'];
-        if (p.startsWith('/teacher-panel/settings')) return ['teacher-settings'];
+        if (p.startsWith('/teacher-panel/certificates')) return ['teacher-certificates'];
         return [];
     }, [location.pathname]);
 
@@ -33,10 +33,13 @@ export const Sidebar = () => {
         return <div className="text-rose-500 text-xs text-center">Ma'lumot yuklanmadi</div>;
     }
 
+    const isNotificationActive = location.pathname.startsWith('/teacher-panel/notification');
+    const isSettingsActive = location.pathname.startsWith('/teacher-panel/settings');
+
     return (
         <div>
             <div
-                className={`h-screen bg-linear-to-b from-[#0a0e27] via-[#1a1f3a] to-[#0a0e27] flex flex-col shadow-2xl border-r border-white/10 relative transition-all duration-300 shrink-0 overflow-hidden ${collapsed ? 'w-20' : 'w-72'}`}
+                className={`h-screen bg-linear-to-b from-[#06122d] via-[#0b1b3d] to-[#06122d] flex flex-col shadow-2xl border-r border-white/10 relative transition-all duration-300 shrink-0 overflow-hidden ${collapsed ? 'w-20' : 'w-72'}`}
             >
                 <button
                     onClick={() => setCollapsed(!collapsed)}
@@ -86,6 +89,52 @@ export const Sidebar = () => {
                         />
                     </ConfigProvider>
                 </div>
+
+                <Link to={'/teacher-panel/notification'}>
+                    <div
+                        className={`mx-2 py-4 mb-2 cursor-pointer rounded-xl border transition-all shrink-0 
+                              ${collapsed ? 'p-2 w-12 mx-auto' : 'px-6 py-4'}
+                              ${isNotificationActive
+                                ? 'bg-cyan-500/5 border-cyan-200 shadow-[0_0_15px_rgba(6,182,212,0.2)]'
+                                : 'border-cyan-500/5 hover:border-cyan-500/40'
+                            }`}
+                    >
+                        <div className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
+                            <Bell
+                                size={18}
+                                className={`shrink-0 transition-colors ${isNotificationActive ? 'text-cyan-400' : 'text-white'}`}
+                            />
+                            {!collapsed && (
+                                <span className={`text-sm transition-colors ${isNotificationActive ? 'text-cyan-400 font-bold' : 'text-white'}`}>
+                                    Notification
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                </Link>
+
+                <Link to={'/teacher-panel/settings'}>
+                    <div
+                        className={`mx-2 py-4 mb-4 cursor-pointer rounded-xl border transition-all shrink-0 
+                              ${collapsed ? 'p-2 w-12 mx-auto' : 'px-6 py-4'}
+                              ${isSettingsActive
+                                ? 'bg-cyan-500/5 border-cyan-200 shadow-[0_0_15px_rgba(6,182,212,0.2)]'
+                                : 'border-cyan-500/5 hover:border-cyan-500/40'
+                            }`}
+                    >
+                        <div className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
+                            <Settings
+                                size={18}
+                                className={`shrink-0 transition-colors ${isSettingsActive ? 'text-cyan-400' : 'text-white'}`}
+                            />
+                            {!collapsed && (
+                                <span className={`text-sm transition-colors ${isSettingsActive ? 'text-cyan-400 font-bold' : 'text-white'}`}>
+                                    Settings
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                </Link>
 
                 <div className={`mt-auto mb-6 mx-2 p-3 rounded-xl bg-white/5 border border-white/10 shrink-0 ${collapsed ? 'w-12 mx-auto px-0' : 'px-4'}`}>
                     <div className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>

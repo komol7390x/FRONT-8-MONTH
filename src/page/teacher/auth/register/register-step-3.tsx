@@ -14,6 +14,9 @@ type LocationState = {
     id?: number;
 };
 
+const STORAGE_KEY_STEP2 = 'teacher_register_step2';
+const STORAGE_KEY_STEP3 = 'teacher_register_step3';
+
 export const RegisterTeacherStep3: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -23,6 +26,21 @@ export const RegisterTeacherStep3: React.FC = () => {
 
     const [otp, setOtp] = useState(state.otp || '');
     const [sekLeft, setSekLeft] = useState<number>(Number(state.sek || 0));
+
+    useEffect(() => {
+        const hasState = !!(state.phoneNumber || state.password || state.otp || state.id);
+        if (hasState) return;
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY_STEP3);
+            if (!raw) return;
+            const parsed = JSON.parse(raw);
+            if (parsed?.otp && !otp) setOtp(String(parsed.otp));
+            if (parsed?.sek && !sekLeft) setSekLeft(Number(parsed.sek) || 0);
+        } catch {
+            // ignore
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         if (!sekLeft) return;
@@ -69,6 +87,12 @@ export const RegisterTeacherStep3: React.FC = () => {
                                     return;
                                 }
                                 Cookies.set(TokenName.TOKEN_NAME, token);
+                                try {
+                                    localStorage.removeItem(STORAGE_KEY_STEP2);
+                                    localStorage.removeItem(STORAGE_KEY_STEP3);
+                                } catch {
+                                    // ignore
+                                }
                                 navigate('/teacher-panel', { replace: true });
                             },
                             onError: () => {

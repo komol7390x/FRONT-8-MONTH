@@ -19,11 +19,25 @@ export interface TeacherPaymentsResponse {
     };
 }
 
-export const useTeacherPayments = () => {
+export interface TeacherPaymentsParams {
+    status?: string;
+    search?: string;
+    page?: number;
+    limit?: number;
+}
+
+export const useTeacherPayments = (params: TeacherPaymentsParams = {}) => {
     return useQuery<TeacherPaymentsResponse>({
-        queryKey: ['teacher-payments'],
+        queryKey: ['teacher-payments', params],
         queryFn: async () => {
-            const res = await request.get<TeacherPaymentsResponse>('/teacher-payment/teacher');
+            const res = await request.get<TeacherPaymentsResponse>('/payment/user', {
+                params: {
+                    status: params.status,
+                    search: params.search,
+                    page: params.page,
+                    limit: params.limit,
+                },
+            });
             const raw: any = res.data;
             const nested = raw?.data?.data ? raw.data : undefined;
             const dataArray = Array.isArray(raw)

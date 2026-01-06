@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Lock, Phone } from 'lucide-react';
 import { message } from 'antd';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -11,6 +11,9 @@ type LocationState = {
     password?: string;
 };
 
+const STORAGE_KEY = 'teacher_google_register_step2';
+const STORAGE_KEY_STEP3 = 'teacher_google_register_step3';
+
 export const GoogleRegisterTeacherStep2: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -19,6 +22,40 @@ export const GoogleRegisterTeacherStep2: React.FC = () => {
 
     const [phoneNumber, setPhoneNumber] = useState(state.phoneNumber || '');
     const [password, setPassword] = useState(state.password || '');
+
+    useEffect(() => {
+        const hasState = !!(state.email || state.name || state.phoneNumber || state.password);
+        if (hasState) return;
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return;
+            const parsed = JSON.parse(raw);
+            if (parsed?.email) {
+                // keep in state object only for display; not in local state
+            }
+            if (parsed?.phoneNumber && !phoneNumber) setPhoneNumber(String(parsed.phoneNumber));
+            if (parsed?.password && !password) setPassword(String(parsed.password));
+        } catch {
+            // ignore
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        try {
+            localStorage.setItem(
+                STORAGE_KEY,
+                JSON.stringify({
+                    email: String(state.email || ''),
+                    name: String(state.name || ''),
+                    phoneNumber: String(phoneNumber || ''),
+                    password: String(password || ''),
+                }),
+            );
+        } catch {
+            // ignore
+        }
+    }, [password, phoneNumber, state.email, state.name]);
 
     const handleContinue = () => {
         if (!phoneNumber.trim()) {
@@ -38,6 +75,22 @@ export const GoogleRegisterTeacherStep2: React.FC = () => {
                     const otpValue = String(raw?.data?.otp ?? raw?.otp ?? '');
                     const sekValue = Number(raw?.data?.sek ?? raw?.sek ?? 0);
                     const teacherId = Number(raw?.data?.id ?? raw?.id ?? 0);
+
+                    try {
+                        localStorage.setItem(
+                            STORAGE_KEY_STEP3,
+                            JSON.stringify({
+                                ...state,
+                                phoneNumber,
+                                password,
+                                otp: otpValue,
+                                sek: sekValue,
+                                id: teacherId,
+                            }),
+                        );
+                    } catch {
+                        // ignore
+                    }
 
                     navigate('/teacher/google/step-3', {
                         state: {
