@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
-import { Alert, Button, Card, Form, Input, InputNumber, Spin, message } from 'antd';
+import { Alert, Button, Card, Form, Input, InputNumber, message } from 'antd';
 import { useTeacherDetails, useUpdateTeacher } from '../service/useTeacherDetails';
+import { PageLoader } from '../../../../components/page-loader';
 
 export const TeacherSettingsPage: React.FC = () => {
     const details = useTeacherDetails();
@@ -19,7 +20,7 @@ export const TeacherSettingsPage: React.FC = () => {
     if (details.isPending) {
         return (
             <div className="flex justify-center items-center h-64">
-                <Spin size="large" />
+                <PageLoader />
             </div>
         );
     }

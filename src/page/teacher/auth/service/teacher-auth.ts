@@ -11,7 +11,9 @@ export const useTeacherLogin = () => {
     return useMutation({
         mutationFn: async (payload: TeacherLoginPayload) => {
             // Backend endpoint name is not explicitly provided; this follows common pattern.
-            const res = await request.post('/teacher/signin', payload);
+            const res = await request.post('/teacher/signin', payload, {
+                withCredentials: true,
+            });
             return res.data;
         },
     });
@@ -28,7 +30,9 @@ export interface TeacherCreatePayload {
 export const useTeacherCreate = () => {
     return useMutation({
         mutationFn: async (payload: TeacherCreatePayload) => {
-            const res = await request.post('/teacher/create', payload);
+            const res = await request.post('/teacher/create', payload, {
+                withCredentials: true,
+            });
             return res.data;
         },
     });
@@ -42,7 +46,9 @@ export interface TeacherConfirmTelEmailPayload {
 export const useTeacherConfirmTelEmail = () => {
     return useMutation({
         mutationFn: async (payload: TeacherConfirmTelEmailPayload) => {
-            const res = await request.post('/teacher/confirm-tel-email', payload);
+            const res = await request.post('/teacher/confirm-tel-email', payload, {
+                withCredentials: true,
+            });
             return res.data;
         },
     });
@@ -55,8 +61,10 @@ export interface TeacherRegisterStep2Payload {
 
 export const useTeacherRegisterStep2 = () => {
     return useMutation({
-        mutationFn: async ({ id, payload }: { id: number; payload: TeacherRegisterStep2Payload }) => {
-            const res = await request.post(`/teacher/register-step2/${id}`, payload);
+        mutationFn: async (payload: TeacherRegisterStep2Payload) => {
+            const res = await request.post('/teacher/register-step2', payload, {
+                withCredentials: true,
+            });
             return res.data;
         },
     });
@@ -64,9 +72,10 @@ export const useTeacherRegisterStep2 = () => {
 
 export const useTeacherRegisterStep3 = () => {
     return useMutation({
-        mutationFn: async ({ id, otp }: { id: number; otp: number }) => {
-            const res = await request.post(`/teacher/register-step3/${id}`, undefined, {
+        mutationFn: async ({ otp }: { otp: number }) => {
+            const res = await request.post('/teacher/register-step3', undefined, {
                 params: { otp },
+                withCredentials: true,
             });
             return res.data;
         },

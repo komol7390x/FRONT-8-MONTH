@@ -1,4 +1,4 @@
-import { Alert, InputNumber, Select, Spin, Table, Tag, Typography } from 'antd';
+import { Alert, InputNumber, Select, Table, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Award, CalendarDays, CheckCircle2, Hash, Plus, Search, User } from 'lucide-react';
@@ -8,6 +8,7 @@ import { useCertificates } from './service/useCertificates';
 import { TeacherMoreModal } from '../teacher/components/teacher-more-modal';
 import type { Teacher } from '../teacher/service/useGetTeachers';
 import { useGetTeacherById } from '../teacher/service/useGetTeacherById';
+import { PageLoader } from '../../../../components/page-loader';
 
 export const CertificatePage: React.FC = () => {
     const [page, setPage] = useState<number>(1);
@@ -120,7 +121,7 @@ export const CertificatePage: React.FC = () => {
     if (query.isPending) {
         return (
             <div className="flex justify-center items-center h-64">
-                <Spin size="large" />
+                <PageLoader />
             </div>
         );
     }

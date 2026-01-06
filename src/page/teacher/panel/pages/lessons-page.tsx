@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { Card, Select, Spin, Table, Tag } from 'antd';
+import { Card, Select, Table, Tag } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { Search } from 'lucide-react';
 import { useTeacherLessons, type TeacherLessonTemplate } from '../service/useTeacherLessons';
+import { PageLoader } from '../../../../components/page-loader';
 
 export const TeacherLessonsPage: React.FC = () => {
     const [searchInput, setSearchInput] = useState('');
@@ -70,7 +71,7 @@ export const TeacherLessonsPage: React.FC = () => {
     if (query.isPending) {
         return (
             <div className="flex justify-center items-center h-64">
-                <Spin size="large" />
+                <PageLoader />
             </div>
         );
     }

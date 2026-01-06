@@ -2,13 +2,13 @@ import React from 'react';
 import { Badge, Layout } from 'antd';
 import { Navigate, Outlet, useNavigate } from 'react-router-dom';
 import { Sidebar } from './components/sidebar';
-import { Bell, LogOut, User } from 'lucide-react';
+import { ArrowLeft, Bell, LogOut, User } from 'lucide-react';
 import Cookies from 'js-cookie';
 import { TokenName } from '../../../config/enum';
 import { jwtDecode } from 'jwt-decode';
 import { Roles } from '../../../config/roles';
-const { Header, Content, Footer } = Layout;
 
+const { Header, Content, Footer } = Layout;
 
 export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -39,13 +39,24 @@ export const AdminDashboard: React.FC = () => {
 
         {/* 1. HEADER SECTION */}
         <Header className="bg-[#0a0e27]/50 backdrop-blur-md border-b border-white/10 px-6 flex items-center justify-between h-16 shrink-0">
-          <div className="text-lg font-medium text-white/90">
-            Dashboard Panel
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="h-9 px-3 rounded-lg border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 transition-colors flex items-center gap-2"
+            >
+              <ArrowLeft size={16} />
+              Back
+            </button>
+            <div className="text-lg font-medium text-white/90">
+              Dashboard Panel
+            </div>
           </div>
           <div className="flex items-center gap-10">
             {/* Headerga kerakli elementlarni (masalan, qidiruv yoki til tanlash) shu yerga qo'ying */}
             <div className='flex gap-3 items-center justify-center'>
               <User size={25} className="text-cyan-200" />
+
               <div className="inline-flex cursor-pointer items-center justify-center p-2 rounded-md text-[12px] font-bold tracking-tighter uppercase border border-cyan-500/30 bg-cyan-500/20 text-cyan-200 leading-none">
                 {String(role || '').toUpperCase()}
               </div>

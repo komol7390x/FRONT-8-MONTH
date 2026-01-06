@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
-import { Alert, Card, Spin, Table, Tag } from 'antd';
+import { Alert, Card, Table, Tag } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { useTeacherPayments, type TeacherPaymentItem } from '../service/useTeacherPayments';
+import { PageLoader } from '../../../../components/page-loader';
 
 export const TeacherPaymentPage: React.FC = () => {
     const query = useTeacherPayments();
@@ -28,7 +29,7 @@ export const TeacherPaymentPage: React.FC = () => {
     if (query.isPending) {
         return (
             <div className="flex justify-center items-center h-64">
-                <Spin size="large" />
+                <PageLoader />
             </div>
         );
     }

@@ -3,6 +3,10 @@ import { MainPage } from './page/main/main';
 import { PrivacyPolicy } from './page/main/privacy-policy/privacy-policy';
 import { LoginTeacher } from './page/teacher/auth/login/login';
 import { RegisterTeacher } from './page/teacher/auth/register/register';
+import { RegisterTeacherStep2 } from './page/teacher/auth/register/register-step-2';
+import { RegisterTeacherStep3 } from './page/teacher/auth/register/register-step-3';
+import { GoogleRegisterTeacherStep2 } from './page/teacher/auth/register/google-step-2';
+import { GoogleRegisterTeacherStep3 } from './page/teacher/auth/register/google-step-3';
 import { LoginAdmin } from './page/admin/auth/login';
 import { SuperAdminDashboard } from './page/admin/super-admin/dashboard';
 import { AdminDashboard } from './page/admin/admin/dashboard';
@@ -40,6 +44,10 @@ function App() {
       <Route path="/admin/login" element={<LoginAdmin />} />
       <Route path="/teacher/login" element={<LoginTeacher />} />
       <Route path="/teacher/register" element={<RegisterTeacher />} />
+      <Route path="/teacher/register/step-2" element={<RegisterTeacherStep2 />} />
+      <Route path="/teacher/register/step-3" element={<RegisterTeacherStep3 />} />
+      <Route path="/teacher/google/step-2" element={<GoogleRegisterTeacherStep2 />} />
+      <Route path="/teacher/google/step-3" element={<GoogleRegisterTeacherStep3 />} />
 
       <Route path="/teacher-panel" element={<TeacherDashboard />}>
         <Route index element={<Navigate to="statistics" replace />} />

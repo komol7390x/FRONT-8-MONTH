@@ -1,8 +1,9 @@
-import { Card, Col, Row, Statistic, Spin } from 'antd';
+import { Card, Col, Row, Statistic } from 'antd';
 import { ArrowUpRight, Trash2, UserCheck, UserMinus, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { TextDashboard } from '../components/text-dashboard';
 import { useStudentStatistic } from './service/useStudentStatistic';
+import { PageLoader } from '../../../../components/page-loader';
 
 export const StudentStatistics = () => {
     const { data, isPending } = useStudentStatistic();
@@ -10,7 +11,7 @@ export const StudentStatistics = () => {
     if (isPending) {
         return (
             <div className="flex justify-center items-center h-64">
-                <Spin size="large" />
+                <PageLoader />
             </div>
         );
     }

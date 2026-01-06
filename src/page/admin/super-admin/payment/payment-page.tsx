@@ -1,4 +1,4 @@
-import { Alert, Card, Select, Spin, Table, Tag, Typography } from 'antd';
+import { Alert, Card, Select, Table, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
@@ -7,6 +7,7 @@ import { Roles } from '../../../../config/roles';
 import { PaymentStatus, usePayments } from './service/usePayments';
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
+import { PageLoader } from '../../../../components/page-loader';
 
 export const PaymentPage: React.FC = () => {
     const navigate = useNavigate();
@@ -154,7 +155,7 @@ export const PaymentPage: React.FC = () => {
     if (query.isPending) {
         return (
             <div className="flex justify-center items-center h-64">
-                <Spin size="large" />
+                <PageLoader />
             </div>
         );
     }

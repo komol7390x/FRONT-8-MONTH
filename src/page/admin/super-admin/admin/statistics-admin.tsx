@@ -1,8 +1,9 @@
-import { Card, Col, Row, Statistic, Spin } from 'antd';
+import { Card, Col, Row, Statistic } from 'antd';
 import { Users, UserCheck, UserMinus, Trash2, ArrowUpRight } from 'lucide-react';
 import { useGetStatistic } from "./service/usegetStatistic";
 import { Link } from 'react-router-dom';
 import { TextDashboard } from '../components/text-dashboard';
+import { PageLoader } from '../../../../components/page-loader';
 
 export const StatisticsAdmin = () => {
     const { data, isPending } = useGetStatistic();
@@ -10,7 +11,7 @@ export const StatisticsAdmin = () => {
     if (isPending) {
         return (
             <div className="flex justify-center items-center h-64">
-                <Spin size="large" />
+                <PageLoader />
             </div>
         );
     }
@@ -70,7 +71,7 @@ export const StatisticsAdmin = () => {
                                             {item.icon}
                                         </div>
                                         <Statistic
-                                            title={<span  className="font-medium opacity-80">{item.title}</span>}
+                                            title={<span className="font-medium opacity-80">{item.title}</span>}
                                             value={item.value}
                                             valueStyle={{
                                                 color: item.border,

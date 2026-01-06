@@ -1,4 +1,4 @@
-import { Alert, Card, InputNumber, Select, Spin, Table, Typography, message } from 'antd';
+import { Alert, Card, InputNumber, Select, Table, Typography, message } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, Hash, Plus, Search, User, UserRound, X } from 'lucide-react';
@@ -11,6 +11,7 @@ import type { Student } from '../student/service/useGetStudents';
 import type { Teacher } from '../teacher/service/useGetTeachers';
 import { useGetStudentById } from '../student/service/useGetStudentById';
 import { useGetTeacherById } from '../teacher/service/useGetTeacherById';
+import { PageLoader } from '../../../../components/page-loader';
 
 export const LessonPage: React.FC = () => {
     const [page, setPage] = useState<number>(1);
@@ -161,7 +162,7 @@ export const LessonPage: React.FC = () => {
     if (query.isPending) {
         return (
             <div className="flex justify-center items-center h-64">
-                <Spin size="large" />
+                <PageLoader />
             </div>
         );
     }

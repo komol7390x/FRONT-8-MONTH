@@ -1,8 +1,9 @@
 import React from 'react';
-import { Card, Col, Row, Spin, Statistic } from 'antd';
+import { Card, Col, Row, Statistic } from 'antd';
 import { BookOpen, CreditCard } from 'lucide-react';
 import { useTeacherDetails } from '../service/useTeacherDetails';
 import { useTeacherStatistics } from '../service/useTeacherStatistics';
+import { PageLoader } from '../../../../components/page-loader';
 
 export const TeacherStatisticsPage: React.FC = () => {
     const details = useTeacherDetails();
@@ -12,7 +13,7 @@ export const TeacherStatisticsPage: React.FC = () => {
     if (details.isPending || stats.isPending) {
         return (
             <div className="flex justify-center items-center h-64">
-                <Spin size="large" />
+                <PageLoader />
             </div>
         );
     }
