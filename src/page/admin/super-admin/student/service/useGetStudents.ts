@@ -67,7 +67,7 @@ export const useGetStudents = (params: GetStudentsParams = {}) => {
             if (typeof params.isDeleted === 'boolean') queryParams.isDeleted = params.isDeleted;
 
             try {
-                const res = await request.get<GetStudentsResponse>('/student/all', {
+                const res = await request.get<GetStudentsResponse>('/student', {
                     params: queryParams,
                 });
 
@@ -76,7 +76,7 @@ export const useGetStudents = (params: GetStudentsParams = {}) => {
                 const status = err?.response?.status;
                 if (status !== 403) throw err;
 
-                const res = await request.get<GetStudentsResponse>('/admin/student/all', {
+                const res = await request.get<GetStudentsResponse>('/admin/student', {
                     params: queryParams,
                 });
 
