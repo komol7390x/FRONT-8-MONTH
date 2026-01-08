@@ -24,6 +24,7 @@ import { StudentBlocked } from './page/admin/super-admin/student/student-blocked
 import { StudentDelete } from './page/admin/super-admin/student/student-delete';
 import { StudentStatistics } from './page/admin/super-admin/student/student-statistics';
 import { LessonPage } from './page/admin/super-admin/lesson/lesson-page';
+import { SchedulePage } from './page/admin/super-admin/schedule/schedule-page';
 import { CertificatePage } from './page/admin/super-admin/certificate/certificate-page';
 import { PaymentPage } from './page/admin/super-admin/payment/payment-page';
 import { SettingsPage } from './page/admin/super-admin/settings/settings-page';
@@ -88,6 +89,7 @@ function App() {
         </Route>
 
         <Route path='lesson' element={<LessonPage />} />
+        <Route path='schedule' element={<SchedulePage />} />
         <Route path='certificate' element={<CertificatePage />} />
         <Route path='payment' element={<PaymentPage />} />
         <Route path='notification' element={<NotificationPage />} />

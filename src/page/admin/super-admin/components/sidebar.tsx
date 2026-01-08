@@ -38,6 +38,7 @@ export const Sidebar = () => {
 
         // PAGES
         if (p.startsWith('/super-admin/lesson')) return { selectedKeys: ['lesson-page'], openKeys: [] };
+        if (p.startsWith('/super-admin/schedule')) return { selectedKeys: ['schedule-page'], openKeys: [] };
         if (p.startsWith('/super-admin/certificate')) return { selectedKeys: ['certificate-page'], openKeys: [] };
         if (p.startsWith('/super-admin/payment')) return { selectedKeys: ['payment-page'], openKeys: [] };
         if (p.startsWith('/super-admin/notification')) return { selectedKeys: [], openKeys: [] };

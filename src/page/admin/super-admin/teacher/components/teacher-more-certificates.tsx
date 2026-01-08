@@ -4,6 +4,8 @@ import type { Teacher } from '../service/useGetTeachers';
 import { formatDateTime, formatNumber, toDisplay } from './teacher-utils';
 import { CertificateUpsertModal } from './certificate-upsert-modal';
 
+import { useCertificateActive } from '../../certificate/service/useCertificateActive';
+
 interface TeacherMoreCertificatesProps {
     teacher: Teacher;
     onUpdated: () => void;
@@ -13,6 +15,8 @@ interface TeacherMoreCertificatesProps {
 export const TeacherMoreCertificates: React.FC<TeacherMoreCertificatesProps> = ({ teacher, onUpdated, focusCertificateId }) => {
     const [selectedCertificate, setSelectedCertificate] = useState<any | null>(null);
     const [isEditOpen, setIsEditOpen] = useState<boolean>(false);
+
+    const { mutate: setCertificateActive, isPending: isUpdatingStatus } = useCertificateActive();
 
     const [search, setSearch] = useState<string>('');
     const [levelFilter, setLevelFilter] = useState<string>('');
@@ -138,13 +142,6 @@ export const TeacherMoreCertificates: React.FC<TeacherMoreCertificatesProps> = (
                 filteredCertificates.slice((page - 1) * limit, (page - 1) * limit + limit).map((c: any, idx: number) => {
                     const badgeActive = c?.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
                     const badgeDeleted = c?.isDeleted ? 'bg-rose-100 text-rose-700' : 'bg-gray-100 text-gray-700';
-                    const cardStyles = [
-                        'bg-sky-50 border-sky-200',
-                        'bg-emerald-50 border-emerald-200',
-                        'bg-violet-50 border-violet-200',
-                        'bg-amber-50 border-amber-200',
-                        'bg-rose-50 border-rose-200',
-                    ];
 
                     return (
                         <div
@@ -154,7 +151,9 @@ export const TeacherMoreCertificates: React.FC<TeacherMoreCertificatesProps> = (
                             }}
                             className={`p-3 border rounded-lg transition-colors ${Number(c?.id) === Number(highlightCertificateId)
                                 ? 'bg-emerald-50 border-emerald-300 ring-2 ring-emerald-300 animate-pulse'
-                                : cardStyles[idx % cardStyles.length]
+                                : c?.isActive
+                                    ? 'bg-green-50 border-green-200'
+                                    : 'bg-red-50 border-red-200'
                                 }`}
                         >
                             <div className="flex items-start justify-between gap-2">
@@ -171,7 +170,31 @@ export const TeacherMoreCertificates: React.FC<TeacherMoreCertificatesProps> = (
                                 </div>
                                 <div className="flex items-center gap-2 shrink-0">
                                     <span className={`text-xs font-semibold px-2 py-1 rounded ${badgeActive}`}>{c?.isActive ? 'Active' : 'Inactive'}</span>
-                                    <span className={`text-xs font-semibold px-2 py-1 rounded ${badgeDeleted}`}>{c?.isDeleted ? 'Deleted' : 'OK'}</span>
+                                    {c?.isDeleted ? (
+                                        <span className={`text-xs font-semibold px-2 py-1 rounded ${badgeDeleted}`}>Deleted</span>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            disabled={isUpdatingStatus}
+                                            onClick={() => {
+                                                if (!c?.id) return;
+                                                setCertificateActive(
+                                                    { id: c.id, active: !c.isActive },
+                                                    {
+                                                        onSuccess: () => {
+                                                            onUpdated();
+                                                        },
+                                                    }
+                                                );
+                                            }}
+                                            className={`px-3 py-1 rounded text-xs font-semibold text-white transition-colors ${c.isActive
+                                                ? 'bg-red-600 hover:bg-red-700'
+                                                : 'bg-green-600 hover:bg-green-700'
+                                                }`}
+                                        >
+                                            {c.isActive ? 'Block' : 'Activate'}
+                                        </button>
+                                    )}
                                     <button
                                         type="button"
                                         onClick={() => {

@@ -11,6 +11,7 @@ import type { Student } from '../student/service/useGetStudents';
 import type { Teacher } from '../teacher/service/useGetTeachers';
 import { useGetStudentById } from '../student/service/useGetStudentById';
 import { useGetTeacherById } from '../teacher/service/useGetTeacherById';
+import { WeekDays } from '../teacher/service/useTeacherSchedule';
 import { PageLoader } from '../../../../components/page-loader';
 
 export const LessonPage: React.FC = () => {
@@ -197,6 +198,26 @@ export const LessonPage: React.FC = () => {
                         <Plus size={16} />
                         Add Lesson
                     </button>
+                </div>
+
+                {/* Week Day Buttons */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
+                    {Object.values(WeekDays).map((day: string) => (
+                        <button
+                            key={day}
+                            onClick={() => {
+                                setWeekday(weekday === day ? undefined : day);
+                                setPage(1);
+                            }}
+                            className={`py-3 px-2 rounded-xl text-sm font-bold shadow-sm transition-all
+                                ${weekday === day
+                                    ? 'bg-blue-600 text-white ring-2 ring-blue-300 transform scale-105'
+                                    : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-blue-300'
+                                }`}
+                        >
+                            {day}
+                        </button>
+                    ))}
                 </div>
 
                 <div className="mt-4 p-4 rounded-2xl border border-gray-200 bg-linear-to-r from-white to-gray-50 shadow-sm space-y-3">

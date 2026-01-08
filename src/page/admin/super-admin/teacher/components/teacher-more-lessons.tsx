@@ -20,7 +20,7 @@ export const TeacherMoreLessons: React.FC<TeacherMoreLessonsProps> = ({ teacher,
     const [isCreateOpen, setIsCreateOpen] = useState<boolean>(false);
 
     const [page, setPage] = useState<number>(1);
-    const [limit, setLimit] = useState<number>(10);
+    const [limit, setLimit] = useState<number>(2);
 
     const [highlightLessonId, setHighlightLessonId] = useState<number | undefined>(undefined);
     const lessonRefs = useRef<Record<number, HTMLDivElement | null>>({});

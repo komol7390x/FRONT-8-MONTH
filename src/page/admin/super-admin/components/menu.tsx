@@ -1,5 +1,5 @@
 import { Badge, type MenuProps } from 'antd';
-import { BarChart3, CreditCard, FileBadge2, ShieldUser, UserLock, UserRoundX, Users, Video } from 'lucide-react';
+import { BarChart3, CalendarClock, CreditCard, FileBadge2, ShieldUser, UserLock, UserRoundX, Users, Video } from 'lucide-react';
 import { Link } from 'react-router-dom';
 type MenuItem = Required<MenuProps>['items'][number];
 
@@ -100,6 +100,11 @@ export const items: MenuItem[] = [
         key: 'lesson-page',
         label: <Link to={'/super-admin/lesson'} className="font-semibold">Lesson</Link>,
         icon: <Video size={20} />,
+    },
+    {
+        key: 'schedule-page',
+        label: <Link to={'/super-admin/schedule'} className="font-semibold">Schedule</Link>,
+        icon: <CalendarClock size={20} />,
     },
     {
         key: 'certificate-page',

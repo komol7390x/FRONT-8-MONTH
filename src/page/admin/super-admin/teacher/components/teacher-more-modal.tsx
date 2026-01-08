@@ -8,13 +8,14 @@ import { useSoftDeleteTeacher } from '../service/useSoftDeleteTeacher';
 import { TeacherMoreCertificates } from './teacher-more-certificates';
 import { TeacherMoreInfo } from './teacher-more-info';
 import { TeacherMoreLessons } from './teacher-more-lessons';
+import { TeacherMoreSchedule } from './teacher-more-schedule';
 import { getInitials } from './teacher-utils';
 import Cookies from 'js-cookie';
 import { TokenName } from '../../../../../config/enum';
 import { jwtDecode } from 'jwt-decode';
 import { Roles } from '../../../../../config/roles';
 
-type Tab = 'info' | 'certificates' | 'lessons';
+type Tab = 'info' | 'certificates' | 'schedule' | 'lessons';
 type ConfirmAction = 'toggleActive' | 'softDelete' | 'restore';
 type ModalView = 'more' | 'hardDeleteConfirm' | 'confirm';
 
@@ -251,6 +252,7 @@ export const TeacherMoreModal: React.FC<TeacherMoreModalProps> = ({
                                 focusCertificateId={focusCertificateId}
                             />
                         )}
+                        {activeTab === 'schedule' && <TeacherMoreSchedule teacher={teacher} />}
                         {activeTab === 'lessons' && (
                             <TeacherMoreLessons
                                 teacher={teacher}
