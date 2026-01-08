@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { request } from '../../../../../config/request';
 import { message } from 'antd';
 
@@ -18,13 +18,15 @@ export interface CreateCertificateResponse {
 }
 
 export const useCreateCertificate = () => {
+    const client = useQueryClient();
     return useMutation({
         mutationFn: async (payload: CreateCertificatePayload) => {
             const res = await request.post<CreateCertificateResponse>('/certificate', payload);
             return res.data;
         },
-        onSuccess: (data) => {
+        onSuccess: (data, variables) => {
             message.success(data?.message || 'Certificate created');
+            client.invalidateQueries({ queryKey: ['teacher', variables.teacherId] });
         },
         onError: (error: any) => {
             const errorMessage = error?.response?.data?.message || error?.message || 'Failed to create certificate';

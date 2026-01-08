@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { request } from '../../../../../config/request';
 import { message } from 'antd';
 
@@ -14,14 +14,17 @@ export interface UpdateTeacherPayload {
 }
 
 export const useUpdateTeacher = () => {
+    const client = useQueryClient();
     return useMutation({
         mutationFn: async (payload: UpdateTeacherPayload) => {
             const { id, ...body } = payload;
             const res = await request.patch(`/teacher/${id}`, body);
             return res.data;
         },
-        onSuccess: (data: any) => {
+        onSuccess: (data: any, variables) => {
             message.success(data?.message || 'Teacher updated');
+            client.invalidateQueries({ queryKey: ['teachers'] });
+            client.invalidateQueries({ queryKey: ['teacher', variables.id] });
         },
         onError: (error: any) => {
             const errorMessage = error?.response?.data?.message || error?.message || 'Failed to update teacher';

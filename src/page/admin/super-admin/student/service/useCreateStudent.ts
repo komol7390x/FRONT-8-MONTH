@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { request } from '../../../../../config/request';
 import { message } from 'antd';
 
@@ -11,6 +11,7 @@ export interface CreateStudentPayload {
 }
 
 export const useCreateStudent = () => {
+    const client = useQueryClient();
     return useMutation({
         mutationFn: async (payload: CreateStudentPayload) => {
             const res = await request.post('/student/crate-student', payload);
@@ -18,6 +19,7 @@ export const useCreateStudent = () => {
         },
         onSuccess: () => {
             message.success('Student created');
+            client.invalidateQueries({ queryKey: ['students'] });
         },
         onError: (error: any) => {
             const errorMessage = error?.response?.data?.message || error?.message || 'Failed to create student';

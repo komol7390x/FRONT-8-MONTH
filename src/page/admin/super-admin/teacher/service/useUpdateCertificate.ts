@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { request } from '../../../../../config/request';
 import { message } from 'antd';
 
@@ -12,14 +12,16 @@ export interface UpdateCertificatePayload {
 }
 
 export const useUpdateCertificate = () => {
+    const client = useQueryClient();
     return useMutation({
         mutationFn: async (payload: UpdateCertificatePayload) => {
             const { id, ...body } = payload;
             const res = await request.patch(`/certificate/${id}`, body);
             return res.data;
         },
-        onSuccess: (data: any) => {
+        onSuccess: (data: any, variables) => {
             message.success(data?.message || 'Certificate updated');
+            client.invalidateQueries({ queryKey: ['teacher', variables.teacherId] });
         },
         onError: (error: any) => {
             const errorMessage = error?.response?.data?.message || error?.message || 'Failed to update certificate';

@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
-import { CalendarClock, Clock, Loader2, Search } from 'lucide-react';
+import { CalendarClock, Loader2, Plus, Search, User } from 'lucide-react';
+import { Table, Tag, Avatar } from 'antd';
+import type { ColumnsType } from 'antd/es/table';
 import { useTeacherSchedule, WeekDays } from '../teacher/service/useTeacherSchedule';
 import { Pagination } from '../admin/components/pagantion';
+import { ScheduleCreateModal } from './components/schedule-create-modal';
+import { TeacherMoreModal } from '../teacher/components/teacher-more-modal';
+import { useGetTeacherById } from '../teacher/service/useGetTeacherById';
 
 export const SchedulePage: React.FC = () => {
     const [page, setPage] = useState(1);
@@ -10,11 +15,12 @@ export const SchedulePage: React.FC = () => {
     const [dayFilter, setDayFilter] = useState<string>('');
     const [search, setSearch] = useState('');
 
-    const { data, isPending, isError, error } = useTeacherSchedule({
+    // Schedule Data
+    const { data, isPending, isError, error, refetch } = useTeacherSchedule({
         page,
         limit,
         active: activeFilter === '' ? undefined : activeFilter === 'true',
-        day: dayFilter || undefined,
+        weekday: dayFilter || undefined,
         search: search || undefined,
     });
 
@@ -23,17 +29,118 @@ export const SchedulePage: React.FC = () => {
     const totalPages = meta?.totalPages || 1;
     const totalCount = meta?.totalItems || scheduleList.length;
 
+    // Create Schedule State
+    const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [createTeacherId, setCreateTeacherId] = useState<number>(0);
+
+    // Teacher Data for creation (certificates)
+    const createTeacherQuery = useGetTeacherById(createTeacherId || undefined);
+    const createTeacherCertificates = (createTeacherQuery.data as any)?.certificates || [];
+
+    // View Teacher Details State
+    const [viewTeacher, setViewTeacher] = useState<any | null>(null);
+    const [teacherModalOpen, setTeacherModalOpen] = useState(false);
+
     const handleLimitChange = (newLimit: string | number) => {
         setLimit(Number(newLimit));
         setPage(1);
     };
 
+    const formatTime = (isoString: string) => {
+        if (!isoString) return '';
+        const date = new Date(isoString);
+        if (isNaN(date.getTime())) return isoString;
+        return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+    };
+
+    const columns: ColumnsType<any> = [
+        {
+            title: 'ID',
+            dataIndex: 'id',
+            key: 'id',
+            width: 80,
+            render: (id) => <span className="text-gray-500 font-medium">#{id}</span>,
+        },
+        {
+            title: 'Teacher',
+            key: 'teacher',
+            render: (_, record) => (
+                <div className="flex items-center gap-3">
+                    <Avatar
+                        src={record.teacher?.imageUrl ? JSON.parse(record.teacher.imageUrl)?.value : undefined}
+                        icon={<User size={16} />}
+                        className="bg-blue-100 text-blue-600"
+                    />
+                    <div className="flex flex-col">
+                        <span className="font-semibold text-gray-900">{record.teacher?.fullname || 'Unknown'}</span>
+                        <span className="text-xs text-gray-500">ID: {record.teacherId}</span>
+                    </div>
+                </div>
+            ),
+        },
+        {
+            title: 'Lesson Name',
+            dataIndex: 'lessonName',
+            key: 'lessonName',
+            render: (name) => <span className="font-medium text-gray-800">{name}</span>,
+        },
+        {
+            title: 'Day',
+            dataIndex: 'weekDays',
+            key: 'weekDays',
+            render: (day) => (
+                <Tag color="blue" className="font-semibold px-2 py-1 text-sm rounded-md uppercase">
+                    {day}
+                </Tag>
+            ),
+        },
+        {
+            title: 'Time',
+            key: 'time',
+            render: (_, record) => (
+                <div className="flex items-center gap-2 text-gray-700 font-medium bg-gray-50 px-3 py-1 rounded-lg border border-gray-100 w-fit">
+                    <span>{formatTime(record.startTime)}</span>
+                    <span className="text-gray-400">-</span>
+                    <span>{formatTime(record.endTime)}</span>
+                </div>
+            ),
+        },
+        {
+            title: 'Price',
+            dataIndex: 'price',
+            key: 'price',
+            render: (price) => <span className="text-gray-700 font-medium">{Number(price).toLocaleString()} UZS</span>,
+        },
+        {
+            title: 'Status',
+            dataIndex: 'isActive',
+            key: 'isActive',
+            render: (active) => (
+                <Tag color={active ? 'success' : 'error'} className="font-semibold">
+                    {active ? 'Active' : 'Inactive'}
+                </Tag>
+            ),
+        },
+    ];
+
     return (
         <div className="min-h-screen bg-gray-50 p-3 sm:p-6 overflow-x-hidden">
             <div className="max-w-7xl mx-auto space-y-4">
-                <div className="flex items-center gap-2">
-                    <CalendarClock size={24} className="text-blue-700" />
-                    <h1 className="text-xl font-bold text-gray-900">Schedule</h1>
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <CalendarClock size={24} className="text-blue-700" />
+                        <h1 className="text-xl font-bold text-gray-900">Schedule</h1>
+                    </div>
+                    <button
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-sm"
+                        onClick={() => {
+                            setCreateTeacherId(0);
+                            setIsCreateOpen(true);
+                        }}
+                    >
+                        <Plus size={18} />
+                        Add Schedule
+                    </button>
                 </div>
 
                 {/* Week Day Buttons */}
@@ -56,7 +163,7 @@ export const SchedulePage: React.FC = () => {
                     ))}
                 </div>
 
-                <div className="mt-4 p-4 rounded-2xl border border-gray-200 bg-linear-to-r from-white to-gray-50 shadow-sm space-y-3">
+                <div className="mt-4 p-4 rounded-2xl border border-gray-200 bg-white shadow-sm space-y-4">
                     <div className="flex flex-col sm:flex-row gap-2">
                         <div className="flex-1 relative">
                             <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
@@ -67,7 +174,7 @@ export const SchedulePage: React.FC = () => {
                                     setPage(1);
                                 }}
                                 placeholder="Search schedule..."
-                                className="w-full h-11 pl-11 pr-4 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 text-sm shadow-sm"
+                                className="w-full h-11 pl-11 pr-4 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-200 text-sm shadow-sm transition-all"
                             />
                         </div>
 
@@ -77,68 +184,84 @@ export const SchedulePage: React.FC = () => {
                                 setActiveFilter(e.target.value);
                                 setPage(1);
                             }}
-                            className="h-11 px-4 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 text-sm shadow-sm"
+                            className="h-11 px-4 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-200 text-sm shadow-sm cursor-pointer hover:bg-gray-100 transition-colors"
                         >
                             <option value="">All Status</option>
                             <option value="true">Active</option>
                             <option value="false">Inactive</option>
                         </select>
                     </div>
+
+                    {isPending ? (
+                        <div className="flex justify-center items-center py-20">
+                            <Loader2 size={32} className="animate-spin text-blue-600" />
+                        </div>
+                    ) : isError ? (
+                        <div className="p-4 text-center text-red-500 bg-red-50 rounded-lg border border-red-200">
+                            Error loading schedule: {(error as any)?.message}
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <Table
+                                columns={columns}
+                                dataSource={scheduleList}
+                                rowKey="id"
+                                pagination={false}
+                                className="border rounded-lg overflow-hidden"
+                                rowClassName="cursor-pointer hover:bg-blue-50 transition-colors"
+                                onRow={(record) => ({
+                                    onClick: () => {
+                                        if (record.teacher) {
+                                            setViewTeacher(record.teacher);
+                                            setTeacherModalOpen(true);
+                                        }
+                                    }
+                                })}
+                            />
+                        </div>
+                    )}
+
+                    {!!totalPages && (
+                        <div className="pt-4 border-t border-gray-100">
+                            <Pagination
+                                page={page}
+                                limit={limit}
+                                totalPages={totalPages}
+                                totalCount={totalCount}
+                                admins={scheduleList as any}
+                                setPage={setPage}
+                                handleLimitChange={handleLimitChange}
+                            />
+                        </div>
+                    )}
                 </div>
-
-                {isPending ? (
-                    <div className="flex justify-center items-center py-20">
-                        <Loader2 size={32} className="animate-spin text-blue-600" />
-                    </div>
-                ) : isError ? (
-                    <div className="p-4 text-center text-red-500 bg-red-50 rounded-lg border border-red-200">
-                        Error loading schedule: {(error as any)?.message}
-                    </div>
-                ) : scheduleList.length === 0 ? (
-                    <div className="p-8 text-center text-gray-500 border border-gray-200 rounded-xl bg-white">
-                        No schedule found
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {scheduleList.map((item: any, idx: number) => (
-                            <div key={item.id || idx} className="p-4 border rounded-xl bg-white border-gray-200 hover:border-blue-300 transition-all shadow-sm hover:shadow-md">
-                                <div className="flex justify-between items-start mb-3">
-                                    <div className="px-3 py-1 rounded-lg bg-blue-50 text-blue-700 font-bold text-sm">
-                                        {item.day || item.weekDay}
-                                    </div>
-                                    <div className={`px-2 py-1 rounded text-xs font-semibold ${item.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
-                                        {item.isActive ? 'Active' : 'Inactive'}
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <div className="flex items-center gap-2 text-gray-700">
-                                        <Clock size={16} className="text-gray-400" />
-                                        <span className="font-medium">{item.startTime} - {item.endTime || item.finishTime}</span>
-                                    </div>
-                                    {item.teacherId && (
-                                        <div className="text-xs text-gray-500">
-                                            Teacher ID: {item.teacherId}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                {!!totalPages && (
-                    <Pagination
-                        page={page}
-                        limit={limit}
-                        totalPages={totalPages}
-                        totalCount={totalCount}
-                        admins={scheduleList as any}
-                        setPage={setPage}
-                        handleLimitChange={handleLimitChange}
-                    />
-                )}
             </div>
+
+            <ScheduleCreateModal
+                open={isCreateOpen}
+                teacherId={createTeacherId}
+                showTeacherIdInput={true}
+                certificates={createTeacherCertificates}
+                onTeacherIdChange={setCreateTeacherId}
+                onClose={() => setIsCreateOpen(false)}
+                onCreated={() => {
+                    refetch();
+                }}
+            />
+
+            {viewTeacher && (
+                <TeacherMoreModal
+                    open={teacherModalOpen}
+                    teacher={viewTeacher}
+                    onClose={() => {
+                        setTeacherModalOpen(false);
+                        setViewTeacher(null);
+                    }}
+                    onEdit={() => { }}
+                    onRefetch={() => refetch()}
+                    focusTab="schedule"
+                />
+            )}
         </div>
     );
 };

@@ -29,7 +29,9 @@ export const TeacherMoreCertificates: React.FC<TeacherMoreCertificatesProps> = (
     const [page, setPage] = useState<number>(1);
     const [limit, setLimit] = useState<number>(10);
 
-    const certificates = (teacher.certificates || []) as any[];
+    const certificates = useMemo(() => {
+        return (teacher.certificates || []).slice().sort((a: any, b: any) => b.id - a.id) as any[];
+    }, [teacher.certificates]);
 
     const filteredCertificates = useMemo(() => {
         const q = search.trim().toLowerCase();

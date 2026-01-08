@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { CalendarClock, ChevronLeft, ChevronRight, Clock, Loader2, Search } from 'lucide-react';
+import { CalendarClock, ChevronLeft, ChevronRight, Clock, Loader2, Plus, Search } from 'lucide-react';
 import { useTeacherSchedule, WeekDays } from '../service/useTeacherSchedule';
 import type { Teacher } from '../service/useGetTeachers';
+import { ScheduleCreateModal } from '../../schedule/components/schedule-create-modal';
 
 interface TeacherMoreScheduleProps {
     teacher: Teacher;
@@ -14,12 +15,14 @@ export const TeacherMoreSchedule: React.FC<TeacherMoreScheduleProps> = ({ teache
     const [dayFilter, setDayFilter] = useState<string>('');
     const [search, setSearch] = useState('');
 
-    const { data, isPending, isError, error } = useTeacherSchedule({
+    const [isCreateOpen, setIsCreateOpen] = useState(false);
+
+    const { data, isPending, isError, error, refetch } = useTeacherSchedule({
         teacherId: teacher.id,
         page,
         limit,
         active: activeFilter === '' ? undefined : activeFilter === 'true',
-        day: dayFilter || undefined,
+        weekday: dayFilter || undefined,
         search: search || undefined,
     });
 
@@ -28,14 +31,31 @@ export const TeacherMoreSchedule: React.FC<TeacherMoreScheduleProps> = ({ teache
 
     const totalPages = meta?.totalPages || 1;
 
+    const formatTime = (isoString: string) => {
+        if (!isoString) return '';
+        const date = new Date(isoString);
+        if (isNaN(date.getTime())) return isoString;
+        return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+    };
+
     return (
         <div className="space-y-4">
-            <div className="flex items-center gap-2">
-                <CalendarClock size={16} className="text-blue-700" />
-                <p className="text-sm font-semibold text-gray-900">Schedule</p>
+            <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                    <CalendarClock size={16} className="text-blue-700" />
+                    <p className="text-sm font-semibold text-gray-900">Schedule</p>
+                </div>
+                <button
+                    type="button"
+                    onClick={() => setIsCreateOpen(true)}
+                    className="px-3 py-1.5 bg-blue-600 text-white rounded text-xs font-semibold hover:bg-blue-700 flex items-center gap-1"
+                >
+                    <Plus size={12} />
+                    Add
+                </button>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-3">
                 <div className="relative">
                     <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
                     <input
@@ -49,36 +69,37 @@ export const TeacherMoreSchedule: React.FC<TeacherMoreScheduleProps> = ({ teache
                     />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <select
-                        value={dayFilter}
-                        onChange={(e) => {
-                            setDayFilter(e.target.value);
-                            setPage(1);
-                        }}
-                        className="w-full h-10 px-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-200 text-sm shadow-sm"
-                    >
-                        <option value="">All Days</option>
-                        {Object.values(WeekDays).map((day) => (
-                            <option key={day} value={day}>
-                                {day}
-                            </option>
-                        ))}
-                    </select>
-
-                    <select
-                        value={activeFilter}
-                        onChange={(e) => {
-                            setActiveFilter(e.target.value);
-                            setPage(1);
-                        }}
-                        className="w-full h-10 px-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-200 text-sm shadow-sm"
-                    >
-                        <option value="">All Status</option>
-                        <option value="true">Active</option>
-                        <option value="false">Inactive</option>
-                    </select>
+                <div className="flex flex-wrap gap-1.5">
+                    {Object.values(WeekDays).map((day) => (
+                        <button
+                            key={day}
+                            onClick={() => {
+                                setDayFilter(day === dayFilter ? '' : day);
+                                setPage(1);
+                            }}
+                            className={`px-2 py-1.5 rounded-lg text-xs font-bold border transition-all
+                                ${dayFilter === day
+                                    ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                                    : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-blue-300'
+                                }`}
+                        >
+                            {day}
+                        </button>
+                    ))}
                 </div>
+
+                <select
+                    value={activeFilter}
+                    onChange={(e) => {
+                        setActiveFilter(e.target.value);
+                        setPage(1);
+                    }}
+                    className="w-full h-10 px-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-200 text-sm shadow-sm"
+                >
+                    <option value="">All Status</option>
+                    <option value="true">Active</option>
+                    <option value="false">Inactive</option>
+                </select>
             </div>
 
             {isPending ? (
@@ -100,13 +121,21 @@ export const TeacherMoreSchedule: React.FC<TeacherMoreScheduleProps> = ({ teache
                         <div key={item.id || idx} className="p-3 border rounded-lg bg-white border-gray-200 hover:border-blue-300 transition-colors">
                             <div className="flex justify-between items-start">
                                 <div>
-                                    <div className="font-semibold text-gray-900">{item.day || item.weekDay}</div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-semibold text-gray-900">{item.day || item.weekDays}</span>
+                                        <span className="text-xs font-medium text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">{item.lessonName}</span>
+                                    </div>
                                     <div className="flex items-center gap-2 mt-1 text-sm text-gray-600">
                                         <Clock size={14} />
-                                        <span>{item.startTime} - {item.endTime || item.finishTime}</span>
+                                        <span className="font-medium">{formatTime(item.startTime)} - {formatTime(item.endTime || item.finishTime)}</span>
                                     </div>
+                                    {item.price && (
+                                        <div className="text-xs text-gray-500 mt-1">
+                                            {Number(item.price).toLocaleString()} UZS
+                                        </div>
+                                    )}
                                 </div>
-                                <div className={`px-2 py-1 rounded text-xs font-semibold ${item.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
+                                <div className={`px-2 py-1 rounded text-xs font-semibold ${item.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                                     {item.isActive ? 'Active' : 'Inactive'}
                                 </div>
                             </div>
@@ -142,6 +171,16 @@ export const TeacherMoreSchedule: React.FC<TeacherMoreScheduleProps> = ({ teache
                     </div>
                 </div>
             )}
+
+            <ScheduleCreateModal
+                open={isCreateOpen}
+                teacherId={teacher.id}
+                certificates={teacher.certificates}
+                onClose={() => setIsCreateOpen(false)}
+                onCreated={() => {
+                    refetch();
+                }}
+            />
         </div>
     );
 };

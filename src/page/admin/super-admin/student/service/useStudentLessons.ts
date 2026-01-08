@@ -14,6 +14,7 @@ export interface LessonTemplateResponse {
 export interface LessonTemplateParams {
     page?: number;
     limit?: number;
+    weekday?: string;
 }
 
 export const useStudentLessons = (studentId: number | undefined, params: LessonTemplateParams = {}) => {
@@ -26,6 +27,7 @@ export const useStudentLessons = (studentId: number | undefined, params: LessonT
                     studentId,
                     page: params.page,
                     limit: params.limit,
+                    weekday: params.weekday,
                 },
             });
             return res.data;

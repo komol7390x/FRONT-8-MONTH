@@ -202,7 +202,7 @@ export const LessonPage: React.FC = () => {
 
                 {/* Week Day Buttons */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
-                    {Object.values(WeekDays).map((day: string) => (
+                    {Object.values(WeekDays).map((day) => (
                         <button
                             key={day}
                             onClick={() => {

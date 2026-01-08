@@ -236,6 +236,13 @@ export const TeacherMoreModal: React.FC<TeacherMoreModalProps> = ({
                         </button>
                         <button
                             type="button"
+                            onClick={() => setActiveTab('schedule')}
+                            className={`px-3 py-2 rounded text-sm font-semibold border ${activeTab === 'schedule' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+                        >
+                            Schedule
+                        </button>
+                        <button
+                            type="button"
                             onClick={() => setActiveTab('lessons')}
                             className={`px-3 py-2 rounded text-sm font-semibold border ${activeTab === 'lessons' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
                         >
