@@ -1,21 +1,44 @@
-import React, { useState } from 'react';
-import { CalendarClock, ChevronLeft, ChevronRight, Clock, Loader2, Plus, Search } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { CalendarClock, Clock, Loader2, Plus, Search } from 'lucide-react';
 import { useTeacherSchedule, WeekDays } from '../service/useTeacherSchedule';
 import type { Teacher } from '../service/useGetTeachers';
 import { ScheduleCreateModal } from '../../schedule/components/schedule-create-modal';
+import { Pagination } from '../../admin/components/pagantion';
 
 interface TeacherMoreScheduleProps {
     teacher: Teacher;
 }
 
+const getCurrentWeekDate = (dayName: string) => {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const now = new Date();
+    const currentDayIndex = now.getDay(); // 0-6
+    const targetDayIndex = days.indexOf(dayName);
+
+    if (targetDayIndex === -1) return '';
+
+    const diff = targetDayIndex - currentDayIndex;
+    const targetDate = new Date(now);
+    targetDate.setDate(now.getDate() + diff);
+
+    return targetDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' });
+};
+
 export const TeacherMoreSchedule: React.FC<TeacherMoreScheduleProps> = ({ teacher }) => {
     const [page, setPage] = useState(1);
-    const [limit] = useState(10);
+    const [limit, setLimit] = useState(10);
     const [activeFilter, setActiveFilter] = useState<string>('true');
     const [dayFilter, setDayFilter] = useState<string>('');
     const [search, setSearch] = useState('');
 
     const [isCreateOpen, setIsCreateOpen] = useState(false);
+
+    // Fetch stats (all items to count days)
+    const statsQuery = useTeacherSchedule({
+        teacherId: teacher.id,
+        limit: 1000, // Fetch enough to count
+        active: true
+    });
 
     const { data, isPending, isError, error, refetch } = useTeacherSchedule({
         teacherId: teacher.id,
@@ -30,12 +53,34 @@ export const TeacherMoreSchedule: React.FC<TeacherMoreScheduleProps> = ({ teache
     const meta = data?.meta;
 
     const totalPages = meta?.totalPages || 1;
+    const totalCount = meta?.totalItems || 0;
+
+    // Calculate day counts
+    const dayCounts = useMemo(() => {
+        const counts: Record<string, number> = {};
+        if (statsQuery.data?.data) {
+            statsQuery.data.data.forEach((item: any) => {
+                const d = item.weekDays || item.day;
+                if (d) counts[d] = (counts[d] || 0) + 1;
+            });
+        }
+        return counts;
+    }, [statsQuery.data]);
+
+    const hasActiveCertificate = useMemo(() => {
+        return teacher.certificates?.some((c: any) => c.isActive);
+    }, [teacher.certificates]);
 
     const formatTime = (isoString: string) => {
         if (!isoString) return '';
         const date = new Date(isoString);
         if (isNaN(date.getTime())) return isoString;
         return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+    };
+
+    const handleLimitChange = (newLimit: string | number) => {
+        setLimit(Number(newLimit));
+        setPage(1);
     };
 
     return (
@@ -48,7 +93,12 @@ export const TeacherMoreSchedule: React.FC<TeacherMoreScheduleProps> = ({ teache
                 <button
                     type="button"
                     onClick={() => setIsCreateOpen(true)}
-                    className="px-3 py-1.5 bg-blue-600 text-white rounded text-xs font-semibold hover:bg-blue-700 flex items-center gap-1"
+                    disabled={!hasActiveCertificate}
+                    title={!hasActiveCertificate ? "Certificate inactive or missing" : "Add Schedule"}
+                    className={`px-3 py-1.5 text-white rounded text-xs font-semibold flex items-center gap-1 transition-colors
+                        ${hasActiveCertificate
+                            ? 'bg-blue-600 hover:bg-blue-700'
+                            : 'bg-gray-400 cursor-not-allowed'}`}
                 >
                     <Plus size={12} />
                     Add
@@ -70,22 +120,39 @@ export const TeacherMoreSchedule: React.FC<TeacherMoreScheduleProps> = ({ teache
                 </div>
 
                 <div className="flex flex-wrap gap-1.5">
-                    {Object.values(WeekDays).map((day) => (
-                        <button
-                            key={day}
-                            onClick={() => {
-                                setDayFilter(day === dayFilter ? '' : day);
-                                setPage(1);
-                            }}
-                            className={`px-2 py-1.5 rounded-lg text-xs font-bold border transition-all
-                                ${dayFilter === day
-                                    ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                                    : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-blue-300'
-                                }`}
-                        >
-                            {day}
-                        </button>
-                    ))}
+                    {Object.values(WeekDays).map((day) => {
+                        const count = dayCounts[day] || 0;
+                        const dateStr = getCurrentWeekDate(day);
+                        const isActiveDay = count > 0;
+
+                        return (
+                            <button
+                                key={day}
+                                onClick={() => {
+                                    if (isActiveDay) {
+                                        setDayFilter(day === dayFilter ? '' : day);
+                                        setPage(1);
+                                    }
+                                }}
+                                disabled={!isActiveDay}
+                                className={`px-2 py-1.5 rounded-lg text-xs font-bold border transition-all flex flex-col items-center min-w-[3.5rem]
+                                    ${dayFilter === day
+                                        ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                                        : isActiveDay
+                                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:border-emerald-300'
+                                            : 'bg-gray-50 text-gray-400 border-gray-200 opacity-60 cursor-not-allowed'
+                                    }`}
+                            >
+                                <span>{day.slice(0, 3)}</span>
+                                <span className="text-[10px] font-normal opacity-80">{dateStr}</span>
+                                {isActiveDay && (
+                                    <span className="mt-0.5 px-1.5 py-0.5 bg-white/20 rounded-full text-[10px] leading-none">
+                                        {count}
+                                    </span>
+                                )}
+                            </button>
+                        );
+                    })}
                 </div>
 
                 <select
@@ -144,32 +211,16 @@ export const TeacherMoreSchedule: React.FC<TeacherMoreScheduleProps> = ({ teache
                 </div>
             )}
 
-            {scheduleList.length > 0 && (
-                <div className="flex items-center justify-between gap-2 pt-2">
-                    <div className="flex items-center gap-2">
-                        <button
-                            type="button"
-                            onClick={() => setPage((p) => Math.max(p - 1, 1))}
-                            disabled={page <= 1}
-                            className="h-9 px-3 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                        >
-                            <ChevronLeft size={14} />
-                            Prev
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-                            disabled={page >= totalPages}
-                            className="h-9 px-3 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                        >
-                            Next
-                            <ChevronRight size={14} />
-                        </button>
-                        <span className="text-xs text-gray-600">
-                            Page {page} / {totalPages}
-                        </span>
-                    </div>
-                </div>
+            {!!totalPages && (
+                <Pagination
+                    page={page}
+                    limit={limit}
+                    totalPages={totalPages}
+                    totalCount={totalCount}
+                    admins={scheduleList as any}
+                    setPage={setPage}
+                    handleLimitChange={handleLimitChange}
+                />
             )}
 
             <ScheduleCreateModal
@@ -179,6 +230,7 @@ export const TeacherMoreSchedule: React.FC<TeacherMoreScheduleProps> = ({ teache
                 onClose={() => setIsCreateOpen(false)}
                 onCreated={() => {
                     refetch();
+                    statsQuery.refetch();
                 }}
             />
         </div>

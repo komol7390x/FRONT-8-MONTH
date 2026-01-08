@@ -39,11 +39,13 @@ import { TeacherSettingsPage } from './page/teacher/panel/pages/settings-page';
 import { TeacherNotificationPage } from './page/teacher/panel/pages/notification-page';
 import { TeacherCertificatesPage } from './page/teacher/panel/pages/certificates-page';
 import { TeacherSchedulePage } from './page/teacher/panel/pages/schedule-page';
+import { StudentSchedulePage } from './page/student/schedule-page';
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<MainPage />} />
+      <Route path="/telegram/student-schedule" element={<StudentSchedulePage />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/admin/login" element={<LoginAdmin />} />
       <Route path="/teacher/login" element={<LoginTeacher />} />

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { BookOpen, ChevronDown, Clock, Copy, DollarSign, Edit, Hash, Link2, Plus } from 'lucide-react';
+import { BookOpen, ChevronDown, Clock, Copy, DollarSign, Edit, Hash, Link2 } from 'lucide-react';
 import type { Teacher } from '../service/useGetTeachers';
 import { useTeacherLessons, type LessonTemplateItem } from '../service/useTeacherLessons';
 import { Pagination } from '../../admin/components/pagantion';
@@ -62,15 +62,6 @@ export const TeacherMoreLessons: React.FC<TeacherMoreLessonsProps> = ({ teacher,
                 </div>
 
                 <div className="flex items-center gap-2">
-                    <button
-                        type="button"
-                        onClick={() => setIsCreateOpen(true)}
-                        className="h-9 px-3 bg-emerald-600 text-white rounded-xl text-xs font-semibold hover:bg-emerald-700 transition-colors shadow-sm flex items-center gap-1"
-                    >
-                        <Plus size={14} />
-                        Add
-                    </button>
-
                     <div className="relative w-44">
                         <select
                             value={lessonStatusFilter}

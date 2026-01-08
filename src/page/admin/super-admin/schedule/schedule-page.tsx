@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { CalendarClock, Loader2, Plus, Search, User } from 'lucide-react';
 import { Table, Tag, Avatar } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
@@ -8,12 +8,33 @@ import { ScheduleCreateModal } from './components/schedule-create-modal';
 import { TeacherMoreModal } from '../teacher/components/teacher-more-modal';
 import { useGetTeacherById } from '../teacher/service/useGetTeacherById';
 
+const getCurrentWeekDate = (dayName: string) => {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const now = new Date();
+    const currentDayIndex = now.getDay(); // 0-6
+    const targetDayIndex = days.indexOf(dayName);
+
+    if (targetDayIndex === -1) return '';
+
+    const diff = targetDayIndex - currentDayIndex;
+    const targetDate = new Date(now);
+    targetDate.setDate(now.getDate() + diff);
+
+    return targetDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' });
+};
+
 export const SchedulePage: React.FC = () => {
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const [activeFilter, setActiveFilter] = useState<string>('true');
     const [dayFilter, setDayFilter] = useState<string>('');
     const [search, setSearch] = useState('');
+
+    // Fetch stats for all schedule items
+    const statsQuery = useTeacherSchedule({
+        limit: 1000,
+        active: true,
+    });
 
     // Schedule Data
     const { data, isPending, isError, error, refetch } = useTeacherSchedule({
@@ -28,6 +49,18 @@ export const SchedulePage: React.FC = () => {
     const meta = data?.meta;
     const totalPages = meta?.totalPages || 1;
     const totalCount = meta?.totalItems || scheduleList.length;
+
+    // Calculate day counts
+    const dayCounts = useMemo(() => {
+        const counts: Record<string, number> = {};
+        if (statsQuery.data?.data) {
+            statsQuery.data.data.forEach((item: any) => {
+                const d = item.weekDays || item.day;
+                if (d) counts[d] = (counts[d] || 0) + 1;
+            });
+        }
+        return counts;
+    }, [statsQuery.data]);
 
     // Create Schedule State
     const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -145,22 +178,39 @@ export const SchedulePage: React.FC = () => {
 
                 {/* Week Day Buttons */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
-                    {Object.values(WeekDays).map((day) => (
-                        <button
-                            key={day}
-                            onClick={() => {
-                                setDayFilter(day === dayFilter ? '' : day);
-                                setPage(1);
-                            }}
-                            className={`py-3 px-2 rounded-xl text-sm font-bold shadow-sm transition-all
-                                ${dayFilter === day
-                                    ? 'bg-blue-600 text-white ring-2 ring-blue-300 transform scale-105'
-                                    : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-blue-300'
-                                }`}
-                        >
-                            {day}
-                        </button>
-                    ))}
+                    {Object.values(WeekDays).map((day) => {
+                        const count = dayCounts[day] || 0;
+                        const dateStr = getCurrentWeekDate(day);
+                        const isActiveDay = count > 0;
+
+                        return (
+                            <button
+                                key={day}
+                                onClick={() => {
+                                    if (isActiveDay) {
+                                        setDayFilter(day === dayFilter ? '' : day);
+                                        setPage(1);
+                                    }
+                                }}
+                                disabled={!isActiveDay}
+                                className={`py-3 px-2 rounded-xl text-sm font-bold shadow-sm transition-all flex flex-col items-center justify-center gap-1
+                                    ${dayFilter === day
+                                        ? 'bg-blue-600 text-white ring-2 ring-blue-300 transform scale-105'
+                                        : isActiveDay
+                                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300'
+                                            : 'bg-white text-gray-400 border border-gray-200 opacity-60 cursor-not-allowed'
+                                    }`}
+                            >
+                                <span>{day.slice(0, 3)}</span>
+                                <span className="text-xs font-normal opacity-80">{dateStr}</span>
+                                {isActiveDay && (
+                                    <span className="px-2 py-0.5 bg-white/30 rounded-full text-xs leading-none">
+                                        {count}
+                                    </span>
+                                )}
+                            </button>
+                        );
+                    })}
                 </div>
 
                 <div className="mt-4 p-4 rounded-2xl border border-gray-200 bg-white shadow-sm space-y-4">

@@ -1,11 +1,34 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Card, Tag } from 'antd';
 import { CalendarDays } from 'lucide-react';
 import { useTeacherLessons, type TeacherLessonTemplate } from '../service/useTeacherLessons';
 import { PageLoader } from '../../../../components/page-loader';
+import { Pagination } from '../../../admin/super-admin/admin/components/pagantion';
+
+enum WeekDays {
+    Monday = 'Monday',
+    Tuesday = 'Tuesday',
+    Wednesday = 'Wednesday',
+    Thursday = 'Thursday',
+    Friday = 'Friday',
+    Saturday = 'Saturday',
+    Sunday = 'Sunday',
+}
 
 export const TeacherSchedulePage: React.FC = () => {
-    const lessonsQuery = useTeacherLessons({ page: 1, limit: 1000 });
+    const [dayFilter, setDayFilter] = useState<string>('');
+    const [page, setPage] = useState<number>(1);
+    const limit = 10;
+
+    // Fetch stats to calculate counts
+    const statsQuery = useTeacherLessons({ page: 1, limit: 1000 });
+    
+    // Fetch filtered data
+    const lessonsQuery = useTeacherLessons({ 
+        page, 
+        limit,
+        weekday: dayFilter || undefined
+    });
 
     const toMs = (value: unknown): number | null => {
         if (value == null) return null;
@@ -27,6 +50,32 @@ export const TeacherSchedulePage: React.FC = () => {
         const date = d.toLocaleDateString('uz-UZ', { year: 'numeric', month: 'long', day: '2-digit' });
         return `${weekday} • ${date}`;
     };
+
+    const getCurrentWeekDate = (dayName: string) => {
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const now = new Date();
+        const currentDayIndex = now.getDay(); // 0-6
+        const targetDayIndex = days.indexOf(dayName);
+        
+        if (targetDayIndex === -1) return '';
+
+        const diff = targetDayIndex - currentDayIndex;
+        const targetDate = new Date(now);
+        targetDate.setDate(now.getDate() + diff);
+
+        return targetDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' });
+    };
+
+    const dayCounts = useMemo(() => {
+        const counts: Record<string, number> = {};
+        if (statsQuery.data?.data) {
+            statsQuery.data.data.forEach((item: any) => {
+                const d = item.weekDays || item.day || item.weekday; // Handle various potential property names
+                if (d) counts[d] = (counts[d] || 0) + 1;
+            });
+        }
+        return counts;
+    }, [statsQuery.data]);
 
     const grouped = useMemo(() => {
         const list = (lessonsQuery.data?.data || []) as TeacherLessonTemplate[];
@@ -61,7 +110,7 @@ export const TeacherSchedulePage: React.FC = () => {
         }));
     }, [lessonsQuery.data?.data]);
 
-    if (lessonsQuery.isPending) {
+    if (lessonsQuery.isPending && !lessonsQuery.data) {
         return (
             <div className="flex justify-center items-center h-64">
                 <PageLoader />
@@ -73,11 +122,48 @@ export const TeacherSchedulePage: React.FC = () => {
         <div className="min-h-screen bg-gray-50 p-3 sm:p-6">
             <div className="max-w-6xl mx-auto space-y-4">
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6">
-                    <div className="flex items-center gap-2">
-                        <CalendarDays size={18} className="text-emerald-700" />
-                        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Dars jadvali</h1>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                        <div className="flex items-center gap-2">
+                            <CalendarDays size={18} className="text-emerald-700" />
+                            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Dars jadvali</h1>
+                        </div>
                     </div>
-                    <div className="mt-1 text-xs text-gray-600">Kunma-kun, vaqt bo‘yicha sortlangan</div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
+                        {Object.values(WeekDays).map((day) => {
+                            const count = dayCounts[day] || 0;
+                            const dateStr = getCurrentWeekDate(day);
+                            const isActiveDay = count > 0;
+
+                            return (
+                                <button
+                                    key={day}
+                                    onClick={() => {
+                                        if (isActiveDay) {
+                                            setDayFilter(day === dayFilter ? '' : day);
+                                            setPage(1);
+                                        }
+                                    }}
+                                    disabled={!isActiveDay}
+                                    className={`py-3 px-2 rounded-xl text-sm font-bold shadow-sm transition-all flex flex-col items-center justify-center gap-1
+                                        ${dayFilter === day
+                                            ? 'bg-blue-600 text-white ring-2 ring-blue-300 transform scale-105'
+                                            : isActiveDay
+                                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300'
+                                                : 'bg-white text-gray-400 border border-gray-200 opacity-60 cursor-not-allowed'
+                                        }`}
+                                >
+                                    <span>{day.slice(0, 3)}</span>
+                                    <span className="text-xs font-normal opacity-80">{dateStr}</span>
+                                    {isActiveDay && (
+                                        <span className="px-2 py-0.5 bg-white/30 rounded-full text-xs leading-none">
+                                            {count}
+                                        </span>
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
                 </div>
 
                 {grouped.length === 0 ? (
@@ -131,6 +217,15 @@ export const TeacherSchedulePage: React.FC = () => {
                             </div>
                         </Card>
                     ))
+                )}
+                
+                {lessonsQuery.data?.meta && (
+                    <div className="flex justify-center mt-6">
+                        <Pagination
+                            meta={lessonsQuery.data.meta}
+                            onPageChange={setPage}
+                        />
+                    </div>
                 )}
             </div>
         </div>

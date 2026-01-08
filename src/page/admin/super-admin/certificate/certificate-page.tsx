@@ -17,7 +17,7 @@ export const CertificatePage: React.FC = () => {
     const [searchInput, setSearchInput] = useState<string>('');
     const [search, setSearch] = useState<string>('');
 
-    const [active, setActive] = useState<boolean | undefined>(undefined);
+    const [active, setActive] = useState<boolean | undefined>(true);
     const [isDeleted, setIsDeleted] = useState<boolean | undefined>(undefined);
 
     const [teacherId, setTeacherId] = useState<number | undefined>(undefined);
