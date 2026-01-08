@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Tag, Button, Select } from 'antd';
+import { Card, Tag, Button, Select, message } from 'antd';
 import { CalendarDays, Clock, DollarSign } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { useStudentSchedule } from './service/useStudentSchedule';
@@ -76,8 +76,25 @@ export const StudentSchedulePage: React.FC = () => {
         return d.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
     };
 
-    const handleBook = (lessonId: number) => {
-        bookLesson({ studentId, lessonId });
+    const handleBook = (lesson: any) => {
+        const startTime = Number(lesson.startTime);
+        const finishTime = Number(lesson.finishTime);
+        
+        if (!startTime || !finishTime) {
+            message.error('Lesson time information is missing');
+            return;
+        }
+        
+        // Convert to seconds (Unix timestamp)
+        const startTimeSeconds = Math.floor(startTime / 1000);
+        const finishTimeSeconds = Math.floor(finishTime / 1000);
+        
+        bookLesson({ 
+            studentId, 
+            lessonId: lesson.id,
+            startTime: startTimeSeconds,
+            finishTime: finishTimeSeconds
+        });
     };
 
     if (isPending && !scheduleData) {
@@ -177,7 +194,7 @@ export const StudentSchedulePage: React.FC = () => {
                                         shape="round" 
                                         size="small"
                                         disabled={isBooked || isBooking}
-                                        onClick={() => handleBook(lesson.id)}
+                                        onClick={() => handleBook(lesson)}
                                         className={isBooked ? '' : 'bg-blue-600'}
                                     >
                                         {isBooked ? 'Booked' : 'Book Now'}

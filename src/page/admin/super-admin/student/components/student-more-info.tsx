@@ -1,12 +1,31 @@
 import type React from 'react';
 import { CalendarClock, Copy, Hash, Phone, UserRound } from 'lucide-react';
 import type { Student } from '../service/useGetStudents';
+import Cookies from 'js-cookie';
+import { TokenName } from '../../../../../config/enum';
+import { jwtDecode } from 'jwt-decode';
+import { Roles } from '../../../../../config/roles';
+import { AddBalanceModal } from './add-balance-modal';
+import { useState } from 'react';
 
 interface StudentMoreInfoProps {
     student: Student;
+    onRefetch?: () => void;
 }
 
-export const StudentMoreInfo: React.FC<StudentMoreInfoProps> = ({ student }) => {
+export const StudentMoreInfo: React.FC<StudentMoreInfoProps> = ({ student, onRefetch }) => {
+    const [isAddBalanceOpen, setIsAddBalanceOpen] = useState(false);
+    
+    const token = Cookies.get(TokenName.TOKEN_NAME);
+    let role: string | undefined;
+    try {
+        role = token ? (jwtDecode<any>(token) as any)?.role : undefined;
+    } catch {
+        role = undefined;
+    }
+    
+    const isSuperAdmin = String(role || '').toUpperCase() === String(Roles.SUPER_ADMIN).toUpperCase();
+    
     const fullname = `${student.firstName || ''} ${student.lastName || ''}`.trim();
     const createdAt = student.createdAt
         ? new Date(student.createdAt).toLocaleString('uz-UZ', {
@@ -157,18 +176,27 @@ export const StudentMoreInfo: React.FC<StudentMoreInfoProps> = ({ student }) => 
                 <div className="flex items-center gap-2 min-w-0">
                     <span className="text-xs font-semibold text-gray-700 w-24 shrink-0">Balance</span>
                     <span className="text-xs font-medium text-gray-900 flex-1 truncate">{student.wallet || '0'} UZS</span>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            window.location.href = `/super-admin/student/add-balance/${student.id}?balance=${student.wallet || 0}`;
-                        }}
-                        className="px-3 py-1.5 bg-green-600 text-white rounded text-xs font-medium hover:bg-green-700 transition-colors"
-                        title="Add Balance"
-                    >
-                        Add Balance
-                    </button>
+                    {isSuperAdmin && (
+                        <button
+                            type="button"
+                            onClick={() => setIsAddBalanceOpen(true)}
+                            className="px-3 py-1.5 bg-green-600 text-white rounded text-xs font-medium hover:bg-green-700 transition-colors"
+                            title="Add Balance"
+                        >
+                            Add Balance
+                        </button>
+                    )}
                 </div>
             </div>
+            
+            <AddBalanceModal
+                open={isAddBalanceOpen}
+                student={student}
+                onClose={() => setIsAddBalanceOpen(false)}
+                onSuccess={() => {
+                    onRefetch?.();
+                }}
+            />
         </div>
     );
 };

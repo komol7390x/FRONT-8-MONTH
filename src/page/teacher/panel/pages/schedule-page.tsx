@@ -26,7 +26,9 @@ export const TeacherSchedulePage: React.FC = () => {
     const lessonsQuery = useTeacherLessons({ 
         page, 
         limit,
-        weekday: dayFilter || undefined
+        weekday: dayFilter || undefined,
+        day: dayFilter || undefined,
+        active: true
     });
 
     const toMs = (value: unknown): number | null => {

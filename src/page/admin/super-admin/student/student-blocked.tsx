@@ -114,6 +114,7 @@ export const StudentBlocked: React.FC = () => {
                         setSelectedStudent(s);
                         setIsMoreOpen(true);
                     }}
+                    onRefetch={() => refetch()}
                 />
 
                 <Pagination

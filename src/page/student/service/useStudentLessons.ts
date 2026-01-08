@@ -1,20 +1,31 @@
 import { useQuery } from '@tanstack/react-query';
-import { request } from '../../../../config/request';
+import { request } from '../../../config/request';
 
-export interface TeacherLessonTemplate {
+export interface StudentLessonsParams {
+    status?: string;
+    weekday?: string;
+    search?: string;
+    page?: number;
+    limit?: number;
+}
+
+export interface StudentLesson {
     id: number;
     lessonName?: string;
     lessonPrice?: number;
     weekday?: string;
     startTime?: number | string;
     finishTime?: number | string;
+    endTime?: number | string;
     status?: string;
     isPaid?: boolean;
+    meetLink?: string;
+    teacherId?: number;
     [key: string]: any;
 }
 
-export interface TeacherLessonsResponse {
-    data: TeacherLessonTemplate[];
+export interface StudentLessonsResponse {
+    data: StudentLesson[];
     meta?: {
         totalItems?: number;
         totalPages?: number;
@@ -23,27 +34,14 @@ export interface TeacherLessonsResponse {
     };
 }
 
-export interface TeacherLessonsParams {
-    status?: string;
-    weekday?: string;
-    isPaid?: boolean;
-    active?: boolean;
-    search?: string;
-    page?: number;
-    limit?: number;
-    day?: string;
-}
-
-export const useTeacherLessons = (params: TeacherLessonsParams = {}) => {
-    return useQuery<TeacherLessonsResponse>({
-        queryKey: ['teacher-lessons', params],
+export const useStudentLessons = (params: StudentLessonsParams = {}) => {
+    return useQuery<StudentLessonsResponse>({
+        queryKey: ['student-lessons', params],
         queryFn: async () => {
-            const res = await request.get<TeacherLessonsResponse>('/schedule/teacher', {
+            const res = await request.get<StudentLessonsResponse>('/lesson-template/student', {
                 params: {
                     status: params.status,
-                    weekday: params.weekday || params.day,
-                    isPaid: typeof params.isPaid === 'boolean' ? String(params.isPaid) : undefined,
-                    active: typeof params.active === 'boolean' ? String(params.active) : undefined,
+                    weekday: params.weekday,
                     search: params.search,
                     page: params.page,
                     limit: params.limit,

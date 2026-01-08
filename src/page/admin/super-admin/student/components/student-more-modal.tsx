@@ -222,7 +222,7 @@ export const StudentMoreModal: React.FC<StudentMoreModalProps> = ({
                 </div>
 
                 <div className="mt-4 space-y-3">
-                    {activeTab === 'info' && <StudentMoreInfo student={student} />}
+                    {activeTab === 'info' && <StudentMoreInfo student={student} onRefetch={onRefetch} />}
                     {activeTab === 'lessons' && <StudentMoreLessons student={student} />}
                 </div>
 

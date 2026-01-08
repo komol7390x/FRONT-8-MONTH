@@ -6,6 +6,7 @@ import { useTeacherLessons, type TeacherLessonTemplate } from '../service/useTea
 import { PageLoader } from '../../../../components/page-loader';
 import { Pagination } from '../components/pagination';
 import { WeekDays } from '../../../../config/weekdays';
+import { LessonDetailsModal } from '../components/lesson-details-modal';
 
 const BookedLesson = {
     AVAILABLE: 'available',
@@ -24,6 +25,8 @@ export const TeacherLessonsPage: React.FC = () => {
     const [isPaid, setIsPaid] = useState<boolean | undefined>(undefined);
     const [page, setPage] = useState<number>(1);
     const [limit, setLimit] = useState<number>(10);
+    const [selectedLesson, setSelectedLesson] = useState<TeacherLessonTemplate | null>(null);
+    const [isDetailsOpen, setIsDetailsOpen] = useState<boolean>(false);
 
     useEffect(() => {
         const t = setTimeout(() => {
@@ -353,7 +356,11 @@ export const TeacherLessonsPage: React.FC = () => {
                                         return (
                                             <div
                                                 key={(t as any)?.id ?? idx}
-                                                className={`grid grid-cols-8 px-3 sm:px-4 py-3 sm:py-4 border-b items-center transition-colors ${rowBg}`}
+                                                onClick={() => {
+                                                    setSelectedLesson(t);
+                                                    setIsDetailsOpen(true);
+                                                }}
+                                                className={`grid grid-cols-8 px-3 sm:px-4 py-3 sm:py-4 border-b items-center transition-colors cursor-pointer ${rowBg}`}
                                             >
                                                 <div className="col-span-1 pr-3 sm:pr-5">
                                                     <span className="text-sm font-semibold text-gray-700">{(page - 1) * limit + idx + 1}</span>
@@ -423,6 +430,15 @@ export const TeacherLessonsPage: React.FC = () => {
                     handleLimitChange={(newLimit) => {
                         setLimit(Number(newLimit));
                         setPage(1);
+                    }}
+                />
+
+                <LessonDetailsModal
+                    open={isDetailsOpen}
+                    lesson={selectedLesson}
+                    onClose={() => {
+                        setIsDetailsOpen(false);
+                        setSelectedLesson(null);
                     }}
                 />
             </div>

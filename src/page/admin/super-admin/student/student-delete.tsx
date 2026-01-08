@@ -140,6 +140,7 @@ export const StudentDelete: React.FC = () => {
                     showRecover={!isAdminRole}
                     onRecover={handleRecover}
                     isRecovering={false}
+                    onRefetch={() => refetch()}
                 />
 
                 <Pagination

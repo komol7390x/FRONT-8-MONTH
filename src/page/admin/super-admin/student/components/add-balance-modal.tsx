@@ -1,38 +1,42 @@
-import React, { useEffect, useState } from 'react';
-import { Button, Card, InputNumber, message } from 'antd';
+import React, { useState } from 'react';
+import { Button, InputNumber, message } from 'antd';
 import { DollarSign, X } from 'lucide-react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { request } from '../../../../config/request';
+import { request } from '../../../../../config/request';
+import type { Student } from '../service/useGetStudents';
 
-export const AddBalancePage: React.FC = () => {
-    const navigate = useNavigate();
-    const { studentId: studentIdParam } = useParams<{ studentId: string }>();
-    const [searchParams] = useSearchParams();
-    const studentId = Number(studentIdParam) || 0;
-    const currentBalance = Number(searchParams.get('balance')) || 0;
+interface AddBalanceModalProps {
+    open: boolean;
+    student: Student | null;
+    onClose: () => void;
+    onSuccess: () => void;
+}
+
+export const AddBalanceModal: React.FC<AddBalanceModalProps> = ({
+    open,
+    student,
+    onClose,
+    onSuccess,
+}) => {
     const [balance, setBalance] = useState<number>(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    useEffect(() => {
-        if (!studentId) {
-            message.error('Student ID not found');
-            navigate(-1);
-        }
-    }, [studentId, navigate]);
+    if (!open || !student) return null;
 
     const handleSubmit = async () => {
-        if (!studentId || balance <= 0) {
+        if (!student.id || balance <= 0) {
             message.warning('Please enter a valid balance amount');
             return;
         }
 
         setIsSubmitting(true);
         try {
-            await request.patch(`/student/add-balance/${studentId}`, null, {
+            await request.patch(`/student/add-balance/${student.id}`, null, {
                 params: { balance }
             });
             message.success('Balance added successfully');
-            navigate(-1);
+            setBalance(0);
+            onSuccess();
+            onClose();
         } catch (error: any) {
             message.error(error?.response?.data?.message || 'Failed to add balance');
         } finally {
@@ -40,18 +44,18 @@ export const AddBalancePage: React.FC = () => {
         }
     };
 
-    if (!studentId) return null;
+    const currentBalance = Number(student.wallet) || 0;
 
     return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-            <Card className="w-full max-w-md shadow-lg">
+        <div className="fixed inset-0 bg-gray-300/70 bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+            <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-2">
                         <DollarSign size={20} className="text-green-600" />
                         <h2 className="text-xl font-bold text-gray-900">Add Balance</h2>
                     </div>
                     <button
-                        onClick={() => navigate(-1)}
+                        onClick={onClose}
                         className="text-gray-400 hover:text-gray-600 transition-colors"
                     >
                         <X size={20} />
@@ -65,7 +69,7 @@ export const AddBalancePage: React.FC = () => {
                         </label>
                         <input
                             type="text"
-                            value={studentId}
+                            value={student.id}
                             disabled
                             className="w-full h-11 px-4 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
                         />
@@ -93,7 +97,7 @@ export const AddBalancePage: React.FC = () => {
                             min={0}
                             max={100000000}
                             className="w-full"
-                            style={{width: '100%'}}
+                            style={{width: '100%', height: '40px'}}
                             formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                             parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) || 0}
                             placeholder="Enter amount"
@@ -102,7 +106,7 @@ export const AddBalancePage: React.FC = () => {
 
                     <div className="flex gap-2">
                         <Button
-                            onClick={() => navigate(-1)}
+                            onClick={onClose}
                             className="flex-1"
                             size="large"
                         >
@@ -120,7 +124,7 @@ export const AddBalancePage: React.FC = () => {
                         </Button>
                     </div>
                 </div>
-            </Card>
+            </div>
         </div>
     );
 };

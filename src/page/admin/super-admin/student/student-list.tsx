@@ -141,6 +141,7 @@ export const StudentList: React.FC = () => {
                         setSelectedStudent(s);
                         setIsMoreOpen(true);
                     }}
+                    onRefetch={() => refetch()}
                 />
 
                 <Pagination
