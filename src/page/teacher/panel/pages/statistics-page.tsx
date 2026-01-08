@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 import { Card, Col, Row, Statistic } from 'antd';
 import { BookOpen, CreditCard } from 'lucide-react';
 import { useTeacherDetails } from '../service/useTeacherDetails';

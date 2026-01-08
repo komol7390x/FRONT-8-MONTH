@@ -102,6 +102,16 @@ export const StudentTable: React.FC<StudentTableProps> = ({ students, page, limi
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
+                                        window.location.href = `/super-admin/student/add-balance/${s.id}?balance=${s.wallet || 0}`;
+                                    }}
+                                    className="px-2 py-1.5 bg-green-500 text-white rounded text-xs font-medium hover:bg-green-600 transition-colors flex items-center gap-1"
+                                    title="Add Balance"
+                                >
+                                    <span>Balance</span>
+                                </button>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
                                         onMore(s);
                                     }}
                                     className="px-3 py-1.5 bg-sky-500 text-white rounded text-sm font-medium hover:bg-sky-600 transition-colors flex items-center gap-2"

@@ -1,5 +1,5 @@
-import React from 'react';
 import { AlertTriangle, Ban, CheckCircle2, Trash2, Unlock } from 'lucide-react';
+import type React from 'react';
 
 type ConfirmVariant = 'delete' | 'restore' | 'block' | 'unblock' | 'hard_delete';
 

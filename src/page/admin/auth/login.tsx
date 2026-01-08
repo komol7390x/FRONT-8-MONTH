@@ -54,8 +54,8 @@ export const LoginAdmin = () => {
     };
 
     return (
-        <div className="flex justify-center items-center min-height-screen h-screen bg-[#f0f2f5] p-4">
-            <Card className="w-full max-w-100 shadow-lg rounded-xl">
+        <div className="flex justify-center items-center min-height-screen min-h-screen bg-[#f0f2f5] p-3 sm:p-4 md:p-6">
+            <Card className="w-full max-w-md sm:max-w-lg md:max-w-xl shadow-lg rounded-xl">
                 <div >
                     <Link to={config.FRONTEND_URL}>
                         <Button style={{ fontSize: '15px', boxSizing: 'border-box', backgroundColor: 'green', color: 'white' }}>Back</Button>

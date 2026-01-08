@@ -5,12 +5,12 @@ import { Button } from 'antd'
 export const MainPage = () => {
     return (
         <div>
-            <div className="h-screen shadow-2xl flex justify-center items-center ">
-                <div className="p-10 flex flex-col shadow-2xl rounded-3xl  justify-center items-center text-center">
-                    <div className='w-50'><img src={logos} alt='logo' /></div>
-                    <h3 className='flex md:text-4xl font-bold  text-gray-900 mt-10'>Online Full-stack course</h3>
-                    <p className='text-lg text-gray-600 mt-2'>Xush kelibsiz!</p>
-                    <p className="text-base text-gray-500 max-w-md">
+            <div className="min-h-screen shadow-2xl flex justify-center items-center p-4 sm:p-6 md:p-8">
+                <div className="w-full max-w-lg p-6 sm:p-8 md:p-10 flex flex-col shadow-2xl rounded-2xl sm:rounded-3xl justify-center items-center text-center">
+                    <div className='w-32 sm:w-40 md:w-50'><img src={logos} alt='logo' className="w-full h-auto" /></div>
+                    <h3 className='text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mt-6 sm:mt-8 md:mt-10'>Online Full-stack course</h3>
+                    <p className='text-base sm:text-lg text-gray-600 mt-2'>Xush kelibsiz!</p>
+                    <p className="text-sm sm:text-base text-gray-500 max-w-md px-2">
                         Agar platformamizdan  <a
                             href="https://t.me/online_course_7390_bot"
                             target="_blank"
@@ -24,30 +24,34 @@ export const MainPage = () => {
                         href="https://t.me/online_course_7390_bot"
                         target="_blank"
                         rel="noopener noreferrer"
+                        className="w-full max-w-md"
                     >                        <button
-                        className="flex items-center my-8 justify-center gap-2 w-full max-w-md px-6 h-14 text-lg font-semibold text-white 
+                        className="flex items-center my-6 sm:my-8 justify-center gap-2 w-full px-4 sm:px-6 h-12 sm:h-14 text-base sm:text-lg font-semibold text-white 
                                 bg-linear-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 
                                 rounded-md shadow-lg hover:shadow-xl transition-all duration-300 
                                 disabled:opacity-50 disabled:pointer-events-none outline-none focus-visible:ring-4 focus-visible:ring-blue-300">
                             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                             </svg>
-                            Telegram Bot'ga o'tish
+                            <span className="hidden sm:inline">Telegram Bot'ga o'tish</span>
+                            <span className="sm:hidden">Telegram Bot</span>
                         </button>
                     </a>
-                    <div className='flex justify-center gap-12 items-center w-full px-10 pb-5'>
-                        <Link to="/admin">
+                    <div className='flex flex-col sm:flex-row justify-center gap-4 sm:gap-8 md:gap-12 items-center w-full px-4 sm:px-6 md:px-10 pb-4 sm:pb-5'>
+                        <Link to="/admin" className="w-full sm:w-auto">
                             <Button
                                 style={{
                                     background: 'linear-gradient(to right, #cc2a2a, #e9de4a)',
                                     color: 'white',
                                     height: '44px',
-                                    padding: '0 30px',
+                                    width: '100%',
+                                    padding: '0 20px',
                                     borderRadius: '8px',
                                     border: 'none',
                                     fontWeight: 600,
                                     boxShadow: '0 4px 6px rgba(0,0,0,0.2)',
                                     transition: 'all 0.3s ease', 
                                 }}
+                                className="sm:w-auto"
                                 onMouseEnter={(e) =>
                                     (e.currentTarget.style.boxShadow = '0 6px 10px rgba(204, 42, 42, 0.5)')
                                 }
@@ -59,21 +63,21 @@ export const MainPage = () => {
                             </Button>
                         </Link>
 
-                        <Link to="/teacher/login">
+                        <Link to="/teacher/login" className="w-full sm:w-auto">
                             <Button
                                 style={{
                                     background: 'linear-gradient(to right, #4dd454, #14b8a6)',
                                     color: 'white',
                                     height: '44px',
-                                    padding: '0 24px',
+                                    width: '100%',
+                                    padding: '0 20px',
                                     borderRadius: '8px',
                                     border: 'none',
                                     fontWeight: 600,
-                                    paddingLeft: '27px',
-                                    paddingRight: '27px',
                                     boxShadow: '0 4px 6px rgba(0,0,0,0.2)',
                                     transition: 'all 0.3s ease', 
                                 }}
+                                className="sm:w-auto"
                                 onMouseEnter={(e) =>
                                     (e.currentTarget.style.boxShadow = '0 6px 10px rgba(43, 177, 41, 0.822)')
                                 }
@@ -86,13 +90,13 @@ export const MainPage = () => {
                         </Link>
 
                     </div>
-                    <p className="text-[14px] w-112.5 text-gray-600 mt-2">Bot orqali darslarni ko'rishingiz, band qilishingiz va boshqarishingiz mumkin</p>
-                    <div className="pt-4 border-t border-gray-200 w-full mt-5"></div>
-                    <div className='flex gap-3 items-center'>
-                        <div className='w-5'>
-                            <img src={img} alt="" />
+                    <p className="text-xs sm:text-sm text-gray-600 mt-2 px-2">Bot orqali darslarni ko'rishingiz, band qilishingiz va boshqarishingiz mumkin</p>
+                    <div className="pt-4 border-t border-gray-200 w-full mt-4 sm:mt-5"></div>
+                    <div className='flex gap-2 sm:gap-3 items-center justify-center'>
+                        <div className='w-4 sm:w-5'>
+                            <img src={img} alt="" className="w-full h-auto" />
                         </div>
-                        <Link to={'/privacy-policy  '}><p className='text-blue-700 text-[14px] hover:underline cursor-pointer text- hover:border-blue-500 transition-all duration-300'>Maxfiylik Siyosati</p>
+                        <Link to={'/privacy-policy  '}><p className='text-blue-700 text-xs sm:text-sm hover:underline cursor-pointer transition-all duration-300'>Maxfiylik Siyosati</p>
                         </Link>
                     </div>
                 </div>

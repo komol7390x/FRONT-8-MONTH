@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Card, Select, Tag } from 'antd';
 import { Hash, Search } from 'lucide-react';
 import { useTeacherPayments } from '../service/useTeacherPayments';
@@ -11,6 +11,14 @@ export const TeacherPaymentPage: React.FC = () => {
     const [search, setSearch] = useState<string>('');
     const [page, setPage] = useState<number>(1);
     const [limit, setLimit] = useState<number>(100);
+
+    useEffect(() => {
+        const t = setTimeout(() => {
+            setSearch(searchInput);
+            setPage(1);
+        }, 700);
+        return () => clearTimeout(t);
+    }, [searchInput]);
 
     const query = useTeacherPayments({ status, search, page, limit });
 

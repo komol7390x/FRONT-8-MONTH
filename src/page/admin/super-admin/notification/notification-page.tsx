@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 import { Card, Typography } from 'antd';
 
 export const NotificationPage: React.FC = () => {

@@ -3,17 +3,16 @@ import { Card, Tag } from 'antd';
 import { CalendarDays } from 'lucide-react';
 import { useTeacherLessons, type TeacherLessonTemplate } from '../service/useTeacherLessons';
 import { PageLoader } from '../../../../components/page-loader';
-import { Pagination } from '../../../admin/super-admin/admin/components/pagantion';
 
-enum WeekDays {
-    Monday = 'Monday',
-    Tuesday = 'Tuesday',
-    Wednesday = 'Wednesday',
-    Thursday = 'Thursday',
-    Friday = 'Friday',
-    Saturday = 'Saturday',
-    Sunday = 'Sunday',
-}
+const WeekDays = {
+    Monday: 'Monday',
+    Tuesday: 'Tuesday',
+    Wednesday: 'Wednesday',
+    Thursday: 'Thursday',
+    Friday: 'Friday',
+    Saturday: 'Saturday',
+    Sunday: 'Sunday',
+} as const;
 
 export const TeacherSchedulePage: React.FC = () => {
     const [dayFilter, setDayFilter] = useState<string>('');
@@ -219,14 +218,30 @@ export const TeacherSchedulePage: React.FC = () => {
                     ))
                 )}
                 
-                {lessonsQuery.data?.meta && (
-                    <div className="flex justify-center mt-6">
-                        <Pagination
-                            meta={lessonsQuery.data.meta}
-                            onPageChange={setPage}
-                        />
-                    </div>
-                )}
+                {lessonsQuery.data?.meta?.totalPages && lessonsQuery.data.meta.totalPages > 1 && (() => {
+                    const totalPages = lessonsQuery.data.meta.totalPages;
+                    return (
+                        <div className="flex justify-center mt-6 gap-2">
+                            <button
+                                onClick={() => setPage(Math.max(1, page - 1))}
+                                disabled={page === 1}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Previous
+                            </button>
+                            <span className="px-4 py-2 text-gray-700">
+                                Page {page} of {totalPages}
+                            </span>
+                            <button
+                                onClick={() => setPage(Math.min(totalPages || 1, page + 1))}
+                                disabled={page >= (totalPages || 1)}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Next
+                            </button>
+                        </div>
+                    );
+                })()}
             </div>
         </div>
     );

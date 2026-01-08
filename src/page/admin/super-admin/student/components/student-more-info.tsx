@@ -152,6 +152,23 @@ export const StudentMoreInfo: React.FC<StudentMoreInfoProps> = ({ student }) => 
                     <p className="text-xs text-amber-800 mt-1">{student.blockedReason}</p>
                 </div>
             )}
+
+            <div className="group px-3 py-2 border rounded-lg bg-white border-gray-200">
+                <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-xs font-semibold text-gray-700 w-24 shrink-0">Balance</span>
+                    <span className="text-xs font-medium text-gray-900 flex-1 truncate">{student.wallet || '0'} UZS</span>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            window.location.href = `/super-admin/student/add-balance/${student.id}?balance=${student.wallet || 0}`;
+                        }}
+                        className="px-3 py-1.5 bg-green-600 text-white rounded text-xs font-medium hover:bg-green-700 transition-colors"
+                        title="Add Balance"
+                    >
+                        Add Balance
+                    </button>
+                </div>
+            </div>
         </div>
     );
 };

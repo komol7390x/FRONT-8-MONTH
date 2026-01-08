@@ -1,22 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Tag, Button, message } from 'antd';
+import { Card, Tag, Button, Select } from 'antd';
 import { CalendarDays, Clock, DollarSign } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { useStudentSchedule } from './service/useStudentSchedule';
 import { useBookLesson } from './service/useBookLesson';
-import { Pagination } from '../admin/super-admin/admin/components/pagantion';
 import { PageLoader } from '../../components/page-loader';
 import { WeekDays } from '../../config/weekdays';
-
-// enum WeekDays {
-//     Monday = 'Monday',
-//     Tuesday = 'Tuesday',
-//     Wednesday = 'Wednesday',
-//     Thursday = 'Thursday',
-//     Friday = 'Friday',
-//     Saturday = 'Saturday',
-//     Sunday = 'Sunday',
-// }
+import { useGetTeachers } from '../../page/admin/super-admin/teacher/service/useGetTeachers';
 
 export const StudentSchedulePage: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -31,6 +21,10 @@ export const StudentSchedulePage: React.FC = () => {
     const [dayFilter, setDayFilter] = useState<string>(initialDay);
     const [page, setPage] = useState<number>(initialPage);
     const [teacherId, setTeacherId] = useState<number | undefined>(initialTeacherId);
+
+    // Get teachers list for filter
+    const { data: teachersData } = useGetTeachers({ page: 1, limit: 100, status: true });
+    const teachers = teachersData?.data || [];
     
     // For now, hardcode studentId or get from somewhere. 
     // In a real Telegram Web App, this would come from initData.
@@ -101,6 +95,28 @@ export const StudentSchedulePage: React.FC = () => {
                     <div className="flex items-center gap-2 mb-4">
                         <CalendarDays size={20} className="text-blue-600" />
                         <h1 className="text-lg font-bold text-gray-900">Available Lessons</h1>
+                    </div>
+
+                    {/* Teacher Filter */}
+                    <div className="mb-4">
+                        <Select
+                            placeholder="Filter by Teacher"
+                            allowClear
+                            value={teacherId}
+                            onChange={(value) => {
+                                setTeacherId(value || undefined);
+                                setPage(1);
+                            }}
+                            className="w-full"
+                            showSearch
+                            filterOption={(input, option) =>
+                                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                            }
+                            options={teachers.map((t: any) => ({
+                                value: t.id,
+                                label: `${t.fullname || 'Unknown'} (ID: ${t.id})`,
+                            }))}
+                        />
                     </div>
 
                     {/* Day Filters */}
@@ -178,12 +194,25 @@ export const StudentSchedulePage: React.FC = () => {
                     )}
                 </div>
 
-                {scheduleData?.meta && (
-                     <div className="flex justify-center pb-6">
-                         <Pagination
-                             meta={scheduleData.meta}
-                             onPageChange={setPage}
-                         />
+                {scheduleData?.meta && scheduleData.meta.totalPages > 1 && (
+                     <div className="flex justify-center pb-6 gap-2">
+                         <button
+                             onClick={() => setPage(Math.max(1, page - 1))}
+                             disabled={page === 1}
+                             className="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                         >
+                             Previous
+                         </button>
+                         <span className="px-4 py-2 text-gray-700">
+                             Page {page} of {scheduleData.meta.totalPages}
+                         </span>
+                         <button
+                             onClick={() => setPage(Math.min(scheduleData.meta.totalPages || 1, page + 1))}
+                             disabled={page >= (scheduleData.meta.totalPages || 1)}
+                             className="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                         >
+                             Next
+                         </button>
                      </div>
                 )}
             </div>

@@ -36,7 +36,7 @@ export const useTeacherLessons = (params: TeacherLessonsParams = {}) => {
     return useQuery<TeacherLessonsResponse>({
         queryKey: ['teacher-lessons', params],
         queryFn: async () => {
-            const res = await request.get<TeacherLessonsResponse>('/lesson-template/teacher', {
+            const res = await request.get<TeacherLessonsResponse>('/schedule/teacher', {
                 params: {
                     status: params.status,
                     weekday: params.weekday,

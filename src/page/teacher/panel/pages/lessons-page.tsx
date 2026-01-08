@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Card, Select, Tag, message } from 'antd';
 import { CalendarDays, CheckCircle2, Copy, Hash, Link2, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -24,6 +24,14 @@ export const TeacherLessonsPage: React.FC = () => {
     const [isPaid, setIsPaid] = useState<boolean | undefined>(undefined);
     const [page, setPage] = useState<number>(1);
     const [limit, setLimit] = useState<number>(10);
+
+    useEffect(() => {
+        const t = setTimeout(() => {
+            setSearch(searchInput);
+            setPage(1);
+        }, 700);
+        return () => clearTimeout(t);
+    }, [searchInput]);
 
     const query = useTeacherLessons({
         status,

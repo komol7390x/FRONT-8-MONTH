@@ -40,6 +40,7 @@ import { TeacherNotificationPage } from './page/teacher/panel/pages/notification
 import { TeacherCertificatesPage } from './page/teacher/panel/pages/certificates-page';
 import { TeacherSchedulePage } from './page/teacher/panel/pages/schedule-page';
 import { StudentSchedulePage } from './page/student/schedule-page';
+import { AddBalancePage } from './page/admin/super-admin/student/add-balance-page';
 
 function App() {
   return (
@@ -88,6 +89,7 @@ function App() {
           <Route path="all" element={<StudentList />} />
           <Route path="blocked" element={<StudentBlocked />} />
           <Route path="delete" element={<StudentDelete />} />
+          <Route path="add-balance/:studentId" element={<AddBalancePage />} />
         </Route>
 
         <Route path='lesson' element={<LessonPage />} />

@@ -26,7 +26,7 @@ export const PaymentPage: React.FC = () => {
         const t = setTimeout(() => {
             setSearch(searchInput);
             setPage(1);
-        }, 600);
+        }, 700);
         return () => clearTimeout(t);
     }, [searchInput]);
 

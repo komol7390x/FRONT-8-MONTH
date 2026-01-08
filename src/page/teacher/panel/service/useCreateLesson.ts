@@ -13,7 +13,13 @@ export const useCreateLesson = () => {
     const qc = useQueryClient();
     return useMutation({
         mutationFn: async (payload: CreateLessonPayload) => {
-            const res = await request.post('/lesson-template/create-lesson', payload);
+            const res = await request.post('/schedule', {
+                startTime: payload.startTime,
+                finishTime: payload.finishTime,
+                lessonName: payload.lessonName,
+                lessonPrice: payload.lessonPrice,
+                teacherId: payload.teacherId,
+            });
             return res.data;
         },
         onSuccess: async () => {

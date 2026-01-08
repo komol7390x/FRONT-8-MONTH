@@ -17,6 +17,14 @@ export const CertificatePage: React.FC = () => {
     const [searchInput, setSearchInput] = useState<string>('');
     const [search, setSearch] = useState<string>('');
 
+    useEffect(() => {
+        const t = setTimeout(() => {
+            setSearch(searchInput);
+            setPage(1);
+        }, 700);
+        return () => clearTimeout(t);
+    }, [searchInput]);
+
     const [active, setActive] = useState<boolean | undefined>(true);
     const [isDeleted, setIsDeleted] = useState<boolean | undefined>(undefined);
 

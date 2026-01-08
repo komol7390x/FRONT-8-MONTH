@@ -21,6 +21,14 @@ export const LessonPage: React.FC = () => {
     const [searchInput, setSearchInput] = useState<string>('');
     const [search, setSearch] = useState<string>('');
 
+    useEffect(() => {
+        const t = setTimeout(() => {
+            setSearch(searchInput);
+            setPage(1);
+        }, 700);
+        return () => clearTimeout(t);
+    }, [searchInput]);
+
     const [status, setStatus] = useState<string | undefined>(undefined);
     const [weekday, setWeekday] = useState<string | undefined>(undefined);
     const [teacherId, setTeacherId] = useState<number | undefined>(undefined);

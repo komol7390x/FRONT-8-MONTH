@@ -31,7 +31,7 @@ export const TeacherBlocked: React.FC = () => {
         const t = setTimeout(() => {
             setSearch(searchInput);
             setPage(1);
-        }, 1000);
+        }, 700);
         return () => clearTimeout(t);
     }, [searchInput]);
 

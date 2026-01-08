@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { CalendarClock, Loader2, Plus, Search, User } from 'lucide-react';
 import { Table, Tag, Avatar } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
@@ -28,7 +28,16 @@ export const SchedulePage: React.FC = () => {
     const [limit, setLimit] = useState(10);
     const [activeFilter, setActiveFilter] = useState<string>('true');
     const [dayFilter, setDayFilter] = useState<string>('');
+    const [searchInput, setSearchInput] = useState('');
     const [search, setSearch] = useState('');
+
+    useEffect(() => {
+        const t = setTimeout(() => {
+            setSearch(searchInput);
+            setPage(1);
+        }, 700);
+        return () => clearTimeout(t);
+    }, [searchInput]);
 
     // Fetch stats for all schedule items
     const statsQuery = useTeacherSchedule({
@@ -97,19 +106,33 @@ export const SchedulePage: React.FC = () => {
         {
             title: 'Teacher',
             key: 'teacher',
-            render: (_, record) => (
-                <div className="flex items-center gap-3">
-                    <Avatar
-                        src={record.teacher?.imageUrl ? JSON.parse(record.teacher.imageUrl)?.value : undefined}
-                        icon={<User size={16} />}
-                        className="bg-blue-100 text-blue-600"
-                    />
-                    <div className="flex flex-col">
-                        <span className="font-semibold text-gray-900">{record.teacher?.fullname || 'Unknown'}</span>
-                        <span className="text-xs text-gray-500">ID: {record.teacherId}</span>
+            render: (_, record) => {
+                let avatarSrc = undefined;
+                if (record.teacher?.imageUrl) {
+                    try {
+                        const parsed = typeof record.teacher.imageUrl === 'string' 
+                            ? JSON.parse(record.teacher.imageUrl) 
+                            : record.teacher.imageUrl;
+                        avatarSrc = parsed?.value || parsed || record.teacher.imageUrl;
+                    } catch {
+                        // If not valid JSON, use as is
+                        avatarSrc = record.teacher.imageUrl;
+                    }
+                }
+                return (
+                    <div className="flex items-center gap-3">
+                        <Avatar
+                            src={avatarSrc}
+                            icon={<User size={16} />}
+                            className="bg-blue-100 text-blue-600"
+                        />
+                        <div className="flex flex-col">
+                            <span className="font-semibold text-gray-900">{record.teacher?.fullname || 'Unknown'}</span>
+                            <span className="text-xs text-gray-500">ID: {record.teacherId}</span>
+                        </div>
                     </div>
-                </div>
-            ),
+                );
+            },
         },
         {
             title: 'Lesson Name',
@@ -218,10 +241,9 @@ export const SchedulePage: React.FC = () => {
                         <div className="flex-1 relative">
                             <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
                             <input
-                                value={search}
+                                value={searchInput}
                                 onChange={(e) => {
-                                    setSearch(e.target.value);
-                                    setPage(1);
+                                    setSearchInput(e.target.value);
                                 }}
                                 placeholder="Search schedule..."
                                 className="w-full h-11 pl-11 pr-4 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-200 text-sm shadow-sm transition-all"
