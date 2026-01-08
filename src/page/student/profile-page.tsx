@@ -7,6 +7,7 @@ import { message } from 'antd';
 import { StudentScheduleContent } from './components/schedule-content';
 import { StudentLessonsContent } from './components/lessons-content';
 
+
 type TabType = 'create' | 'lessons' | 'info';
 
 export const StudentProfilePage: React.FC = () => {
