@@ -2,14 +2,14 @@ import { z } from 'zod';
 import { useForm, Controller } from 'react-hook-form';
 import { message } from "antd";
 import { useLogin } from './service/use-login';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Cookies from 'js-cookie'
 import { TokenName } from '../../../config/enum';
 import { Roles } from '../../../config/roles';
-import { ArrowLeft } from 'lucide-react';
 import { Button, Card, Form, Input, Typography } from "antd";
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
+import { config } from '../../../config/config';
 const { Title } = Typography;
 
 const formSchema = z.object({
@@ -56,17 +56,11 @@ export const LoginAdmin = () => {
     return (
         <div className="flex justify-center items-center min-height-screen h-screen bg-[#f0f2f5] p-4">
             <Card className="w-full max-w-100 shadow-lg rounded-xl">
-                <div className="flex items-center justify-between mb-4">
-                    <button
-                        type="button"
-                        onClick={() => navigate(-1)}
-                        className="inline-flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-gray-900"
-                    >
-                        <ArrowLeft size={16} />
-                        Back
-                    </button>
+                <div >
+                    <Link to={config.FRONTEND_URL}>
+                        <Button style={{ fontSize: '15px', boxSizing: 'border-box', backgroundColor: 'green', color: 'white' }}>Back</Button>
+                    </Link>
                 </div>
-
                 <div className="text-center mb-6">
                     <Title level={3} className="mb-0!">Admin Panel</Title>
                 </div>

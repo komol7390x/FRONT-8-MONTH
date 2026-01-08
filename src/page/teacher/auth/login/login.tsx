@@ -7,7 +7,6 @@ import Cookies from 'js-cookie';
 import { TokenName } from '../../../../config/enum';
 import { config } from '../../../../config/config';
 import { useTeacherLogin } from '../service/teacher-auth';
-import { ArrowLeft } from 'lucide-react';
 import { Button, Card, Form, Input, Typography } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 const { Title } = Typography;
@@ -59,15 +58,12 @@ export const LoginTeacher = () => {
     return (
         <div className="flex justify-center items-center min-height-screen h-screen bg-[#f0f2f5] p-4">
             <Card className="w-full max-w-100 shadow-lg rounded-xl">
+                <div >
+                    <Link to={config.FRONTEND_URL}>
+                        <Button style={{ fontSize: '15px', boxSizing: 'border-box', backgroundColor: 'green', color: 'white' }}>Back</Button>
+                    </Link>
+                </div>
                 <div className="flex items-center justify-between mb-4">
-                    <button
-                        type="button"
-                        onClick={() => navigate(-1)}
-                        className="inline-flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-gray-900"
-                    >
-                        <ArrowLeft size={16} />
-                        Back
-                    </button>
                 </div>
                 <div className="text-center mb-6">
                     <Title level={3} className="mb-0!">Teacher Panel</Title>
