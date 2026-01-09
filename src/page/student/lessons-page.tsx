@@ -4,28 +4,37 @@ import { CalendarDays, Clock, DollarSign, Link2 } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { useStudentLessons } from './service/useStudentLessons';
 import { PageLoader } from '../../components/page-loader';
-import { WeekDays } from '../../config/weekdays';
+import { TelegramStudentBottomNav } from './components/telegram-student-bottom-nav';
 
 export const StudentLessonsPage: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
-    
+
     const initialDay = searchParams.get('weekday') || '';
     const initialPage = Number(searchParams.get('page')) || 1;
     const initialLimit = Number(searchParams.get('limit')) || 10;
     const initialSearch = searchParams.get('search') || '';
-    const initialStatus = searchParams.get('status') || 'booked';
+    const initialStatus = searchParams.get('status') || 'pending';
 
     const [dayFilter, setDayFilter] = useState<string>(initialDay);
     const [page, setPage] = useState<number>(initialPage);
     const [statusFilter, setStatusFilter] = useState<string>(initialStatus);
+    const [searchInput, setSearchInput] = useState<string>(initialSearch);
+    const [search, setSearch] = useState<string>(initialSearch);
 
     const { data: lessonsData, isPending } = useStudentLessons({
         status: statusFilter,
-        weekday: dayFilter || undefined,
-        search: initialSearch,
-        page,
-        limit: initialLimit,
+        search: search || undefined,
+        page: 1,
+        limit: 1000,
     });
+
+    useEffect(() => {
+        const t = setTimeout(() => {
+            setSearch(searchInput);
+            setPage(1);
+        }, 500);
+        return () => clearTimeout(t);
+    }, [searchInput]);
 
     useEffect(() => {
         const params: any = {};
@@ -33,25 +42,27 @@ export const StudentLessonsPage: React.FC = () => {
         if (dayFilter) params.weekday = dayFilter;
         if (page > 1) params.page = String(page);
         if (initialLimit !== 10) params.limit = String(initialLimit);
-        if (initialSearch) params.search = initialSearch;
-        
+        if (search) params.search = search;
+
         setSearchParams(params);
-    }, [statusFilter, dayFilter, page, initialLimit, initialSearch, setSearchParams]);
+    }, [statusFilter, dayFilter, page, initialLimit, search, setSearchParams]);
 
-    const getCurrentWeekDate = (dayName: string) => {
-        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        const now = new Date();
-        const currentDayIndex = now.getDay();
-        const targetDayIndex = days.indexOf(dayName);
-        
-        if (targetDayIndex === -1) return '';
-
-        const diff = targetDayIndex - currentDayIndex;
-        const targetDate = new Date(now);
-        targetDate.setDate(now.getDate() + diff);
-
-        return targetDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' });
-    };
+    const rollingWeek = useMemo(() => {
+        const order = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const todayIdx = new Date().getDay();
+        const res: Array<{ day: string; dateStr: string }> = [];
+        for (let i = 0; i < 7; i++) {
+            const idx = (todayIdx + i) % 7;
+            const day = order[idx];
+            const d = new Date();
+            d.setDate(d.getDate() + i);
+            res.push({
+                day,
+                dateStr: d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' }),
+            });
+        }
+        return res;
+    }, []);
 
     const formatTime = (ms: number | null): string => {
         if (!ms) return '-';
@@ -78,21 +89,34 @@ export const StudentLessonsPage: React.FC = () => {
         return counts;
     }, [lessonsData?.data]);
 
-    if (isPending && !lessonsData) {
-        return (
-            <div className="flex justify-center items-center h-screen bg-gray-50">
-                <PageLoader />
-            </div>
-        );
-    }
+    const filteredLessons = useMemo(() => {
+        const all = lessonsData?.data || [];
+        return all.filter((lesson: any) => {
+            const d = String(lesson.weekday || lesson.weekDays || lesson.day || '');
+            return !dayFilter || d === dayFilter;
+        });
+    }, [lessonsData?.data, dayFilter]);
+
+    const totalPages = Math.max(1, Math.ceil(filteredLessons.length / initialLimit));
+    const pageItems = filteredLessons.slice((page - 1) * initialLimit, page * initialLimit);
 
     return (
-        <div className="min-h-screen bg-gray-50 p-3 sm:p-4">
+        <div className="min-h-screen bg-gray-50 p-3 sm:p-4 pb-24">
             <div className="max-w-md mx-auto space-y-4">
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4">
                     <div className="flex items-center gap-2 mb-4">
                         <CalendarDays size={20} className="text-blue-600" />
                         <h1 className="text-lg font-bold text-gray-900">My Lessons</h1>
+                    </div>
+
+                    <div className="mb-4">
+                        <input
+                            type="text"
+                            value={searchInput}
+                            onChange={(e) => setSearchInput(e.target.value)}
+                            placeholder="Search by lesson name"
+                            className="w-full h-11 px-4 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-green-200 text-sm shadow-sm"
+                        />
                     </div>
 
                     {/* Status Filter */}
@@ -106,6 +130,7 @@ export const StudentLessonsPage: React.FC = () => {
                             }}
                             className="w-full"
                             options={[
+                                { value: 'pending', label: 'Pending' },
                                 { value: 'booked', label: 'Booked' },
                                 { value: 'completed', label: 'Completed' },
                                 { value: 'cancelled', label: 'Cancelled' },
@@ -115,31 +140,33 @@ export const StudentLessonsPage: React.FC = () => {
                     </div>
 
                     {/* Day Filters */}
-                    <div className="flex overflow-x-auto gap-2 pb-2 no-scrollbar">
-                        {Object.values(WeekDays).map((day) => {
-                            const dateStr = getCurrentWeekDate(day);
+                    <div className="grid grid-cols-4 gap-2">
+                        {rollingWeek.map(({ day, dateStr }) => {
                             const isActive = dayFilter === day;
                             const count = dayCounts[day] || 0;
+                            const disabled = count === 0;
 
                             return (
                                 <button
                                     key={day}
                                     onClick={() => {
-                                        setDayFilter(day === dayFilter ? '' : day);
+                                        if (disabled) return;
+                                        setDayFilter(day);
                                         setPage(1);
                                     }}
-                                    className={`flex-shrink-0 py-2 px-3 rounded-xl text-xs font-bold transition-all flex flex-col items-center justify-center gap-0.5 min-w-[60px]
+                                    disabled={disabled}
+                                    className={`py-2 px-2 rounded-xl text-xs font-bold transition-all flex flex-col items-center justify-center gap-0.5
                                         ${isActive
-                                            ? 'bg-blue-600 text-white shadow-md'
-                                            : count > 0
-                                                ? 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
-                                                : 'bg-gray-100 text-gray-400 border border-gray-200 opacity-60'
+                                            ? 'bg-green-600 text-white shadow-md'
+                                            : disabled
+                                                ? 'bg-gray-100 text-gray-400 border border-gray-200 opacity-60'
+                                                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
                                         }`}
                                 >
                                     <span>{day.slice(0, 3)}</span>
-                                    <span className={`text-[10px] font-normal ${isActive ? 'text-blue-100' : 'text-gray-400'}`}>{dateStr}</span>
+                                    <span className={`text-[10px] font-normal ${isActive ? 'text-green-100' : 'text-gray-400'}`}>{dateStr}</span>
                                     {count > 0 && !isActive && (
-                                        <span className="px-1.5 py-0.5 bg-blue-100 text-blue-600 rounded-full text-[10px] leading-none">
+                                        <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded-full text-[10px] leading-none">
                                             {count}
                                         </span>
                                     )}
@@ -150,12 +177,18 @@ export const StudentLessonsPage: React.FC = () => {
                 </div>
 
                 <div className="space-y-3">
-                    {lessonsData?.data?.map((lesson: any) => {
+                    {isPending && (
+                        <div className="flex justify-center py-8">
+                            <PageLoader />
+                        </div>
+                    )}
+
+                    {pageItems.map((lesson: any) => {
                         const startMs = toMs(lesson.startTime);
                         const finishMs = toMs(lesson.finishTime || lesson.endTime);
                         const status = String(lesson.status || '').toLowerCase();
                         const statusColor = status === 'booked' ? 'blue' : status === 'completed' ? 'green' : status === 'cancelled' ? 'red' : 'default';
-                        
+
                         return (
                             <Card key={lesson.id} className="rounded-2xl shadow-sm border-gray-200 overflow-hidden" bodyStyle={{ padding: '16px' }}>
                                 <div className="flex justify-between items-start mb-2">
@@ -168,13 +201,13 @@ export const StudentLessonsPage: React.FC = () => {
                                     </div>
                                     <Tag color={statusColor as any}>{lesson.status || 'Unknown'}</Tag>
                                 </div>
-                                
+
                                 <div className="flex items-center justify-between mt-4">
                                     <div className="flex items-center gap-1 text-amber-600 font-bold">
                                         <DollarSign size={16} />
                                         <span>{Number(lesson.lessonPrice || 0).toLocaleString()} UZS</span>
                                     </div>
-                                    
+
                                     {lesson.meetLink && (
                                         <a
                                             href={lesson.meetLink}
@@ -191,14 +224,14 @@ export const StudentLessonsPage: React.FC = () => {
                         );
                     })}
 
-                    {(!lessonsData?.data || lessonsData.data.length === 0) && (
+                    {!isPending && pageItems.length === 0 && (
                         <div className="text-center py-10 text-gray-500">
                             No lessons found for this filter.
                         </div>
                     )}
                 </div>
 
-                {lessonsData?.meta?.totalPages && lessonsData.meta.totalPages > 1 && (
+                {totalPages > 1 && (
                     <div className="flex justify-center pb-6 gap-2">
                         <button
                             onClick={() => setPage(Math.max(1, page - 1))}
@@ -208,11 +241,11 @@ export const StudentLessonsPage: React.FC = () => {
                             Previous
                         </button>
                         <span className="px-4 py-2 text-gray-700">
-                            Page {page} of {lessonsData.meta?.totalPages || 1}
+                            Page {page} of {totalPages}
                         </span>
                         <button
-                            onClick={() => setPage(Math.min(lessonsData.meta?.totalPages || 1, page + 1))}
-                            disabled={page >= (lessonsData.meta?.totalPages || 1)}
+                            onClick={() => setPage(Math.min(totalPages, page + 1))}
+                            disabled={page >= totalPages}
                             className="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Next
@@ -220,6 +253,8 @@ export const StudentLessonsPage: React.FC = () => {
                     </div>
                 )}
             </div>
+
+            <TelegramStudentBottomNav />
         </div>
     );
 };

@@ -8,6 +8,8 @@ interface BookLessonParams {
     lessonId: number;
     startTime: number;
     finishTime: number;
+    showMeetLinkModal?: boolean;
+    closeWebAppOnSuccess?: boolean;
 }
 
 export const useBookLesson = () => {
@@ -24,9 +26,12 @@ export const useBookLesson = () => {
             });
             return res.data;
         },
-        onSuccess: (data: any) => {
+        onSuccess: (data: any, variables: BookLessonParams) => {
             const meetLink = data?.data?.meetLink || data?.meetLink;
-            if (meetLink) {
+            const showMeetLinkModal = variables?.showMeetLinkModal !== false;
+            const closeWebAppOnSuccess = variables?.closeWebAppOnSuccess === true;
+
+            if (meetLink && showMeetLinkModal) {
                 Modal.info({
                     title: 'Lesson Booked Successfully',
                     content: React.createElement('div', null,
@@ -48,6 +53,9 @@ export const useBookLesson = () => {
                 });
             } else {
                 message.success('Lesson booked successfully');
+                if (closeWebAppOnSuccess && (window as any).Telegram?.WebApp) {
+                    (window as any).Telegram.WebApp.close();
+                }
             }
             client.invalidateQueries({ queryKey: ['student-schedule'] });
         },

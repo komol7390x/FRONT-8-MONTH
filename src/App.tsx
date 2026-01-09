@@ -42,6 +42,8 @@ import { TeacherSchedulePage } from './page/teacher/panel/pages/schedule-page';
 import { StudentSchedulePage } from './page/student/schedule-page';
 import { StudentLessonsPage } from './page/student/lessons-page';
 import { StudentProfilePage } from './page/student/profile-page';
+import { StudentBookConfirmPage } from './page/student/book-confirm-page';
+import { StudentPaymentsPage } from './page/student/payments-page';
 import { AddBalancePage } from './page/admin/super-admin/student/add-balance-page';
 
 function App() {
@@ -50,6 +52,8 @@ function App() {
       <Route path="/" element={<MainPage />} />
       <Route path="/telegram/student-schedule" element={<StudentSchedulePage />} />
       <Route path="/telegram/student-lessons" element={<StudentLessonsPage />} />
+      <Route path="/telegram/student-book-confirm" element={<StudentBookConfirmPage />} />
+      <Route path="/telegram/student-payments" element={<StudentPaymentsPage />} />
       <Route path="/telegram/student/:studentId" element={<StudentProfilePage />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/admin/login" element={<LoginAdmin />} />

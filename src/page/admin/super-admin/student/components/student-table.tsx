@@ -5,7 +5,6 @@ import { getInitials } from './student-utils';
 import Cookies from 'js-cookie';
 import { TokenName } from '../../../../../config/enum';
 import { jwtDecode } from 'jwt-decode';
-import { Roles } from '../../../../../config/roles';
 import { AddBalanceModal } from './add-balance-modal';
 import { useState } from 'react';
 
@@ -23,17 +22,12 @@ interface StudentTableProps {
 export const StudentTable: React.FC<StudentTableProps> = ({ students, page, limit, onMore, showRecover = false, onRecover, isRecovering = false, onRefetch }) => {
     const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
     const [isAddBalanceOpen, setIsAddBalanceOpen] = useState(false);
-    
+
     const token = Cookies.get(TokenName.TOKEN_NAME);
-    let role: string | undefined;
-    try {
-        role = token ? (jwtDecode<any>(token) as any)?.role : undefined;
-    } catch {
-        role = undefined;
-    }
-    
-    const isSuperAdmin = String(role || '').toUpperCase() === String(Roles.SUPER_ADMIN).toUpperCase();
-    
+    void token;
+    void jwtDecode;
+    void TokenName;
+
     return (
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
             <div className="grid grid-cols-4 sm:grid-cols-8 px-3 sm:px-4 bg-gray-50 py-3 sm:py-4 border-b border-gray-200 font-semibold text-sm text-gray-700">
@@ -119,19 +113,6 @@ export const StudentTable: React.FC<StudentTableProps> = ({ students, page, limi
                             </div>
 
                             <div className="col-span-1 flex justify-end items-center gap-1">
-                                {isSuperAdmin && (
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setSelectedStudent(s);
-                                            setIsAddBalanceOpen(true);
-                                        }}
-                                        className="px-2 py-1.5 bg-green-500 text-white rounded text-xs font-medium hover:bg-green-600 transition-colors flex items-center gap-1"
-                                        title="Add Balance"
-                                    >
-                                        <span>Balance</span>
-                                    </button>
-                                )}
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
@@ -159,9 +140,9 @@ export const StudentTable: React.FC<StudentTableProps> = ({ students, page, limi
                             </div>
                         </div>
                     );
-                }                    )
-                )}
-            
+                })
+            )}
+
             <AddBalanceModal
                 open={isAddBalanceOpen}
                 student={selectedStudent}

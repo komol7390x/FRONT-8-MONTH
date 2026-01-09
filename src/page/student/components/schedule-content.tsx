@@ -35,7 +35,7 @@ export const StudentScheduleContent: React.FC<StudentScheduleContentProps> = ({ 
         const now = new Date();
         const currentDayIndex = now.getDay();
         const targetDayIndex = days.indexOf(dayName);
-        
+
         if (targetDayIndex === -1) return '';
 
         const diff = targetDayIndex - currentDayIndex;
@@ -54,17 +54,17 @@ export const StudentScheduleContent: React.FC<StudentScheduleContentProps> = ({ 
     const handleBook = (lesson: any) => {
         const startTime = Number(lesson.startTime);
         const finishTime = Number(lesson.finishTime);
-        
+
         if (!startTime || !finishTime) {
             message.error('Lesson time information is missing');
             return;
         }
-        
+
         const startTimeSeconds = Math.floor(startTime / 1000);
         const finishTimeSeconds = Math.floor(finishTime / 1000);
-        
-        bookLesson({ 
-            studentId, 
+
+        bookLesson({
+            studentId,
             lessonId: lesson.id,
             startTime: startTimeSeconds,
             finishTime: finishTimeSeconds
@@ -139,7 +139,7 @@ export const StudentScheduleContent: React.FC<StudentScheduleContentProps> = ({ 
                     const startMs = Number(lesson.startTime);
                     const finishMs = Number(lesson.finishTime);
                     const isBooked = lesson.status === 'booked';
-                    
+
                     return (
                         <Card key={lesson.id} className="rounded-2xl shadow-sm border-gray-200 overflow-hidden" bodyStyle={{ padding: '16px' }}>
                             <div className="flex justify-between items-start mb-2">
@@ -152,16 +152,16 @@ export const StudentScheduleContent: React.FC<StudentScheduleContentProps> = ({ 
                                 </div>
                                 <Tag color={isBooked ? 'red' : 'green'}>{lesson.status || 'Available'}</Tag>
                             </div>
-                            
+
                             <div className="flex items-center justify-between mt-4">
                                 <div className="flex items-center gap-1 text-amber-600 font-bold">
                                     <DollarSign size={16} />
                                     <span>{Number(lesson.lessonPrice).toLocaleString()} UZS</span>
                                 </div>
-                                
-                                <Button 
-                                    type="primary" 
-                                    shape="round" 
+
+                                <Button
+                                    type="primary"
+                                    shape="round"
                                     size="small"
                                     disabled={isBooked || isBooking}
                                     onClick={() => handleBook(lesson)}
@@ -181,7 +181,7 @@ export const StudentScheduleContent: React.FC<StudentScheduleContentProps> = ({ 
                 )}
             </div>
 
-            {scheduleData?.meta && scheduleData.meta.totalPages && scheduleData.meta.totalPages > 1 && (
+            {(scheduleData?.meta?.totalPages ?? 0) > 1 && (
                 <div className="flex justify-center pb-6 gap-2">
                     <button
                         onClick={() => setPage(Math.max(1, page - 1))}
@@ -191,11 +191,11 @@ export const StudentScheduleContent: React.FC<StudentScheduleContentProps> = ({ 
                         Previous
                     </button>
                     <span className="px-4 py-2 text-gray-700">
-                        Page {page} of {scheduleData.meta.totalPages}
+                        Page {page} of {scheduleData?.meta?.totalPages ?? 1}
                     </span>
                     <button
-                        onClick={() => setPage(Math.min(scheduleData.meta.totalPages || 1, page + 1))}
-                        disabled={page >= (scheduleData.meta.totalPages || 1)}
+                        onClick={() => setPage(Math.min(scheduleData?.meta?.totalPages ?? 1, page + 1))}
+                        disabled={page >= (scheduleData?.meta?.totalPages ?? 1)}
                         className="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         Next
