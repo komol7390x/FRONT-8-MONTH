@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Card, Tag, Button, Select, message } from 'antd';
-import { CalendarDays, Clock, DollarSign } from 'lucide-react';
+import { Button, Select, message } from 'antd';
+import { CalendarDays } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useStudentSchedule } from './service/useStudentSchedule';
 import { PageLoader } from '../../components/page-loader';
@@ -10,6 +10,25 @@ import { TelegramStudentBottomNav } from './components/telegram-student-bottom-n
 export const StudentSchedulePage: React.FC = () => {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
+
+    const tokenFromUrl = searchParams.get('token') || '';
+
+    const decodeJwtPayload = (token: string): any | null => {
+        try {
+            const parts = token.split('.');
+            if (parts.length < 2) return null;
+            const b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+            const pad = b64.length % 4 === 0 ? '' : '='.repeat(4 - (b64.length % 4));
+            const json = decodeURIComponent(
+                Array.prototype.map
+                    .call(atob(b64 + pad), (c: string) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+                    .join('')
+            );
+            return JSON.parse(json);
+        } catch {
+            return null;
+        }
+    };
 
     // Read initial params from URL
     const initialTeacherId = Number(searchParams.get('teacherId')) || undefined;
@@ -21,6 +40,7 @@ export const StudentSchedulePage: React.FC = () => {
     const initialMaxPrice = searchParams.get('maxPrice') || '';
 
     const [dayFilter, setDayFilter] = useState<string>(initialDay);
+    const [selectedDays, setSelectedDays] = useState<string[]>(initialDay ? [initialDay] : []);
     const [page, setPage] = useState<number>(initialPage);
     const [teacherId, setTeacherId] = useState<number | undefined>(initialTeacherId);
     const [selectedLesson, setSelectedLesson] = useState<any | null>(null);
@@ -32,10 +52,19 @@ export const StudentSchedulePage: React.FC = () => {
     const { data: teachersData } = useGetTeachers({ page: 1, limit: 100, status: true });
     const teachers = teachersData?.data || [];
 
-    // For now, hardcode studentId or get from somewhere. 
-    // In a real Telegram Web App, this would come from initData.
-    // The user example had 1.
-    const studentId = 1;
+    const studentId = useMemo(() => {
+        let t = tokenFromUrl;
+        if (!t) {
+            try {
+                t = localStorage.getItem('telegram_token') || '';
+            } catch {
+                t = '';
+            }
+        }
+        const payload = t ? decodeJwtPayload(t) : null;
+        const id = Number(payload?.id);
+        return Number.isFinite(id) && id > 0 ? id : 0;
+    }, [tokenFromUrl]);
 
     const isBooking = false;
 
@@ -47,11 +76,34 @@ export const StudentSchedulePage: React.FC = () => {
     });
 
     useEffect(() => {
+        if (!tokenFromUrl) return;
+        try {
+            localStorage.setItem('telegram_token', tokenFromUrl);
+        } catch {
+            // ignore
+        }
+
+        try {
+            document.cookie = `telegram_token=${encodeURIComponent(tokenFromUrl)}; path=/; SameSite=Lax`;
+        } catch {
+            // ignore
+        }
+
+        const params = new URLSearchParams(searchParams);
+        params.delete('token');
+        setSearchParams(params, { replace: true } as any);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [tokenFromUrl]);
+
+    useEffect(() => {
         if (initialDay) return;
         const now = new Date();
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         const today = days[now.getDay()] || '';
-        if (today) setDayFilter(today);
+        if (today) {
+            setDayFilter(today);
+            setSelectedDays([today]);
+        }
     }, [initialDay]);
 
     // Update URL when filters change
@@ -106,15 +158,23 @@ export const StudentSchedulePage: React.FC = () => {
         return counts;
     }, [allLessons]);
 
-    const filteredLessons = useMemo(() => {
+    const toMs = (value: unknown): number | null => {
+        if (value == null) return null;
+        const n = Number(value);
+        if (Number.isFinite(n)) return n < 1_000_000_000_000 ? n * 1000 : n;
+        const d = new Date(String(value));
+        return Number.isNaN(d.getTime()) ? null : d.getTime();
+    };
+
+    const lessonsForSelectedDay = useMemo(() => {
+        if (!dayFilter) return [];
         const name = lessonName.trim().toLowerCase();
         const min = minPrice.trim() ? Number(minPrice) : undefined;
         const max = maxPrice.trim() ? Number(maxPrice) : undefined;
-
-        return allLessons
+        const rows = allLessons
             .filter((lesson: any) => {
                 const d = String(lesson?.weekDays ?? lesson?.weekday ?? lesson?.day ?? '');
-                return !dayFilter || d === dayFilter;
+                return d === dayFilter;
             })
             .filter((lesson: any) => {
                 if (!name) return true;
@@ -125,18 +185,21 @@ export const StudentSchedulePage: React.FC = () => {
                 if (min != null && Number.isFinite(min) && p < min) return false;
                 if (max != null && Number.isFinite(max) && p > max) return false;
                 return true;
-            });
+            })
+            .slice();
+        rows.sort((a: any, b: any) => {
+            const aMs = toMs(a?.startTime) ?? 0;
+            const bMs = toMs(b?.startTime) ?? 0;
+            return aMs - bMs;
+        });
+        return rows;
     }, [allLessons, dayFilter, lessonName, minPrice, maxPrice]);
 
-    const toMs = (value: unknown): number | null => {
-        if (value == null) return null;
-        const n = Number(value);
-        if (Number.isFinite(n)) return n < 1_000_000_000_000 ? n * 1000 : n;
-        const d = new Date(String(value));
-        return Number.isNaN(d.getTime()) ? null : d.getTime();
-    };
-
     const handleBook = (lesson: any) => {
+        if (!studentId) {
+            message.error('Student not found');
+            return;
+        }
         const startMs = toMs(lesson?.startTime);
         const finishMs = toMs(lesson?.finishTime ?? lesson?.endTime);
 
@@ -166,7 +229,7 @@ export const StudentSchedulePage: React.FC = () => {
             <div className="max-w-md mx-auto space-y-4">
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4">
                     <div className="flex items-center gap-2 mb-4">
-                        <CalendarDays size={20} className="text-blue-600" />
+                        <CalendarDays size={20} className="text-green-600" />
                         <h1 className="text-lg font-bold text-gray-900">Available Lessons</h1>
                     </div>
 
@@ -230,7 +293,7 @@ export const StudentSchedulePage: React.FC = () => {
                     {/* Day Filters */}
                     <div className="grid grid-cols-4 gap-2">
                         {rollingWeek.map(({ day, dateStr }) => {
-                            const isActive = dayFilter === day;
+                            const isActive = selectedDays.includes(day);
                             const count = weekdayCounts[day] || 0;
                             const disabled = count === 0;
 
@@ -240,7 +303,17 @@ export const StudentSchedulePage: React.FC = () => {
                                     onClick={() => {
                                         if (disabled) return;
                                         setSelectedLesson(null);
-                                        setDayFilter(day);
+                                        setSelectedDays((prev) => {
+                                            if (prev.includes(day)) {
+                                                const next = prev.filter((x) => x !== day);
+                                                if (dayFilter === day) {
+                                                    setDayFilter(next[0] || '');
+                                                }
+                                                return next;
+                                            }
+                                            setDayFilter(day);
+                                            return [...prev, day];
+                                        });
                                         setPage(1);
                                     }}
                                     disabled={disabled}
@@ -263,92 +336,40 @@ export const StudentSchedulePage: React.FC = () => {
                             );
                         })}
                     </div>
-                </div>
 
-                <div className="space-y-3">
-                    {isPending && (
-                        <div className="flex justify-center py-8">
-                            <PageLoader />
-                        </div>
-                    )}
-
-                    {filteredLessons.slice((page - 1) * initialLimit, page * initialLimit).map((lesson: any) => {
-                        const startMs = toMs(lesson.startTime);
-                        const finishMs = toMs(lesson.finishTime ?? lesson.endTime);
-                        const isBooked = String(lesson.status || '').toLowerCase() === 'booked';
-                        const lessonPrice = Number(lesson.price ?? lesson.lessonPrice ?? 0);
-
-                        return (
-                            <Card
-                                key={lesson.id}
-                                className={`rounded-2xl shadow-sm border-gray-200 overflow-hidden ${selectedLesson?.id === lesson.id ? 'ring-2 ring-green-500' : ''}`}
-                                bodyStyle={{ padding: '16px' }}
-                                onClick={() => setSelectedLesson(lesson)}
-                            >
-                                <div className="flex justify-between items-start mb-2">
-                                    <div>
-                                        <h3 className="font-bold text-gray-900 text-base">{lesson.lessonName || 'Lesson'}</h3>
-                                        <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
-                                            <Clock size={12} />
-                                            <span>{formatTime(startMs)} - {formatTime(finishMs)}</span>
-                                        </div>
-                                        <div className="text-xs text-gray-500 mt-1">
-                                            {(lesson.weekDays || lesson.weekday || lesson.day) ? String(lesson.weekDays || lesson.weekday || lesson.day) : ''}
-                                        </div>
-                                    </div>
-                                    <Tag color={isBooked ? 'red' : 'green'}>{lesson.status || (isBooked ? 'Booked' : 'Available')}</Tag>
-                                </div>
-
-                                <div className="flex items-center justify-between mt-4">
-                                    <div className="flex items-center gap-1 text-amber-600 font-bold">
-                                        <DollarSign size={16} />
-                                        <span>{lessonPrice.toLocaleString()} UZS</span>
-                                    </div>
-
-                                    <Button
-                                        type="primary"
-                                        shape="round"
-                                        size="small"
-                                        disabled={isBooked || isBooking}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleBook(lesson);
-                                        }}
-                                        className={isBooked ? '' : 'bg-green-600'}
-                                    >
-                                        {isBooked ? 'Booked' : 'Book Now'}
-                                    </Button>
-                                </div>
-                            </Card>
-                        );
-                    })}
-
-                    {!isPending && filteredLessons.length === 0 && (
-                        <div className="text-center py-10 text-gray-500">
-                            No lessons found for this filter.
+                    {dayFilter && (
+                        <div className="mt-4">
+                            <div className="text-xs font-bold text-gray-700">{dayFilter} lessons</div>
+                            <div className="mt-2 space-y-2">
+                                {lessonsForSelectedDay.length === 0 ? (
+                                    <div className="text-xs text-gray-500">No lessons for selected day.</div>
+                                ) : (
+                                    lessonsForSelectedDay.map((l: any) => {
+                                        const st = formatTime(toMs(l?.startTime));
+                                        const ft = formatTime(toMs(l?.finishTime ?? l?.endTime));
+                                        return (
+                                            <button
+                                                key={String(l?.id ?? `${l?.lessonName}-${l?.startTime}`)}
+                                                type="button"
+                                                onClick={() => setSelectedLesson(l)}
+                                                className={`w-full text-left px-3 py-2 rounded-xl border bg-white hover:bg-gray-50 ${selectedLesson?.id === l?.id ? 'border-green-500 ring-2 ring-green-200' : 'border-gray-200'}`}
+                                            >
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <div className="text-xs font-semibold text-gray-900 truncate">{String(l?.lessonName ?? 'Lesson')}</div>
+                                                    <div className="text-[11px] font-semibold text-gray-600 shrink-0">{st} - {ft}</div>
+                                                </div>
+                                            </button>
+                                        );
+                                    })
+                                )}
+                            </div>
                         </div>
                     )}
                 </div>
 
-                {Math.ceil(filteredLessons.length / initialLimit) > 1 && (
-                    <div className="flex justify-center pb-6 gap-2">
-                        <button
-                            onClick={() => setPage(Math.max(1, page - 1))}
-                            disabled={page === 1}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            Previous
-                        </button>
-                        <span className="px-4 py-2 text-gray-700">
-                            Page {page} of {Math.max(1, Math.ceil(filteredLessons.length / initialLimit))}
-                        </span>
-                        <button
-                            onClick={() => setPage(Math.min(Math.ceil(filteredLessons.length / initialLimit), page + 1))}
-                            disabled={page >= Math.ceil(filteredLessons.length / initialLimit)}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            Next
-                        </button>
+                {isPending && (
+                    <div className="flex justify-center py-8">
+                        <PageLoader />
                     </div>
                 )}
 

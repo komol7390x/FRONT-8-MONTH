@@ -3,6 +3,8 @@ import { BookOpen, CalendarDays, CheckCircle2, DollarSign, X } from 'lucide-reac
 import { message } from 'antd';
 
 import { useCreateLessonTemplate } from '../service/useCreateLessonTemplate';
+import { useGetTeacherById } from '../service/useGetTeacherById';
+import { useGetStudentById } from '../../student/service/useGetStudentById';
 
 interface LessonTemplateCreateModalProps {
     open: boolean;
@@ -21,7 +23,19 @@ interface LessonTemplateCreateModalProps {
 export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps> = ({ open, teacherId, studentId, existingLessons = [], certificates = [], showTeacherIdInput = false, onTeacherIdChange, showStudentIdInput = false, onStudentIdChange, onClose, onCreated }) => {
     const { mutateAsync: createLesson } = useCreateLessonTemplate() as any;
 
-    const [selectedOffsets, setSelectedOffsets] = useState<number[]>([0, 1, 2, 3, 4]);
+    const {
+        data: teacherById,
+        isFetching: isTeacherFetching,
+        isError: isTeacherError,
+    } = useGetTeacherById(showTeacherIdInput ? teacherId : undefined) as any;
+
+    const {
+        data: studentById,
+        isFetching: isStudentFetching,
+        isError: isStudentError,
+    } = useGetStudentById(showStudentIdInput ? studentId : undefined) as any;
+
+    const [selectedOffsets, setSelectedOffsets] = useState<number[]>([0]);
     const [form, setForm] = useState({
         startTime: '',
         finishTime: '',
@@ -95,7 +109,7 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
 
     useEffect(() => {
         if (!open) return;
-        const defaults = [0, 1, 2, 3, 4].filter((x) => !disabledOffsets.has(x));
+        const defaults = [0].filter((x) => !disabledOffsets.has(x));
         setSelectedOffsets(defaults);
         setForm({
             startTime: '',
@@ -113,22 +127,47 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open, form.lessonName]);
 
+    const hasLessonName = useMemo(() => {
+        return !!form.lessonName.trim();
+    }, [form.lessonName]);
+
+    const isTeacherValid = useMemo(() => {
+        if (!showTeacherIdInput) return true;
+        if (!(typeof teacherId === 'number' && teacherId > 0)) return false;
+        if (isTeacherFetching) return false;
+        if (isTeacherError) return false;
+        return !!teacherById;
+    }, [isTeacherError, isTeacherFetching, showTeacherIdInput, teacherById, teacherId]);
+
+    const isStudentValid = useMemo(() => {
+        if (!showStudentIdInput) return true;
+        if (!studentId) return true;
+        if (!(typeof studentId === 'number' && studentId > 0)) return false;
+        if (isStudentFetching) return false;
+        if (isStudentError) return false;
+        return !!studentById;
+    }, [isStudentError, isStudentFetching, showStudentIdInput, studentById, studentId]);
+
     const canSubmit = useMemo(() => {
-        return !!teacherId && !!form.lessonName.trim() && !!form.startTime && !!form.finishTime && selectedOffsets.length > 0;
-    }, [form.finishTime, form.lessonName, form.startTime, selectedOffsets.length, teacherId]);
+        return isTeacherValid && isStudentValid && !!teacherId && hasLessonName && !!form.startTime && !!form.finishTime && selectedOffsets.length > 0;
+    }, [form.finishTime, form.startTime, hasLessonName, isStudentValid, isTeacherValid, selectedOffsets.length, teacherId]);
 
     const handleToggleOffset = (offset: number) => {
         if (disabledOffsets.has(offset)) return;
-        setSelectedOffsets((prev) => (prev.includes(offset) ? prev.filter((d) => d !== offset) : [...prev, offset]));
+        setSelectedOffsets((prev) => (prev.includes(offset) ? [] : [offset]));
     };
 
     const handleCreateWeek = async () => {
-        if (!teacherId) {
+        if (!teacherId || !isTeacherValid) {
             message.error('Teacher ID not found');
             return;
         }
-        if (!form.lessonName.trim()) {
+        if (!hasLessonName) {
             message.warning('Select lesson name');
+            return;
+        }
+        if (!isStudentValid) {
+            message.error('Student ID not found');
             return;
         }
         if (!form.startTime || !form.finishTime) {
@@ -221,6 +260,11 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
                                 placeholder="Enter teacher id"
                                 min={1}
                             />
+                            {teacherId > 0 && (
+                                <div className={`mt-1 text-xs ${isTeacherValid ? 'text-emerald-700' : 'text-red-600'}`}>
+                                    {isTeacherFetching ? 'Checking teacher...' : isTeacherValid ? 'Teacher found' : 'Teacher not found'}
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -238,6 +282,11 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
                                 placeholder="Enter student id"
                                 min={1}
                             />
+                            {!!studentId && studentId > 0 && (
+                                <div className={`mt-1 text-xs ${isStudentValid ? 'text-emerald-700' : 'text-red-600'}`}>
+                                    {isStudentFetching ? 'Checking student...' : isStudentValid ? 'Student found' : 'Student not found'}
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -266,7 +315,7 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-3">
+                    <div className={`grid grid-cols-1 gap-3 ${hasLessonName ? '' : 'opacity-50 pointer-events-none'}`}>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
                             <input
@@ -288,7 +337,7 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
                         </div>
                     </div>
 
-                    <div>
+                    <div className={hasLessonName ? '' : 'opacity-50 pointer-events-none'}>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Days (next 7 days)</label>
                         <div className="grid grid-cols-4 gap-2">
                             {dateSlots.map((d) => {
@@ -313,20 +362,20 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
                         </div>
                     </div>
 
-                    <div>
+                    <div className={hasLessonName ? '' : 'opacity-50 pointer-events-none'}>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Lesson Price</label>
                         <div className="relative">
                             <DollarSign size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-700" />
                             <input
                                 type="number"
                                 value={form.lessonPrice}
-                                onChange={(e) => setForm((p) => ({ ...p, lessonPrice: Number(e.target.value) }))}
+                                readOnly
                                 className="w-full h-11 pl-10 pr-4 bg-linear-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-xl text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-300"
                             />
                         </div>
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className={`flex gap-2 ${hasLessonName ? '' : 'opacity-50 pointer-events-none'}`}>
                         <button
                             type="button"
                             onClick={onClose}

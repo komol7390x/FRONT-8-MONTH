@@ -2,26 +2,11 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { CalendarClock, Loader2, Plus, Search, User } from 'lucide-react';
 import { Table, Tag, Avatar } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { useTeacherSchedule, WeekDays } from '../teacher/service/useTeacherSchedule';
+import { useTeacherSchedule } from '../teacher/service/useTeacherSchedule';
 import { Pagination } from '../admin/components/pagantion';
 import { ScheduleCreateModal } from './components/schedule-create-modal';
 import { TeacherMoreModal } from '../teacher/components/teacher-more-modal';
 import { useGetTeacherById } from '../teacher/service/useGetTeacherById';
-
-const getCurrentWeekDate = (dayName: string) => {
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const now = new Date();
-    const currentDayIndex = now.getDay(); // 0-6
-    const targetDayIndex = days.indexOf(dayName);
-
-    if (targetDayIndex === -1) return '';
-
-    const diff = targetDayIndex - currentDayIndex;
-    const targetDate = new Date(now);
-    targetDate.setDate(now.getDate() + diff);
-
-    return targetDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' });
-};
 
 export const SchedulePage: React.FC = () => {
     const [page, setPage] = useState(1);
@@ -31,6 +16,23 @@ export const SchedulePage: React.FC = () => {
     const [searchInput, setSearchInput] = useState('');
     const [search, setSearch] = useState('');
 
+    const rollingWeek = useMemo(() => {
+        const order = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const todayIdx = new Date().getDay();
+        const res: Array<{ day: string; dateStr: string }> = [];
+        for (let i = 0; i < 7; i++) {
+            const idx = (todayIdx + i) % 7;
+            const day = order[idx];
+            const d = new Date();
+            d.setDate(d.getDate() + i);
+            res.push({
+                day,
+                dateStr: d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' }),
+            });
+        }
+        return res;
+    }, []);
+
     useEffect(() => {
         const t = setTimeout(() => {
             setSearch(searchInput);
@@ -38,6 +40,12 @@ export const SchedulePage: React.FC = () => {
         }, 700);
         return () => clearTimeout(t);
     }, [searchInput]);
+
+    useEffect(() => {
+        if (dayFilter) return;
+        const today = rollingWeek[0]?.day;
+        if (today) setDayFilter(today);
+    }, [dayFilter, rollingWeek]);
 
     // Fetch stats for all schedule items
     const statsQuery = useTeacherSchedule({
@@ -110,8 +118,8 @@ export const SchedulePage: React.FC = () => {
                 let avatarSrc = undefined;
                 if (record.teacher?.imageUrl) {
                     try {
-                        const parsed = typeof record.teacher.imageUrl === 'string' 
-                            ? JSON.parse(record.teacher.imageUrl) 
+                        const parsed = typeof record.teacher.imageUrl === 'string'
+                            ? JSON.parse(record.teacher.imageUrl)
                             : record.teacher.imageUrl;
                         avatarSrc = parsed?.value || parsed || record.teacher.imageUrl;
                     } catch {
@@ -201,9 +209,8 @@ export const SchedulePage: React.FC = () => {
 
                 {/* Week Day Buttons */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
-                    {Object.values(WeekDays).map((day) => {
+                    {rollingWeek.map(({ day, dateStr }) => {
                         const count = dayCounts[day] || 0;
-                        const dateStr = getCurrentWeekDate(day);
                         const isActiveDay = count > 0;
 
                         return (
@@ -211,7 +218,7 @@ export const SchedulePage: React.FC = () => {
                                 key={day}
                                 onClick={() => {
                                     if (isActiveDay) {
-                                        setDayFilter(day === dayFilter ? '' : day);
+                                        setDayFilter(day);
                                         setPage(1);
                                     }
                                 }}
@@ -279,7 +286,7 @@ export const SchedulePage: React.FC = () => {
                                 dataSource={scheduleList}
                                 rowKey="id"
                                 pagination={false}
-                                className="border rounded-lg overflow-hidden"
+                                className="rounded-lg overflow-hidden"
                                 rowClassName="cursor-pointer hover:bg-blue-50 transition-colors"
                                 onRow={(record) => ({
                                     onClick: () => {

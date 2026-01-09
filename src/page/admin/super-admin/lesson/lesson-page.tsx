@@ -364,6 +364,7 @@ export const LessonPage: React.FC = () => {
                     <Table
                         columns={columns}
                         dataSource={dataSource}
+                        rowKey={(record: any) => String(record?.id ?? record?.key ?? '')}
                         size="small"
                         tableLayout="fixed"
                         rowClassName={() => 'h-12'}
@@ -376,7 +377,8 @@ export const LessonPage: React.FC = () => {
                             };
                         }}
                         pagination={false}
-                        scroll={{ y: 520 }}
+                        scroll={{ x: 900 }}
+                        locale={{ emptyText: 'No lessons found' }}
                     />
                 </Card>
 

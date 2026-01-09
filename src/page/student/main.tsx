@@ -13,8 +13,8 @@ export const MainStudent = () => {
             tg.expand(); // Ilovani darhol yoyish
 
             // Ranglarni qat'iy belgilash
-            tg.setHeaderColor('secondary_bg_color');
-            tg.setBackgroundColor('secondary_bg_color');
+            tg.setHeaderColor('#16a34a');
+            tg.setBackgroundColor('#f0fdf4');
 
             setTgObject(tg);
         }
@@ -75,7 +75,7 @@ export const MainStudent = () => {
             {/* Action Button */}
             <button
                 onClick={() => tgObject?.HapticFeedback.impactOccurred('medium')}
-                className="w-full py-4 bg-[#0088cc] text-white font-bold rounded-2xl shadow-lg active:scale-[0.97] transition-all"
+                className="w-full py-4 bg-green-600 text-white font-bold rounded-2xl shadow-lg active:scale-[0.97] transition-all"
             >
                 Batafsil ma'lumot
             </button>

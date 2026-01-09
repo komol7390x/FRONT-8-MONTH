@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { CalendarDays, List, User, CreditCard } from 'lucide-react';
 
 interface TelegramStudentBottomNavProps {
@@ -8,6 +8,7 @@ interface TelegramStudentBottomNavProps {
 
 export const TelegramStudentBottomNav: React.FC<TelegramStudentBottomNavProps> = ({ studentId }) => {
     const navigate = useNavigate();
+    const location = useLocation();
     const params = useParams();
 
     const effectiveStudentId = studentId ?? (params.studentId ? Number(params.studentId) : undefined) ?? 1;
@@ -45,14 +46,15 @@ export const TelegramStudentBottomNav: React.FC<TelegramStudentBottomNavProps> =
                 <div className="flex items-center justify-around py-2">
                     {items.map((item) => {
                         const Icon = item.icon;
+                        const isActive = location.pathname === item.to || location.pathname.startsWith(`${item.to}/`);
 
                         return (
                             <button
                                 key={item.key}
                                 onClick={() => navigate(item.to)}
-                                className="flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-lg transition-colors text-gray-600"
+                                className={`flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-lg transition-colors ${isActive ? 'text-green-600' : 'text-gray-600'}`}
                             >
-                                <Icon size={24} className="text-gray-600" />
+                                <Icon size={24} className={isActive ? 'text-green-600' : 'text-gray-600'} />
                                 <span className="text-xs font-medium">{item.label}</span>
                             </button>
                         );
