@@ -57,6 +57,14 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
         return Number.isFinite(price) ? price : 0;
     };
 
+    const toMs = (value: unknown): number | null => {
+        if (value == null) return null;
+        const n = Number(value);
+        if (Number.isFinite(n)) return n < 1_000_000_000_000 ? n * 1000 : n;
+        const d = new Date(String(value));
+        return Number.isNaN(d.getTime()) ? null : d.getTime();
+    };
+
     const dateSlots = useMemo(() => {
         const months = ['YAN', 'FEV', 'MAR', 'APR', 'MAY', 'IYN', 'IYL', 'AVG', 'SEN', 'OKT', 'NOY', 'DEK'];
         const days = ['Yak', 'Dush', 'Sesh', 'Chor', 'Pay', 'Jum', 'Shan'];
@@ -64,7 +72,7 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
         const base = new Date();
         base.setHours(0, 0, 0, 0);
 
-        return Array.from({ length: 7 }).map((_, i) => {
+        return Array.from({ length: 12 }).map((_, i) => {
             const d = new Date(base);
             d.setDate(d.getDate() + i);
             const dd = String(d.getDate()).padStart(2, '0');
@@ -75,42 +83,14 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
     }, []);
 
     const disabledOffsets = useMemo(() => {
-        const toDate = (v: any) => {
-            if (v == null) return null;
-            if (typeof v === 'number') {
-                const ms = v < 1_000_000_000_000 ? v * 1000 : v;
-                const d = new Date(ms);
-                return Number.isNaN(d.getTime()) ? null : d;
-            }
-            const asNumber = Number(v);
-            if (Number.isFinite(asNumber) && String(v).trim() !== '') {
-                const ms = asNumber < 1_000_000_000_000 ? asNumber * 1000 : asNumber;
-                const d = new Date(ms);
-                return Number.isNaN(d.getTime()) ? null : d;
-            }
-            const d = new Date(String(v));
-            return Number.isNaN(d.getTime()) ? null : d;
-        };
-
-        const slotMap = new Map<string, number>();
-        for (const s of dateSlots) {
-            slotMap.set(s.date.toDateString(), s.offset);
-        }
-
-        const disabled = new Set<number>();
-        for (const l of existingLessons || []) {
-            const d = toDate((l as any)?.startTime ?? (l as any)?.start ?? (l as any)?.date);
-            if (!d) continue;
-            const offset = slotMap.get(d.toDateString());
-            if (typeof offset === 'number') disabled.add(offset);
-        }
-        return disabled;
+        return new Set<number>();
     }, [dateSlots, existingLessons]);
 
     useEffect(() => {
         if (!open) return;
-        const defaults = [0].filter((x) => !disabledOffsets.has(x));
-        setSelectedOffsets(defaults);
+        const initial = 1;
+        const defaults = [initial].filter((x) => !disabledOffsets.has(x));
+        setSelectedOffsets(defaults.length ? defaults : [0]);
         setForm({
             startTime: '',
             finishTime: '',
@@ -156,6 +136,27 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
         if (disabledOffsets.has(offset)) return;
         setSelectedOffsets((prev) => (prev.includes(offset) ? [] : [offset]));
     };
+
+    const selectedDate = useMemo(() => {
+        const offset = selectedOffsets[0];
+        const slot = dateSlots.find((s) => s.offset === offset);
+        return slot?.date ?? null;
+    }, [dateSlots, selectedOffsets]);
+
+    const lessonsForSelectedDate = useMemo(() => {
+        if (!selectedDate) return [];
+        const key = selectedDate.toDateString();
+        const rows = (existingLessons || [])
+            .filter((l: any) => {
+                const ms = toMs(l?.startTime ?? l?.start ?? l?.date);
+                if (!ms) return false;
+                return new Date(ms).toDateString() === key;
+            })
+            .slice();
+
+        rows.sort((a: any, b: any) => (toMs(a?.startTime) ?? 0) - (toMs(b?.startTime) ?? 0));
+        return rows;
+    }, [existingLessons, selectedDate]);
 
     const handleCreateWeek = async () => {
         if (!teacherId || !isTeacherValid) {
@@ -338,7 +339,7 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
                     </div>
 
                     <div className={hasLessonName ? '' : 'opacity-50 pointer-events-none'}>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Days (next 7 days)</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Days</label>
                         <div className="grid grid-cols-4 gap-2">
                             {dateSlots.map((d) => {
                                 const active = selectedOffsets.includes(d.offset);
@@ -359,6 +360,30 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
                                     </button>
                                 );
                             })}
+                        </div>
+
+                        <div className="mt-3">
+                            <div className="text-xs font-semibold text-gray-700">Lessons for selected day</div>
+                            <div className="mt-2 space-y-2">
+                                {lessonsForSelectedDate.length === 0 ? (
+                                    <div className="text-xs text-gray-500">No lessons for this day.</div>
+                                ) : (
+                                    lessonsForSelectedDate.map((l: any, idx: number) => {
+                                        const st = toMs(l?.startTime);
+                                        const ft = toMs(l?.finishTime ?? l?.endTime);
+                                        const stStr = st ? new Date(st).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }) : '-';
+                                        const ftStr = ft ? new Date(ft).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }) : '-';
+                                        return (
+                                            <div key={String(l?.id ?? idx)} className="px-3 py-2 rounded-xl border border-gray-200 bg-white">
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <div className="text-xs font-semibold text-gray-900 truncate">{String(l?.lessonName ?? 'Lesson')}</div>
+                                                    <div className="text-[11px] font-semibold text-gray-600 shrink-0">{stStr} - {ftStr}</div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
                         </div>
                     </div>
 

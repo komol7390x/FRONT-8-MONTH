@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { CalendarClock, Clock, Loader2, Plus, Search } from 'lucide-react';
-import { useTeacherSchedule, WeekDays } from '../service/useTeacherSchedule';
+import { useTeacherSchedule } from '../service/useTeacherSchedule';
 import type { Teacher } from '../service/useGetTeachers';
 import { ScheduleCreateModal } from '../../schedule/components/schedule-create-modal';
 import { Pagination } from '../../admin/components/pagantion';
@@ -8,21 +8,6 @@ import { Pagination } from '../../admin/components/pagantion';
 interface TeacherMoreScheduleProps {
     teacher: Teacher;
 }
-
-const getCurrentWeekDate = (dayName: string) => {
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const now = new Date();
-    const currentDayIndex = now.getDay(); // 0-6
-    const targetDayIndex = days.indexOf(dayName);
-
-    if (targetDayIndex === -1) return '';
-
-    const diff = targetDayIndex - currentDayIndex;
-    const targetDate = new Date(now);
-    targetDate.setDate(now.getDate() + diff);
-
-    return targetDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' });
-};
 
 export const TeacherMoreSchedule: React.FC<TeacherMoreScheduleProps> = ({ teacher }) => {
     const [page, setPage] = useState(1);
@@ -66,6 +51,19 @@ export const TeacherMoreSchedule: React.FC<TeacherMoreScheduleProps> = ({ teache
         }
         return counts;
     }, [statsQuery.data]);
+
+    const rollingDays = useMemo(() => {
+        const order = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const base = new Date();
+        base.setHours(0, 0, 0, 0);
+        return Array.from({ length: 12 }).map((_, i) => {
+            const d = new Date(base);
+            d.setDate(d.getDate() + i);
+            const weekday = order[d.getDay()] || '';
+            const dateStr = d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' });
+            return { weekday, dateStr };
+        });
+    }, []);
 
     const hasActiveCertificate = useMemo(() => {
         return teacher.certificates?.some((c: any) => c.isActive);
@@ -119,32 +117,32 @@ export const TeacherMoreSchedule: React.FC<TeacherMoreScheduleProps> = ({ teache
                     />
                 </div>
 
-                <div className="flex flex-wrap gap-1.5">
-                    {Object.values(WeekDays).map((day) => {
+                <div className="grid grid-cols-4 gap-2">
+                    {rollingDays.map((slot, idx) => {
+                        const day = slot.weekday as any;
                         const count = dayCounts[day] || 0;
-                        const dateStr = getCurrentWeekDate(day);
                         const isActiveDay = count > 0;
+                        const isSelected = dayFilter === day;
 
                         return (
                             <button
-                                key={day}
+                                key={`${slot.weekday}-${slot.dateStr}-${idx}`}
                                 onClick={() => {
-                                    if (isActiveDay) {
-                                        setDayFilter(day === dayFilter ? '' : day);
-                                        setPage(1);
-                                    }
+                                    if (!isActiveDay) return;
+                                    setDayFilter(isSelected ? '' : String(day));
+                                    setPage(1);
                                 }}
                                 disabled={!isActiveDay}
-                                className={`px-2 py-1.5 rounded-lg text-xs font-bold border transition-all flex flex-col items-center min-w-[3.5rem]
-                                    ${dayFilter === day
+                                className={`px-2 py-2 rounded-xl text-xs font-bold border transition-all flex flex-col items-center justify-center min-h-[3.25rem]
+                                    ${isSelected
                                         ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
                                         : isActiveDay
                                             ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:border-emerald-300'
                                             : 'bg-gray-50 text-gray-400 border-gray-200 opacity-60 cursor-not-allowed'
                                     }`}
                             >
-                                <span>{day.slice(0, 3)}</span>
-                                <span className="text-[10px] font-normal opacity-80">{dateStr}</span>
+                                <span>{String(day).slice(0, 3)}</span>
+                                <span className="text-[10px] font-normal opacity-80">{slot.dateStr}</span>
                                 {isActiveDay && (
                                     <span className="mt-0.5 px-1.5 py-0.5 bg-white/20 rounded-full text-[10px] leading-none">
                                         {count}
