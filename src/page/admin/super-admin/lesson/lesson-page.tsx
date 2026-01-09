@@ -1,7 +1,8 @@
 import { Alert, Card, InputNumber, Select, Table, Typography, message } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useEffect, useMemo, useState } from 'react';
-import { CheckCircle2, Hash, Plus, Search, User, UserRound, X } from 'lucide-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Ban, CheckCircle2, Hash, Plus, Search, Trash2, Unlock, User, UserRound, X } from 'lucide-react';
 import { Pagination } from '../admin/components/pagantion';
 import { useLessonTemplates } from './service/useLessonTemplates';
 import { StudentMoreModal } from '../student/components/student-more-modal';
@@ -12,8 +13,12 @@ import type { Teacher } from '../teacher/service/useGetTeachers';
 import { useGetStudentById } from '../student/service/useGetStudentById';
 import { useGetTeacherById } from '../teacher/service/useGetTeacherById';
 import { PageLoader } from '../../../../components/page-loader';
+import { request } from '../../../../config/request';
+import { ConfirmModal } from '../../../../components/confirm-modal';
+import { useLocation } from 'react-router-dom';
 
 export const LessonPage: React.FC = () => {
+    const location = useLocation();
     const [page, setPage] = useState<number>(1);
     const [limit, setLimit] = useState<number>(10);
 
@@ -138,6 +143,67 @@ export const LessonPage: React.FC = () => {
     const totalCount = query.data?.meta?.totalItems || dataSource.length;
     const totalPages = query.data?.meta?.totalPages || 0;
 
+    const qc = useQueryClient();
+    const isSuperAdminRoute = location.pathname.startsWith('/super-admin');
+
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [confirmVariant, setConfirmVariant] = useState<'block' | 'unblock' | 'delete' | 'restore' | 'hard_delete'>('delete');
+    const [confirmTitle, setConfirmTitle] = useState('');
+    const [confirmMessage, setConfirmMessage] = useState('');
+    const [confirmNote, setConfirmNote] = useState<string | undefined>(undefined);
+    const [confirmRow, setConfirmRow] = useState<any | null>(null);
+    const [confirmAction, setConfirmAction] = useState<null | 'toggle_active' | 'soft_delete' | 'hard_delete'>(null);
+    const [confirmActionValue, setConfirmActionValue] = useState<boolean | null>(null);
+
+    const toggleActiveMutation = useMutation({
+        mutationFn: async ({ id, active }: { id: number; active: boolean }) => {
+            const res = await request.patch(`/lesson-template/is-active/${id}`, undefined, {
+                params: { active },
+            });
+            return res.data;
+        },
+        onSuccess: (data: any) => {
+            message.success(data?.message || 'Lesson status updated');
+            qc.invalidateQueries({ queryKey: ['lesson-template'] });
+        },
+        onError: (error: any) => {
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to update lesson status';
+            message.error(errorMessage);
+        },
+    });
+
+    const softDeleteMutation = useMutation({
+        mutationFn: async ({ id }: { id: number }) => {
+            const res = await request.delete(`/lesson-template/soft-delete/${id}`);
+            return res.data;
+        },
+        onSuccess: (data: any) => {
+            message.success(data?.message || 'Lesson updated');
+            qc.invalidateQueries({ queryKey: ['lesson-template'] });
+        },
+        onError: (error: any) => {
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to soft delete lesson';
+            message.error(errorMessage);
+        },
+    });
+
+    const hardDeleteMutation = useMutation({
+        mutationFn: async ({ id }: { id: number }) => {
+            const res = await request.delete(`/lesson-template/delete/${id}`);
+            return res.data;
+        },
+        onSuccess: (data: any) => {
+            message.success(data?.message || 'Lesson deleted');
+            qc.invalidateQueries({ queryKey: ['lesson-template'] });
+        },
+        onError: (error: any) => {
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to delete lesson';
+            message.error(errorMessage);
+        },
+    });
+
+    const confirmLoading = toggleActiveMutation.isPending || softDeleteMutation.isPending || hardDeleteMutation.isPending;
+
     const handleLimitChange = (newLimit: string | number) => {
         setLimit(Number(newLimit));
         setPage(1);
@@ -178,9 +244,9 @@ export const LessonPage: React.FC = () => {
         if (!v) return '-';
         const d = new Date(v);
         if (Number.isNaN(d.getTime())) return String(v);
-        const day = d.toLocaleDateString('uz-UZ', { weekday: 'short' });
-        const date = d.toLocaleDateString('uz-UZ', { year: 'numeric', month: '2-digit', day: '2-digit' });
-        const time = d.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
+        const day = d.toLocaleDateString('en-GB', { weekday: 'short' });
+        const date = d.toLocaleDateString('en-GB', { year: 'numeric', month: '2-digit', day: '2-digit' });
+        const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
         return (
             <div className="leading-tight">
                 <div className="text-xs font-semibold text-gray-800">{day} {date}</div>
@@ -205,8 +271,8 @@ export const LessonPage: React.FC = () => {
                 key: 'active',
                 width: 95,
                 render: (v) => (
-                    <span className={`inline-block px-3 py-1.5 rounded text-sm font-medium text-white min-w-22 text-center ${v ? 'bg-red-600' : 'bg-green-600'}`}>
-                        {v ? 'BLOCKED' : 'ACTIVE'}
+                    <span className={`inline-block px-3 py-1.5 rounded text-sm font-medium text-white min-w-22 text-center ${v ? 'bg-green-600' : 'bg-red-600'}`}>
+                        {v ? 'ACTIVE' : 'BLOCKED'}
                     </span>
                 ),
             },
@@ -217,8 +283,97 @@ export const LessonPage: React.FC = () => {
             { title: 'End time', dataIndex: 'endTime', key: 'endTime', width: 170, responsive: ['md'], render: (v) => formatStartEnd(v) },
             { title: <span className="inline-flex items-center gap-1"><User size={14} />TeacherId</span>, dataIndex: 'teacherId', key: 'teacherId', width: 95, responsive: ['lg'] },
             { title: <span className="inline-flex items-center gap-1"><UserRound size={14} />StudentId</span>, dataIndex: 'studentId', key: 'studentId', width: 95, responsive: ['lg'] },
+            {
+                title: 'Action',
+                key: 'action',
+                width: 260,
+                fixed: 'right',
+                render: (_: any, record: any) => {
+                    const id = Number(record?.id);
+                    const isActive = Boolean(record?.active ?? record?.isActive);
+                    const isDeleted = Boolean(record?.isDeleted || record?.deleted || record?.deletedAt);
+
+                    const openConfirm = (opts: {
+                        variant: 'block' | 'unblock' | 'delete' | 'restore' | 'hard_delete';
+                        title: string;
+                        message: string;
+                        note?: string;
+                        action: 'toggle_active' | 'soft_delete' | 'hard_delete';
+                        actionValue?: boolean;
+                    }) => {
+                        setConfirmVariant(opts.variant);
+                        setConfirmTitle(opts.title);
+                        setConfirmMessage(opts.message);
+                        setConfirmNote(opts.note);
+                        setConfirmRow(record);
+                        setConfirmAction(opts.action);
+                        setConfirmActionValue(typeof opts.actionValue === 'boolean' ? opts.actionValue : null);
+                        setConfirmOpen(true);
+                    };
+
+                    return (
+                        <div className="flex justify-end items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (!Number.isFinite(id) || id <= 0) return;
+                                    openConfirm({
+                                        variant: isActive ? 'block' : 'unblock',
+                                        title: isActive ? 'Block lesson' : 'Unblock lesson',
+                                        message: isActive ? 'Do you want to block this lesson?' : 'Do you want to unblock this lesson?',
+                                        action: 'toggle_active',
+                                        actionValue: !isActive,
+                                    });
+                                }}
+                                className={`px-3 py-1.5 rounded text-sm font-medium transition-colors flex items-center gap-2 ${isActive ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-green-600 text-white hover:bg-green-700'}`}
+                            >
+                                {isActive ? <Ban size={12} /> : <Unlock size={12} />}
+                                {isActive ? 'Block' : 'Unblock'}
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (!Number.isFinite(id) || id <= 0) return;
+                                    openConfirm({
+                                        variant: isDeleted ? 'restore' : 'delete',
+                                        title: isDeleted ? 'Restore lesson' : 'Soft delete lesson',
+                                        message: isDeleted ? 'Do you want to restore this lesson?' : 'Do you want to soft delete this lesson?',
+                                        note: 'This action can be reversed.',
+                                        action: 'soft_delete',
+                                    });
+                                }}
+                                className={`px-3 py-1.5 rounded text-sm font-medium transition-colors flex items-center gap-2 ${isDeleted ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-amber-500 text-white hover:bg-amber-600'}`}
+                            >
+                                {isDeleted ? <Unlock size={12} /> : <Trash2 size={12} />}
+                                {isDeleted ? 'Restore' : 'Delete'}
+                            </button>
+
+                            {isSuperAdminRoute && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        if (!Number.isFinite(id) || id <= 0) return;
+                                        openConfirm({
+                                            variant: 'hard_delete',
+                                            title: 'Delete lesson',
+                                            message: 'Do you want to permanently delete this lesson?',
+                                            note: 'This action cannot be undone.',
+                                            action: 'hard_delete',
+                                        });
+                                    }}
+                                    className="px-3 py-1.5 bg-red-800 text-white rounded text-sm font-medium hover:bg-red-900 transition-colors flex items-center gap-2"
+                                >
+                                    <Trash2 size={12} />
+                                    Delete
+                                </button>
+                            )}
+                        </div>
+                    );
+                },
+            },
         ],
-        [limit, page]
+        [isSuperAdminRoute, limit, page]
     );
 
     if (query.isPending) {
@@ -234,7 +389,7 @@ export const LessonPage: React.FC = () => {
             <Alert
                 type="error"
                 showIcon
-                message="Lesson-template yuklashda xatolik"
+                message="Failed to load lessons"
                 description={(query.error as Error)?.message}
             />
         );
@@ -444,7 +599,7 @@ export const LessonPage: React.FC = () => {
                             };
                         }}
                         pagination={false}
-                        scroll={{ x: 900 }}
+                        scroll={{ x: 1200 }}
                         locale={{ emptyText: 'No lessons found' }}
                     />
                 </Card>
@@ -572,6 +727,50 @@ export const LessonPage: React.FC = () => {
                     student={selectedStudent}
                     onClose={() => setStudentModalOpen(false)}
                     onRefetch={() => studentByIdQuery.refetch()}
+                />
+
+                <ConfirmModal
+                    open={confirmOpen}
+                    variant={confirmVariant}
+                    title={confirmTitle}
+                    message={confirmMessage}
+                    note={confirmNote}
+                    loading={confirmLoading}
+                    onCancel={() => {
+                        if (confirmLoading) return;
+                        setConfirmOpen(false);
+                        setConfirmRow(null);
+                        setConfirmAction(null);
+                        setConfirmActionValue(null);
+                        setConfirmNote(undefined);
+                    }}
+                    onConfirm={async () => {
+                        if (confirmLoading) return;
+                        const id = Number(confirmRow?.id);
+                        if (!Number.isFinite(id) || id <= 0 || !confirmAction) {
+                            setConfirmOpen(false);
+                            return;
+                        }
+                        try {
+                            if (confirmAction === 'toggle_active') {
+                                await toggleActiveMutation.mutateAsync({ id, active: Boolean(confirmActionValue) });
+                            }
+                            if (confirmAction === 'soft_delete') {
+                                await softDeleteMutation.mutateAsync({ id });
+                            }
+                            if (confirmAction === 'hard_delete') {
+                                await hardDeleteMutation.mutateAsync({ id });
+                            }
+                            await query.refetch();
+                            setConfirmOpen(false);
+                            setConfirmRow(null);
+                            setConfirmAction(null);
+                            setConfirmActionValue(null);
+                            setConfirmNote(undefined);
+                        } catch {
+                            // handled in mutations
+                        }
+                    }}
                 />
             </div>
         </div>

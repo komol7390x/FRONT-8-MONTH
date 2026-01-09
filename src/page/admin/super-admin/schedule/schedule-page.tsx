@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { CalendarClock, Loader2, Plus, Search, User } from 'lucide-react';
+import { Ban, CalendarClock, Loader2, Plus, Search, Trash2, Unlock, User } from 'lucide-react';
 import { Table, Tag, Avatar, message } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { useMutation } from '@tanstack/react-query';
@@ -281,7 +281,7 @@ export const SchedulePage: React.FC = () => {
                     <div className="flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
                         <button
                             type="button"
-                            className={`h-9 px-3 rounded-lg text-xs font-semibold border ${isActive ? 'bg-white text-red-700 border-red-200 hover:bg-red-50' : 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50'}`}
+                            className={`px-3 py-1.5 rounded text-sm font-medium transition-colors flex items-center gap-2 ${isActive ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-green-600 text-white hover:bg-green-700'}`}
                             onClick={() => {
                                 if (!Number.isFinite(id) || id <= 0) return;
                                 openConfirm({
@@ -293,12 +293,13 @@ export const SchedulePage: React.FC = () => {
                                 });
                             }}
                         >
+                            {isActive ? <Ban size={12} /> : <Unlock size={12} />}
                             {isActive ? 'Block' : 'Unblock'}
                         </button>
 
                         <button
                             type="button"
-                            className={`h-9 px-3 rounded-lg text-xs font-semibold border ${isSoftDeleted ? 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50' : 'bg-white text-amber-700 border-amber-200 hover:bg-amber-50'}`}
+                            className={`px-3 py-1.5 rounded text-sm font-medium transition-colors flex items-center gap-2 ${isSoftDeleted ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-amber-500 text-white hover:bg-amber-600'}`}
                             onClick={() => {
                                 if (!Number.isFinite(id) || id <= 0) return;
                                 openConfirm({
@@ -311,12 +312,13 @@ export const SchedulePage: React.FC = () => {
                                 });
                             }}
                         >
+                            {isSoftDeleted ? <Unlock size={12} /> : <Trash2 size={12} />}
                             {isSoftDeleted ? 'Restore' : 'Soft delete'}
                         </button>
 
                         <button
                             type="button"
-                            className="h-9 px-3 rounded-lg text-xs font-semibold border bg-white text-red-800 border-red-300 hover:bg-red-50"
+                            className="px-3 py-1.5 bg-red-800 text-white rounded text-sm font-medium hover:bg-red-900 transition-colors flex items-center gap-2"
                             onClick={() => {
                                 if (!Number.isFinite(id) || id <= 0) return;
                                 openConfirm({
@@ -328,6 +330,7 @@ export const SchedulePage: React.FC = () => {
                                 });
                             }}
                         >
+                            <Trash2 size={12} />
                             Delete
                         </button>
                     </div>

@@ -1,16 +1,52 @@
 import React, { useState, useMemo } from 'react';
 import { Card, Tag, Select } from 'antd';
 import { CalendarDays, Clock, DollarSign, Link2 } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import { useStudentLessons } from '../service/useStudentLessons';
 import { PageLoader } from '../../../components/page-loader';
 import { WeekDays } from '../../../config/weekdays';
 
 export const StudentLessonsContent: React.FC = () => {
+    const [searchParams] = useSearchParams();
+
+    const tokenFromUrl = searchParams.get('token') || '';
+
+    const decodeJwtPayload = (token: string): any | null => {
+        try {
+            const parts = token.split('.');
+            if (parts.length < 2) return null;
+            const b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+            const pad = b64.length % 4 === 0 ? '' : '='.repeat(4 - (b64.length % 4));
+            const json = decodeURIComponent(
+                Array.prototype.map
+                    .call(atob(b64 + pad), (c: string) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+                    .join('')
+            );
+            return JSON.parse(json);
+        } catch {
+            return null;
+        }
+    };
+
+    const studentId = useMemo(() => {
+        let t = tokenFromUrl;
+        if (!t) {
+            try {
+                t = localStorage.getItem('telegram_token') || '';
+            } catch {
+                t = '';
+            }
+        }
+        const payload = t ? decodeJwtPayload(t) : null;
+        const id = Number(payload?.id ?? payload?.studentId ?? payload?.userId);
+        return Number.isFinite(id) && id > 0 ? id : 0;
+    }, [tokenFromUrl]);
+
     const [dayFilter, setDayFilter] = useState<string>('');
     const [page, setPage] = useState<number>(1);
     const [statusFilter, setStatusFilter] = useState<string>('booked');
 
-    const { data: lessonsData, isPending } = useStudentLessons({
+    const { data: lessonsData, isPending } = useStudentLessons(studentId || undefined, {
         status: statusFilter,
         weekday: dayFilter || undefined,
         search: '',
@@ -23,7 +59,7 @@ export const StudentLessonsContent: React.FC = () => {
         const now = new Date();
         const currentDayIndex = now.getDay();
         const targetDayIndex = days.indexOf(dayName);
-        
+
         if (targetDayIndex === -1) return '';
 
         const diff = targetDayIndex - currentDayIndex;
@@ -36,7 +72,7 @@ export const StudentLessonsContent: React.FC = () => {
     const formatTime = (ms: number | null): string => {
         if (!ms) return '-';
         const d = new Date(ms);
-        return d.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
+        return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
     };
 
     const toMs = (value: unknown): number | null => {
@@ -132,7 +168,7 @@ export const StudentLessonsContent: React.FC = () => {
                     const finishMs = toMs(lesson.finishTime || lesson.endTime);
                     const status = String(lesson.status || '').toLowerCase();
                     const statusColor = status === 'booked' ? 'blue' : status === 'completed' ? 'green' : status === 'cancelled' ? 'red' : 'default';
-                    
+
                     return (
                         <Card key={lesson.id} className="rounded-2xl shadow-sm border-gray-200 overflow-hidden" bodyStyle={{ padding: '16px' }}>
                             <div className="flex justify-between items-start mb-2">
@@ -145,13 +181,13 @@ export const StudentLessonsContent: React.FC = () => {
                                 </div>
                                 <Tag color={statusColor as any}>{lesson.status || 'Unknown'}</Tag>
                             </div>
-                            
+
                             <div className="flex items-center justify-between mt-4">
                                 <div className="flex items-center gap-1 text-amber-600 font-bold">
                                     <DollarSign size={16} />
                                     <span>{Number(lesson.lessonPrice || 0).toLocaleString()} UZS</span>
                                 </div>
-                                
+
                                 {lesson.meetLink && (
                                     <a
                                         href={lesson.meetLink}
