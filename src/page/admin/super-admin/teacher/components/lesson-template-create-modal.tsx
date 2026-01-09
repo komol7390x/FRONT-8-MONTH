@@ -12,11 +12,13 @@ interface LessonTemplateCreateModalProps {
     certificates?: any[];
     showTeacherIdInput?: boolean;
     onTeacherIdChange?: (id: number) => void;
+    showStudentIdInput?: boolean;
+    onStudentIdChange?: (id: number) => void;
     onClose: () => void;
     onCreated: () => void;
 }
 
-export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps> = ({ open, teacherId, studentId, existingLessons = [], certificates = [], showTeacherIdInput = false, onTeacherIdChange, onClose, onCreated }) => {
+export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps> = ({ open, teacherId, studentId, existingLessons = [], certificates = [], showTeacherIdInput = false, onTeacherIdChange, showStudentIdInput = false, onStudentIdChange, onClose, onCreated }) => {
     const { mutateAsync: createLesson } = useCreateLessonTemplate() as any;
 
     const [selectedOffsets, setSelectedOffsets] = useState<number[]>([0, 1, 2, 3, 4]);
@@ -217,6 +219,23 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
                                 }}
                                 className="w-full h-11 px-4 border border-gray-300 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 text-sm"
                                 placeholder="Enter teacher id"
+                                min={1}
+                            />
+                        </div>
+                    )}
+
+                    {showStudentIdInput && (
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Student ID</label>
+                            <input
+                                type="number"
+                                value={studentId || ''}
+                                onChange={(e) => {
+                                    const n = Number(e.target.value);
+                                    onStudentIdChange?.(Number.isFinite(n) && n > 0 ? n : 0);
+                                }}
+                                className="w-full h-11 px-4 border border-gray-300 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 text-sm"
+                                placeholder="Enter student id"
                                 min={1}
                             />
                         </div>

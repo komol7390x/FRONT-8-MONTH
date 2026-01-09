@@ -39,7 +39,23 @@ export const useLessonTemplates = (params: LessonTemplateParams = {}) => {
                     limit: params.limit,
                 },
             });
-            return res.data;
+
+            const raw: any = res.data;
+            const nested = raw?.data?.data ? raw.data : undefined;
+            const dataArray = Array.isArray(raw)
+                ? raw
+                : Array.isArray(raw?.data)
+                    ? raw.data
+                    : Array.isArray(nested?.data)
+                        ? nested.data
+                        : [];
+
+            const meta = raw?.meta || raw?.data?.meta || nested?.meta;
+
+            return {
+                data: dataArray,
+                meta,
+            };
         },
         staleTime: 0,
         refetchOnWindowFocus: false,

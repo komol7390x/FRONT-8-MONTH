@@ -21,12 +21,11 @@ export const TeacherSchedulePage: React.FC = () => {
 
     // Fetch stats to calculate counts
     const statsQuery = useTeacherLessons({ page: 1, limit: 1000 });
-    
+
     // Fetch filtered data
-    const lessonsQuery = useTeacherLessons({ 
-        page, 
+    const lessonsQuery = useTeacherLessons({
+        page,
         limit,
-        weekday: dayFilter || undefined,
         day: dayFilter || undefined,
         active: true
     });
@@ -57,7 +56,7 @@ export const TeacherSchedulePage: React.FC = () => {
         const now = new Date();
         const currentDayIndex = now.getDay(); // 0-6
         const targetDayIndex = days.indexOf(dayName);
-        
+
         if (targetDayIndex === -1) return '';
 
         const diff = targetDayIndex - currentDayIndex;
@@ -71,7 +70,7 @@ export const TeacherSchedulePage: React.FC = () => {
         const counts: Record<string, number> = {};
         if (statsQuery.data?.data) {
             statsQuery.data.data.forEach((item: any) => {
-                const d = item.weekDays || item.day || item.weekday; // Handle various potential property names
+                const d = item.weekDays || item.day || item.weekday;
                 if (d) counts[d] = (counts[d] || 0) + 1;
             });
         }
@@ -219,7 +218,7 @@ export const TeacherSchedulePage: React.FC = () => {
                         </Card>
                     ))
                 )}
-                
+
                 {lessonsQuery.data?.meta?.totalPages && lessonsQuery.data.meta.totalPages > 1 && (() => {
                     const totalPages = lessonsQuery.data.meta.totalPages;
                     return (

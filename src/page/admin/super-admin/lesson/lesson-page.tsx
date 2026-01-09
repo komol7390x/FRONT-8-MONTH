@@ -41,6 +41,7 @@ export const LessonPage: React.FC = () => {
     const [isCreateOpen, setIsCreateOpen] = useState<boolean>(false);
     const [createForm, setCreateForm] = useState({
         teacherId: 0,
+        studentId: 0,
         lessonName: '',
         lessonPrice: 0,
         startTime: '',
@@ -198,7 +199,7 @@ export const LessonPage: React.FC = () => {
                     <button
                         type="button"
                         onClick={() => {
-                            setCreateForm({ teacherId: 0, lessonName: '', lessonPrice: 0, startTime: '', finishTime: '' });
+                            setCreateForm({ teacherId: 0, studentId: 0, lessonName: '', lessonPrice: 0, startTime: '', finishTime: '' });
                             setIsCreateOpen(true);
                         }}
                         className="h-11 px-5 bg-linear-to-r from-emerald-600 to-green-600 text-white rounded-xl text-sm font-semibold hover:from-emerald-700 hover:to-green-700 transition-colors shadow-sm flex items-center justify-center gap-2"
@@ -453,17 +454,26 @@ export const LessonPage: React.FC = () => {
                 <LessonTemplateCreateModal
                     open={isCreateOpen}
                     teacherId={Number(createForm.teacherId) || 0}
+                    studentId={Number(createForm.studentId) || 0}
                     certificates={createTeacherCertificates}
                     existingLessons={(createTeacherByIdQuery.data as any)?.lessons || []}
                     showTeacherIdInput={true}
+                    showStudentIdInput={true}
                     onTeacherIdChange={(id: number) => {
                         setCreateForm((p) => ({
                             ...p,
                             teacherId: id,
+                            studentId: p.studentId,
                             lessonName: '',
                             lessonPrice: 0,
                             startTime: '',
                             finishTime: '',
+                        }));
+                    }}
+                    onStudentIdChange={(id: number) => {
+                        setCreateForm((p) => ({
+                            ...p,
+                            studentId: id,
                         }));
                     }}
                     onClose={() => setIsCreateOpen(false)}

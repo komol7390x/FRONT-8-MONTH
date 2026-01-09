@@ -4,9 +4,12 @@ import { request } from '../../../../config/request';
 export interface TeacherLessonTemplate {
     id: number;
     lessonName?: string;
+    price?: number | string;
     lessonPrice?: number;
+    weekDays?: string;
     weekday?: string;
     startTime?: number | string;
+    endTime?: number | string;
     finishTime?: number | string;
     status?: string;
     isPaid?: boolean;
@@ -38,15 +41,13 @@ export const useTeacherLessons = (params: TeacherLessonsParams = {}) => {
     return useQuery<TeacherLessonsResponse>({
         queryKey: ['teacher-lessons', params],
         queryFn: async () => {
-            const res = await request.get<TeacherLessonsResponse>('/lesson-template/teacher', {
+            const res = await request.get<TeacherLessonsResponse>('/schedule/teacher', {
                 params: {
-                    status: params.status,
-                    weekday: params.weekday || params.day,
-                    isPaid: typeof params.isPaid === 'boolean' ? String(params.isPaid) : undefined,
                     active: typeof params.active === 'boolean' ? String(params.active) : undefined,
                     search: params.search,
                     page: params.page,
                     limit: params.limit,
+                    day: params.day || params.weekday,
                 },
             });
 

@@ -21,6 +21,7 @@ export const useCreateLessonTemplate = () => {
                 lessonName: payload.lessonName,
                 lessonPrice: payload.lessonPrice,
                 teacherId: payload.teacherId,
+                studentId: payload.studentId,
             });
             return res.data;
         },
