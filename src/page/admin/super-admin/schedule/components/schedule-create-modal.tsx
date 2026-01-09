@@ -76,8 +76,8 @@ export const ScheduleCreateModal: React.FC<ScheduleCreateModalProps> = ({
 
         return Array.from({ length: 7 }).map((_, i) => {
             const d = new Date(base);
-            // ertangi kundan boshlanadi
-            d.setDate(d.getDate() + (i + 1));
+            // bugungi kundan boshlanadi
+            d.setDate(d.getDate() + i);
             const dd = String(d.getDate()).padStart(2, '0');
             const label = days[d.getDay()];
             const dateLabel = `${dd}-${months[d.getMonth()]}`;
@@ -194,6 +194,11 @@ export const ScheduleCreateModal: React.FC<ScheduleCreateModalProps> = ({
         }
         if (selectedOffsets.length === 0) {
             message.warning('Select days');
+            return;
+        }
+
+        if (schedulesForSelectedDate.length > 0) {
+            message.error('Bu kunga schedule allaqachon qo\'shilgan');
             return;
         }
 

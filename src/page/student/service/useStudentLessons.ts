@@ -34,11 +34,12 @@ export interface StudentLessonsResponse {
     };
 }
 
-export const useStudentLessons = (params: StudentLessonsParams = {}) => {
+export const useStudentLessons = (studentId: number | undefined, params: StudentLessonsParams = {}) => {
     return useQuery<StudentLessonsResponse>({
-        queryKey: ['student-lessons', params],
+        queryKey: ['student-lessons', studentId, params],
+        enabled: typeof studentId === 'number' && studentId > 0,
         queryFn: async () => {
-            const res = await request.get<StudentLessonsResponse>('/lesson-template/student', {
+            const res = await request.get<StudentLessonsResponse>(`/lesson-template/student/${studentId}`, {
                 params: {
                     status: params.status,
                     weekday: params.weekday,

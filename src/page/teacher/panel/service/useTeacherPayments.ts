@@ -30,7 +30,7 @@ export const useTeacherPayments = (params: TeacherPaymentsParams = {}) => {
     return useQuery<TeacherPaymentsResponse>({
         queryKey: ['teacher-payments', params],
         queryFn: async () => {
-            const res = await request.get<TeacherPaymentsResponse>('/payment/user', {
+            const res = await request.get<TeacherPaymentsResponse>('/payment', {
                 params: {
                     status: params.status,
                     search: params.search,

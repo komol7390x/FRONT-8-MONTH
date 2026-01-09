@@ -58,7 +58,7 @@ export const SchedulePage: React.FC = () => {
         page,
         limit,
         active: activeFilter === '' ? undefined : activeFilter === 'true',
-        weekday: dayFilter || undefined,
+        day: dayFilter || undefined,
         search: search || undefined,
     });
 

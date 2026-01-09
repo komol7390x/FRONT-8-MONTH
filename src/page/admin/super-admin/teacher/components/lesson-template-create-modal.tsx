@@ -65,6 +65,12 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
         return Number.isNaN(d.getTime()) ? null : d.getTime();
     };
 
+    const keyOfDay = (d: Date): number => {
+        const x = new Date(d);
+        x.setHours(0, 0, 0, 0);
+        return x.getTime();
+    };
+
     const dateSlots = useMemo(() => {
         const months = ['YAN', 'FEV', 'MAR', 'APR', 'MAY', 'IYN', 'IYL', 'AVG', 'SEN', 'OKT', 'NOY', 'DEK'];
         const days = ['Yak', 'Dush', 'Sesh', 'Chor', 'Pay', 'Jum', 'Shan'];
@@ -72,7 +78,7 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
         const base = new Date();
         base.setHours(0, 0, 0, 0);
 
-        return Array.from({ length: 12 }).map((_, i) => {
+        return Array.from({ length: 7 }).map((_, i) => {
             const d = new Date(base);
             d.setDate(d.getDate() + i);
             const dd = String(d.getDate()).padStart(2, '0');
@@ -82,15 +88,36 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
         });
     }, []);
 
+    const lessonCountByDayKey = useMemo(() => {
+        const map = new Map<number, number>();
+        for (const row of existingLessons || []) {
+            const stRaw = String((row as any)?.status ?? '').toLowerCase();
+            if (stRaw && stRaw !== 'available') continue;
+            const st = toMs((row as any)?.startTime ?? (row as any)?.start ?? (row as any)?.date);
+            if (!st) continue;
+            const k = keyOfDay(new Date(st));
+            map.set(k, (map.get(k) ?? 0) + 1);
+        }
+        return map;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [existingLessons]);
+
     const disabledOffsets = useMemo(() => {
-        return new Set<number>();
-    }, [dateSlots, existingLessons]);
+        const disabled = new Set<number>();
+        for (const slot of dateSlots) {
+            const count = lessonCountByDayKey.get(keyOfDay(slot.date)) ?? 0;
+            if (count <= 0) disabled.add(slot.offset);
+        }
+        return disabled;
+    }, [dateSlots, lessonCountByDayKey]);
 
     useEffect(() => {
         if (!open) return;
-        const initial = 1;
+
+        const firstAvailable = dateSlots.find((s) => (lessonCountByDayKey.get(keyOfDay(s.date)) ?? 0) > 0)?.offset;
+        const initial = firstAvailable ?? 0;
         const defaults = [initial].filter((x) => !disabledOffsets.has(x));
-        setSelectedOffsets(defaults.length ? defaults : [0]);
+        setSelectedOffsets(defaults.length ? defaults : []);
         setForm({
             startTime: '',
             finishTime: '',
@@ -98,7 +125,7 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
             lessonPrice: lessonNameOptions[0] ? getHourPriceByName(lessonNameOptions[0]) : 0,
         });
         setIsSubmitting(false);
-    }, [disabledOffsets, lessonNameOptions, open]);
+    }, [dateSlots, disabledOffsets, lessonCountByDayKey, lessonNameOptions, open]);
 
     useEffect(() => {
         if (!open) return;
@@ -128,9 +155,19 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
         return !!studentById;
     }, [isStudentError, isStudentFetching, showStudentIdInput, studentById, studentId]);
 
-    const canSubmit = useMemo(() => {
-        return isTeacherValid && isStudentValid && !!teacherId && hasLessonName && !!form.startTime && !!form.finishTime && selectedOffsets.length > 0;
-    }, [form.finishTime, form.startTime, hasLessonName, isStudentValid, isTeacherValid, selectedOffsets.length, teacherId]);
+    const canEnterStudentId = useMemo(() => {
+        if (!showTeacherIdInput) return true;
+        return isTeacherValid;
+    }, [isTeacherValid, showTeacherIdInput]);
+
+    const canSelectLessonName = useMemo(() => {
+        if (!showStudentIdInput) return canEnterStudentId;
+        return canEnterStudentId && isStudentValid;
+    }, [canEnterStudentId, isStudentValid, showStudentIdInput]);
+
+    const canSelectDay = useMemo(() => {
+        return canSelectLessonName && hasLessonName;
+    }, [canSelectLessonName, hasLessonName]);
 
     const handleToggleOffset = (offset: number) => {
         if (disabledOffsets.has(offset)) return;
@@ -142,6 +179,19 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
         const slot = dateSlots.find((s) => s.offset === offset);
         return slot?.date ?? null;
     }, [dateSlots, selectedOffsets]);
+
+    const selectedDayCount = useMemo(() => {
+        if (!selectedDate) return 0;
+        return lessonCountByDayKey.get(keyOfDay(selectedDate)) ?? 0;
+    }, [lessonCountByDayKey, selectedDate]);
+
+    const canEnterTime = useMemo(() => {
+        return canSelectDay && selectedOffsets.length > 0 && selectedDayCount > 0;
+    }, [canSelectDay, selectedDayCount, selectedOffsets.length]);
+
+    const canSubmit = useMemo(() => {
+        return isTeacherValid && isStudentValid && !!teacherId && hasLessonName && !!form.startTime && !!form.finishTime && selectedOffsets.length > 0 && selectedDayCount > 0;
+    }, [form.finishTime, form.startTime, hasLessonName, isStudentValid, isTeacherValid, selectedDayCount, selectedOffsets.length, teacherId]);
 
     const lessonsForSelectedDate = useMemo(() => {
         if (!selectedDate) return [];
@@ -279,7 +329,8 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
                                     const n = Number(e.target.value);
                                     onStudentIdChange?.(Number.isFinite(n) && n > 0 ? n : 0);
                                 }}
-                                className="w-full h-11 px-4 border border-gray-300 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 text-sm"
+                                disabled={!canEnterStudentId}
+                                className="w-full h-11 px-4 border border-gray-300 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 text-sm disabled:opacity-60"
                                 placeholder="Enter student id"
                                 min={1}
                             />
@@ -291,7 +342,7 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
                         </div>
                     )}
 
-                    <div>
+                    <div className={canSelectLessonName ? '' : 'opacity-50 pointer-events-none'}>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Lesson Name</label>
                         <div className="relative">
                             <BookOpen size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-700" />
@@ -316,7 +367,7 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
                         </div>
                     </div>
 
-                    <div className={`grid grid-cols-1 gap-3 ${hasLessonName ? '' : 'opacity-50 pointer-events-none'}`}>
+                    <div className={`grid grid-cols-1 gap-3 ${canEnterTime ? '' : 'opacity-50 pointer-events-none'}`}>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
                             <input
@@ -338,28 +389,71 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
                         </div>
                     </div>
 
-                    <div className={hasLessonName ? '' : 'opacity-50 pointer-events-none'}>
+                    <div className={canSelectDay ? '' : 'opacity-50 pointer-events-none'}>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Days</label>
-                        <div className="grid grid-cols-4 gap-2">
-                            {dateSlots.map((d) => {
-                                const active = selectedOffsets.includes(d.offset);
-                                const disabled = disabledOffsets.has(d.offset);
-                                return (
-                                    <button
-                                        key={d.offset}
-                                        type="button"
-                                        disabled={disabled}
-                                        onClick={() => handleToggleOffset(d.offset)}
-                                        className={`relative h-12 rounded-xl text-xs font-semibold border flex flex-col items-center justify-center leading-tight ${disabled ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed' : active ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}
-                                    >
-                                        {active && !disabled && (
-                                            <CheckCircle2 size={14} className="absolute -top-1 -right-1 text-emerald-700 bg-white rounded-full" />
-                                        )}
-                                        <span>{d.label}</span>
-                                        <span className={disabled ? 'text-gray-400' : active ? 'text-white/90' : 'text-gray-500'}>{d.dateLabel}</span>
-                                    </button>
-                                );
-                            })}
+                        <div className="space-y-2">
+                            <div className="grid grid-cols-4 gap-2">
+                                {dateSlots.slice(0, 4).map((d) => {
+                                    const active = selectedOffsets.includes(d.offset);
+                                    const disabled = disabledOffsets.has(d.offset);
+                                    const count = lessonCountByDayKey.get(keyOfDay(d.date)) ?? 0;
+                                    const isDayDisabled = disabled || count === 0;
+                                    return (
+                                        <button
+                                            key={d.offset}
+                                            type="button"
+                                            disabled={isDayDisabled}
+                                            onClick={() => handleToggleOffset(d.offset)}
+                                            className={`relative h-12 rounded-xl text-xs font-semibold border flex flex-col items-center justify-center leading-tight ${isDayDisabled ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed' : active ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}
+                                        >
+                                            {active && !disabled && (
+                                                <CheckCircle2 size={14} className="absolute -top-1 -right-1 text-emerald-700 bg-white rounded-full" />
+                                            )}
+                                            {count > 0 && (
+                                                <span className={`absolute -top-2 -left-2 min-w-6 h-6 px-1 rounded-full text-[11px] font-bold flex items-center justify-center border ${active
+                                                    ? 'bg-white text-emerald-700 border-emerald-200'
+                                                    : 'bg-gray-900 text-white border-gray-700'
+                                                    }`}>
+                                                    {count}
+                                                </span>
+                                            )}
+                                            <span>{d.label}</span>
+                                            <span className={isDayDisabled ? 'text-gray-400' : active ? 'text-white/90' : 'text-gray-500'}>{d.dateLabel}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <div className="grid grid-cols-3 gap-2">
+                                {dateSlots.slice(4, 7).map((d) => {
+                                    const active = selectedOffsets.includes(d.offset);
+                                    const disabled = disabledOffsets.has(d.offset);
+                                    const count = lessonCountByDayKey.get(keyOfDay(d.date)) ?? 0;
+                                    const isDayDisabled = disabled || count === 0;
+                                    return (
+                                        <button
+                                            key={d.offset}
+                                            type="button"
+                                            disabled={isDayDisabled}
+                                            onClick={() => handleToggleOffset(d.offset)}
+                                            className={`relative h-12 rounded-xl text-xs font-semibold border flex flex-col items-center justify-center leading-tight ${isDayDisabled ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed' : active ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}
+                                        >
+                                            {active && !disabled && (
+                                                <CheckCircle2 size={14} className="absolute -top-1 -right-1 text-emerald-700 bg-white rounded-full" />
+                                            )}
+                                            {count > 0 && (
+                                                <span className={`absolute -top-2 -left-2 min-w-6 h-6 px-1 rounded-full text-[11px] font-bold flex items-center justify-center border ${active
+                                                    ? 'bg-white text-emerald-700 border-emerald-200'
+                                                    : 'bg-gray-900 text-white border-gray-700'
+                                                    }`}>
+                                                    {count}
+                                                </span>
+                                            )}
+                                            <span>{d.label}</span>
+                                            <span className={isDayDisabled ? 'text-gray-400' : active ? 'text-white/90' : 'text-gray-500'}>{d.dateLabel}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         </div>
 
                         <div className="mt-3">
@@ -387,7 +481,7 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
                         </div>
                     </div>
 
-                    <div className={hasLessonName ? '' : 'opacity-50 pointer-events-none'}>
+                    <div className={canSelectDay ? '' : 'opacity-50 pointer-events-none'}>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Lesson Price</label>
                         <div className="relative">
                             <DollarSign size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-700" />
@@ -400,7 +494,7 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
                         </div>
                     </div>
 
-                    <div className={`flex gap-2 ${hasLessonName ? '' : 'opacity-50 pointer-events-none'}`}>
+                    <div className={`flex gap-2 ${canSelectDay ? '' : 'opacity-50 pointer-events-none'}`}>
                         <button
                             type="button"
                             onClick={onClose}

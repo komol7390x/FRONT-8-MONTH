@@ -30,7 +30,7 @@ export const TeacherMoreSchedule: React.FC<TeacherMoreScheduleProps> = ({ teache
         page,
         limit,
         active: activeFilter === '' ? undefined : activeFilter === 'true',
-        weekday: dayFilter || undefined,
+        day: dayFilter || undefined,
         search: search || undefined,
     });
 

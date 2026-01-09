@@ -4,20 +4,19 @@ import { CalendarDays } from 'lucide-react';
 import { useTeacherLessons, type TeacherLessonTemplate } from '../service/useTeacherLessons';
 import { PageLoader } from '../../../../components/page-loader';
 
-const WeekDays = {
-    Monday: 'Monday',
-    Tuesday: 'Tuesday',
-    Wednesday: 'Wednesday',
-    Thursday: 'Thursday',
-    Friday: 'Friday',
-    Saturday: 'Saturday',
-    Sunday: 'Sunday',
-} as const;
-
 export const TeacherSchedulePage: React.FC = () => {
     const [dayFilter, setDayFilter] = useState<string>('');
     const [page, setPage] = useState<number>(1);
     const limit = 10;
+
+    const rollingWeek = useMemo(() => {
+        const order = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const todayIdx = new Date().getDay();
+        return Array.from({ length: 7 }).map((_, i) => {
+            const idx = (todayIdx + i) % 7;
+            return order[idx] || '';
+        });
+    }, []);
 
     // Fetch stats to calculate counts
     const statsQuery = useTeacherLessons({ page: 1, limit: 1000 });
@@ -77,6 +76,16 @@ export const TeacherSchedulePage: React.FC = () => {
         return counts;
     }, [statsQuery.data]);
 
+    React.useEffect(() => {
+        if (dayFilter) return;
+        const today = rollingWeek[0];
+        if (!today) return;
+        if ((dayCounts[today] || 0) > 0) {
+            setDayFilter(today);
+            setPage(1);
+        }
+    }, [dayCounts, dayFilter, rollingWeek]);
+
     const grouped = useMemo(() => {
         const list = (lessonsQuery.data?.data || []) as TeacherLessonTemplate[];
 
@@ -130,7 +139,7 @@ export const TeacherSchedulePage: React.FC = () => {
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
-                        {Object.values(WeekDays).map((day) => {
+                        {rollingWeek.map((day) => {
                             const count = dayCounts[day] || 0;
                             const dateStr = getCurrentWeekDate(day);
                             const isActiveDay = count > 0;

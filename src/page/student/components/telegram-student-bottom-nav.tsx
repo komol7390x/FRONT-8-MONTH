@@ -11,7 +11,35 @@ export const TelegramStudentBottomNav: React.FC<TelegramStudentBottomNavProps> =
     const location = useLocation();
     const params = useParams();
 
-    const effectiveStudentId = studentId ?? (params.studentId ? Number(params.studentId) : undefined) ?? 1;
+    const decodeJwtPayload = (token: string): any | null => {
+        try {
+            const parts = token.split('.');
+            if (parts.length < 2) return null;
+            const b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+            const pad = b64.length % 4 === 0 ? '' : '='.repeat(4 - (b64.length % 4));
+            const json = decodeURIComponent(
+                Array.prototype.map
+                    .call(atob(b64 + pad), (c: string) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+                    .join('')
+            );
+            return JSON.parse(json);
+        } catch {
+            return null;
+        }
+    };
+
+    const effectiveStudentId = React.useMemo(() => {
+        if (typeof studentId === 'number' && studentId > 0) return studentId;
+        if (params.studentId && Number(params.studentId) > 0) return Number(params.studentId);
+        try {
+            const t = localStorage.getItem('telegram_token') || '';
+            const payload = t ? decodeJwtPayload(t) : null;
+            const id = Number(payload?.id);
+            return Number.isFinite(id) && id > 0 ? id : 0;
+        } catch {
+            return 0;
+        }
+    }, [params.studentId, studentId]);
 
     const items = [
         {
@@ -30,7 +58,7 @@ export const TelegramStudentBottomNav: React.FC<TelegramStudentBottomNavProps> =
             key: 'profile',
             label: 'Profile',
             icon: User,
-            to: `/telegram/student/${effectiveStudentId}`,
+            to: effectiveStudentId ? `/telegram/student/${effectiveStudentId}` : '/telegram/student/0',
         },
         {
             key: 'payment',

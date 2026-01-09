@@ -9,6 +9,39 @@ import { TelegramStudentBottomNav } from './components/telegram-student-bottom-n
 export const StudentLessonsPage: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
 
+    const tokenFromUrl = searchParams.get('token') || '';
+
+    const decodeJwtPayload = (token: string): any | null => {
+        try {
+            const parts = token.split('.');
+            if (parts.length < 2) return null;
+            const b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+            const pad = b64.length % 4 === 0 ? '' : '='.repeat(4 - (b64.length % 4));
+            const json = decodeURIComponent(
+                Array.prototype.map
+                    .call(atob(b64 + pad), (c: string) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+                    .join('')
+            );
+            return JSON.parse(json);
+        } catch {
+            return null;
+        }
+    };
+
+    const studentId = useMemo(() => {
+        let t = tokenFromUrl;
+        if (!t) {
+            try {
+                t = localStorage.getItem('telegram_token') || '';
+            } catch {
+                t = '';
+            }
+        }
+        const payload = t ? decodeJwtPayload(t) : null;
+        const id = Number(payload?.id);
+        return Number.isFinite(id) && id > 0 ? id : 0;
+    }, [tokenFromUrl]);
+
     const initialDay = searchParams.get('weekday') || '';
     const initialPage = Number(searchParams.get('page')) || 1;
     const initialLimit = Number(searchParams.get('limit')) || 10;
@@ -21,7 +54,7 @@ export const StudentLessonsPage: React.FC = () => {
     const [searchInput, setSearchInput] = useState<string>(initialSearch);
     const [search, setSearch] = useState<string>(initialSearch);
 
-    const { data: lessonsData, isPending } = useStudentLessons({
+    const { data: lessonsData, isPending } = useStudentLessons(studentId || undefined, {
         status: statusFilter,
         search: search || undefined,
         page: 1,
@@ -254,7 +287,7 @@ export const StudentLessonsPage: React.FC = () => {
                 )}
             </div>
 
-            <TelegramStudentBottomNav />
+            <TelegramStudentBottomNav studentId={studentId} />
         </div>
     );
 };
