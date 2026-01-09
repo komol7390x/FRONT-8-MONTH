@@ -35,9 +35,9 @@ export const LessonDetailsModal: React.FC<LessonDetailsModalProps> = ({
             ? new Date(asNumber < 1_000_000_000_000 ? asNumber * 1000 : asNumber)
             : new Date(raw);
         if (Number.isNaN(d.getTime())) return raw;
-        const day = d.toLocaleDateString('uz-UZ', { weekday: 'short' });
-        const date = d.toLocaleDateString('uz-UZ', { year: 'numeric', month: '2-digit', day: '2-digit' });
-        const time = d.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
+        const day = d.toLocaleDateString('en-GB', { weekday: 'short' });
+        const date = d.toLocaleDateString('en-GB', { year: 'numeric', month: '2-digit', day: '2-digit' });
+        const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
         return `${day} ${date} ${time}`;
     };
 

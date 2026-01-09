@@ -1,8 +1,11 @@
 import React, { useMemo, useState } from 'react';
-import { Card, Tag } from 'antd';
-import { CalendarDays } from 'lucide-react';
+import { Card, Tag, message } from 'antd';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { CalendarDays, Trash2 } from 'lucide-react';
 import { useTeacherLessons, type TeacherLessonTemplate } from '../service/useTeacherLessons';
 import { PageLoader } from '../../../../components/page-loader';
+import { request } from '../../../../config/request';
+import { ConfirmModal } from '../../../../components/confirm-modal';
 
 export const TeacherSchedulePage: React.FC = () => {
     const [dayFilter, setDayFilter] = useState<string>('');
@@ -29,6 +32,25 @@ export const TeacherSchedulePage: React.FC = () => {
         active: true
     });
 
+    const qc = useQueryClient();
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+    const [deleteId, setDeleteId] = useState<number>(0);
+
+    const deleteScheduleMutation = useMutation({
+        mutationFn: async ({ id }: { id: number }) => {
+            const res = await request.delete(`/schedule/delete/${id}`);
+            return res.data;
+        },
+        onSuccess: (data: any) => {
+            message.success(data?.message || 'Schedule deleted');
+            qc.invalidateQueries({ queryKey: ['teacher-lessons'] });
+        },
+        onError: (error: any) => {
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to delete schedule';
+            message.error(errorMessage);
+        },
+    });
+
     const toMs = (value: unknown): number | null => {
         if (value == null) return null;
         const n = Number(value);
@@ -40,13 +62,13 @@ export const TeacherSchedulePage: React.FC = () => {
     const formatTime = (ms: number | null): string => {
         if (!ms) return '-';
         const d = new Date(ms);
-        return d.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
+        return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
     };
 
     const formatDayHeader = (ms: number): string => {
         const d = new Date(ms);
-        const weekday = d.toLocaleDateString('uz-UZ', { weekday: 'long' });
-        const date = d.toLocaleDateString('uz-UZ', { year: 'numeric', month: 'long', day: '2-digit' });
+        const weekday = d.toLocaleDateString('en-GB', { weekday: 'long' });
+        const date = d.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: '2-digit' });
         return `${weekday} • ${date}`;
     };
 
@@ -134,7 +156,7 @@ export const TeacherSchedulePage: React.FC = () => {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                         <div className="flex items-center gap-2">
                             <CalendarDays size={18} className="text-emerald-700" />
-                            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Dars jadvali</h1>
+                            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Schedule</h1>
                         </div>
                     </div>
 
@@ -177,7 +199,7 @@ export const TeacherSchedulePage: React.FC = () => {
 
                 {grouped.length === 0 ? (
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-10 text-center text-gray-500">
-                        Jadval bo‘sh
+                        No schedules
                     </div>
                 ) : (
                     grouped.map((g) => (
@@ -191,6 +213,7 @@ export const TeacherSchedulePage: React.FC = () => {
                                     const st = String((x.lesson as any)?.status ?? '').toLowerCase();
                                     const statusColor = st === 'booked' ? 'green' : st === 'available' ? 'blue' : st ? 'gold' : 'default';
                                     const isPaid = Boolean((x.lesson as any)?.isPaid);
+                                    const id = Number((x.lesson as any)?.id);
                                     return (
                                         <div
                                             key={(x.lesson as any)?.id ?? `${g.dayMs}-${x.startMs}`}
@@ -211,13 +234,26 @@ export const TeacherSchedulePage: React.FC = () => {
                                                     )}
                                                 </div>
 
-                                                <div className="shrink-0 flex items-center gap-2">
+                                                <div className="shrink-0 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                                                     <Tag className="m-0" color={statusColor as any}>
                                                         {String((x.lesson as any)?.status ?? '-')}
                                                     </Tag>
                                                     <Tag className="m-0" color={isPaid ? 'green' : 'red'}>
                                                         {isPaid ? 'Paid' : 'Unpaid'}
                                                     </Tag>
+                                                    <button
+                                                        type="button"
+                                                        disabled={!Number.isFinite(id) || id <= 0}
+                                                        onClick={() => {
+                                                            if (!Number.isFinite(id) || id <= 0) return;
+                                                            setDeleteId(id);
+                                                            setDeleteConfirmOpen(true);
+                                                        }}
+                                                        className="h-9 w-9 inline-flex items-center justify-center rounded-xl border border-red-200 bg-white text-red-700 hover:bg-red-50 disabled:opacity-50"
+                                                        title="Delete"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
@@ -253,6 +289,35 @@ export const TeacherSchedulePage: React.FC = () => {
                     );
                 })()}
             </div>
+
+            <ConfirmModal
+                open={deleteConfirmOpen}
+                variant="hard_delete"
+                title="Delete schedule"
+                message="Do you want to permanently delete this schedule?"
+                note="This action cannot be undone."
+                loading={deleteScheduleMutation.isPending}
+                onCancel={() => {
+                    if (deleteScheduleMutation.isPending) return;
+                    setDeleteConfirmOpen(false);
+                    setDeleteId(0);
+                }}
+                onConfirm={async () => {
+                    if (deleteScheduleMutation.isPending) return;
+                    const id = Number(deleteId);
+                    if (!Number.isFinite(id) || id <= 0) {
+                        setDeleteConfirmOpen(false);
+                        return;
+                    }
+                    try {
+                        await deleteScheduleMutation.mutateAsync({ id });
+                        setDeleteConfirmOpen(false);
+                        setDeleteId(0);
+                    } catch {
+                        // handled in mutation
+                    }
+                }}
+            />
         </div>
     );
 };

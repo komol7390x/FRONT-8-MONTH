@@ -31,7 +31,7 @@ export const Sidebar = () => {
     }
 
     if (isError) {
-        return <div className="text-rose-500 text-xs text-center">Ma'lumot yuklanmadi</div>;
+        return <div className="text-rose-500 text-xs text-center">Failed to load data</div>;
     }
 
     const isNotificationActive = location.pathname.startsWith('/teacher-panel/notification');

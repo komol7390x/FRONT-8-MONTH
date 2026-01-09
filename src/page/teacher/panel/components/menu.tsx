@@ -17,7 +17,7 @@ export const items: MenuItem[] = [
     },
     {
         key: 'teacher-create-lesson',
-        label: <Link to={'/teacher-panel/create-lesson'} className="font-semibold">Create Lesson</Link>,
+        label: <Link to={'/teacher-panel/create-lesson'} className="font-semibold">Create Schedule</Link>,
         icon: <PlusCircle size={20} />,
     },
     {

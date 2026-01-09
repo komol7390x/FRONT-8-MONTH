@@ -1,12 +1,16 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Card, Select, Tag, message } from 'antd';
-import { CalendarDays, CheckCircle2, Copy, Hash, Link2, Search } from 'lucide-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { CalendarDays, CheckCircle2, Copy, Hash, Link2, Pencil, Search, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTeacherLessons, type TeacherLessonTemplate } from '../service/useTeacherLessons';
 import { PageLoader } from '../../../../components/page-loader';
 import { Pagination } from '../components/pagination';
 import { WeekDays } from '../../../../config/weekdays';
 import { LessonDetailsModal } from '../components/lesson-details-modal';
+import { request } from '../../../../config/request';
+import { ConfirmModal } from '../../../../components/confirm-modal';
+import { LessonTemplateEditModal } from '../../../admin/super-admin/teacher/components/lesson-template-edit-modal';
 
 const BookedLesson = {
     AVAILABLE: 'available',
@@ -18,6 +22,7 @@ const BookedLesson = {
 
 export const TeacherLessonsPage: React.FC = () => {
     const navigate = useNavigate();
+    const qc = useQueryClient();
     const [searchInput, setSearchInput] = useState('');
     const [search, setSearch] = useState('');
     const [status, setStatus] = useState<string | undefined>(undefined);
@@ -27,6 +32,27 @@ export const TeacherLessonsPage: React.FC = () => {
     const [limit, setLimit] = useState<number>(10);
     const [selectedLesson, setSelectedLesson] = useState<TeacherLessonTemplate | null>(null);
     const [isDetailsOpen, setIsDetailsOpen] = useState<boolean>(false);
+
+    const [editOpen, setEditOpen] = useState(false);
+    const [editLesson, setEditLesson] = useState<any | null>(null);
+
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+    const [deleteId, setDeleteId] = useState<number>(0);
+
+    const deleteScheduleMutation = useMutation({
+        mutationFn: async ({ id }: { id: number }) => {
+            const res = await request.delete(`/schedule/delete/${id}`);
+            return res.data;
+        },
+        onSuccess: (data: any) => {
+            message.success(data?.message || 'Schedule deleted');
+            qc.invalidateQueries({ queryKey: ['teacher-lessons'] });
+        },
+        onError: (error: any) => {
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to delete schedule';
+            message.error(errorMessage);
+        },
+    });
 
     useEffect(() => {
         const t = setTimeout(() => {
@@ -138,9 +164,9 @@ export const TeacherLessonsPage: React.FC = () => {
             ? new Date(asNumber < 1_000_000_000_000 ? asNumber * 1000 : asNumber)
             : new Date(raw);
         if (Number.isNaN(d.getTime())) return raw;
-        const day = d.toLocaleDateString('uz-UZ', { weekday: 'short' });
-        const date = d.toLocaleDateString('uz-UZ', { year: 'numeric', month: '2-digit', day: '2-digit' });
-        const time = d.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
+        const day = d.toLocaleDateString('en-GB', { weekday: 'short' });
+        const date = d.toLocaleDateString('en-GB', { year: 'numeric', month: '2-digit', day: '2-digit' });
+        const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
         return `${day} ${date} ${time}`;
     };
 
@@ -189,7 +215,7 @@ export const TeacherLessonsPage: React.FC = () => {
                                 onClick={() => navigate('/teacher-panel/create-lesson')}
                                 className="h-10 px-4 bg-linear-to-r from-blue-600 to-indigo-600 text-white rounded-xl text-sm font-semibold hover:from-blue-700 hover:to-indigo-700 transition-colors shadow-sm"
                             >
-                                Add lesson
+                                Add schedule
                             </button>
                         </div>
                     </div>
@@ -330,7 +356,7 @@ export const TeacherLessonsPage: React.FC = () => {
 
                 <Card>
                     <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                        <div className="grid grid-cols-8 px-3 sm:px-4 bg-gray-50 py-3 sm:py-4 border-b border-gray-200 font-semibold text-sm text-gray-700">
+                        <div className="grid grid-cols-9 px-3 sm:px-4 bg-gray-50 py-3 sm:py-4 border-b border-gray-200 font-semibold text-sm text-gray-700">
                             <div className="col-span-1 pr-3 sm:pr-4 flex items-center gap-2"><Hash size={14} /> No</div>
                             <div className="col-span-1 pr-3 sm:pr-4 flex items-center gap-2"><Hash size={14} /> Id</div>
                             <div className="col-span-1 pr-3 sm:pr-4">Paid</div>
@@ -339,6 +365,7 @@ export const TeacherLessonsPage: React.FC = () => {
                             <div className="col-span-1 pr-3 sm:pr-4 flex items-center gap-2"><Link2 size={14} /> Meet</div>
                             <div className="col-span-1 pr-3 sm:pr-4">Start</div>
                             <div className="col-span-1 text-right">Finish</div>
+                            <div className="col-span-1 text-right">Actions</div>
                         </div>
 
                         <div className="overflow-x-auto">
@@ -360,7 +387,7 @@ export const TeacherLessonsPage: React.FC = () => {
                                                     setSelectedLesson(t);
                                                     setIsDetailsOpen(true);
                                                 }}
-                                                className={`grid grid-cols-8 px-3 sm:px-4 py-3 sm:py-4 border-b items-center transition-colors cursor-pointer ${rowBg}`}
+                                                className={`grid grid-cols-9 px-3 sm:px-4 py-3 sm:py-4 border-b items-center transition-colors cursor-pointer ${rowBg}`}
                                             >
                                                 <div className="col-span-1 pr-3 sm:pr-5">
                                                     <span className="text-sm font-semibold text-gray-700">{(page - 1) * limit + idx + 1}</span>
@@ -411,6 +438,34 @@ export const TeacherLessonsPage: React.FC = () => {
                                                         {formatDateTime((t as any)?.finishTime ?? (t as any)?.endTime)}
                                                     </div>
                                                 </div>
+
+                                                <div className="col-span-1 flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setEditLesson(t as any);
+                                                            setEditOpen(true);
+                                                        }}
+                                                        className="h-9 w-9 inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+                                                        title="Edit time"
+                                                    >
+                                                        <Pencil size={16} />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        disabled={!Number.isFinite(Number((t as any)?.id)) || Number((t as any)?.id) <= 0}
+                                                        onClick={() => {
+                                                            const id = Number((t as any)?.id);
+                                                            if (!Number.isFinite(id) || id <= 0) return;
+                                                            setDeleteId(id);
+                                                            setDeleteConfirmOpen(true);
+                                                        }}
+                                                        className="h-9 w-9 inline-flex items-center justify-center rounded-xl border border-red-200 bg-white text-red-700 hover:bg-red-50 disabled:opacity-50"
+                                                        title="Delete"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
                                             </div>
                                         );
                                     })
@@ -439,6 +494,47 @@ export const TeacherLessonsPage: React.FC = () => {
                     onClose={() => {
                         setIsDetailsOpen(false);
                         setSelectedLesson(null);
+                    }}
+                />
+
+                <LessonTemplateEditModal
+                    open={editOpen}
+                    lesson={editLesson}
+                    onClose={() => {
+                        setEditOpen(false);
+                        setEditLesson(null);
+                    }}
+                    onUpdated={() => {
+                        qc.invalidateQueries({ queryKey: ['teacher-lessons'] });
+                    }}
+                />
+
+                <ConfirmModal
+                    open={deleteConfirmOpen}
+                    variant="hard_delete"
+                    title="Delete schedule"
+                    message="Do you want to permanently delete this schedule?"
+                    note="This action cannot be undone."
+                    loading={deleteScheduleMutation.isPending}
+                    onCancel={() => {
+                        if (deleteScheduleMutation.isPending) return;
+                        setDeleteConfirmOpen(false);
+                        setDeleteId(0);
+                    }}
+                    onConfirm={async () => {
+                        if (deleteScheduleMutation.isPending) return;
+                        const id = Number(deleteId);
+                        if (!Number.isFinite(id) || id <= 0) {
+                            setDeleteConfirmOpen(false);
+                            return;
+                        }
+                        try {
+                            await deleteScheduleMutation.mutateAsync({ id });
+                            setDeleteConfirmOpen(false);
+                            setDeleteId(0);
+                        } catch {
+                            // handled in mutation
+                        }
                     }}
                 />
             </div>

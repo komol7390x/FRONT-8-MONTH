@@ -165,7 +165,7 @@ export const PaymentPage: React.FC = () => {
             <Alert
                 type="error"
                 showIcon
-                message="Payment yuklashda xatolik"
+                message="Failed to load payments"
                 description={(query.error as Error)?.message}
             />
         );
@@ -260,22 +260,32 @@ export const PaymentPage: React.FC = () => {
                             ]}
                         />
 
-                        <Select
-                            allowClear
-                            value={status || undefined}
-                            onChange={(v) => {
-                                setStatus((v as any) ?? undefined);
-                                setPage(1);
-                            }}
-                            placeholder="Status"
-                            style={{ width: '100%' }}
-                            options={[
-                                { value: PaymentStatus.PENDING, label: PaymentStatus.PENDING },
-                                { value: PaymentStatus.PAID, label: PaymentStatus.PAID },
-                                { value: PaymentStatus.PENDING_CANCELED, label: PaymentStatus.PENDING_CANCELED },
-                                { value: PaymentStatus.PAID_CANCELED, label: PaymentStatus.PAID_CANCELED },
-                            ]}
-                        />
+                        <div className="flex items-center gap-2 flex-wrap">
+                            {(
+                                [
+                                    { key: 'ALL', label: 'All', value: undefined },
+                                    { key: PaymentStatus.PENDING, label: PaymentStatus.PENDING, value: PaymentStatus.PENDING },
+                                    { key: PaymentStatus.PAID, label: PaymentStatus.PAID, value: PaymentStatus.PAID },
+                                    { key: PaymentStatus.PENDING_CANCELED, label: PaymentStatus.PENDING_CANCELED, value: PaymentStatus.PENDING_CANCELED },
+                                    { key: PaymentStatus.PAID_CANCELED, label: PaymentStatus.PAID_CANCELED, value: PaymentStatus.PAID_CANCELED },
+                                ]
+                            ).map((t) => {
+                                const activeTab = (t.value ?? undefined) === (status ?? undefined);
+                                return (
+                                    <button
+                                        key={t.key}
+                                        type="button"
+                                        onClick={() => {
+                                            setStatus(t.value as any);
+                                            setPage(1);
+                                        }}
+                                        className={`h-10 px-3 rounded-xl border text-xs font-semibold transition-colors ${activeTab ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}
+                                    >
+                                        {t.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
 

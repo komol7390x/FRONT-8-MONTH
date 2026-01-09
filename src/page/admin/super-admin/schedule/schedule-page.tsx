@@ -1,12 +1,15 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { CalendarClock, Loader2, Plus, Search, User } from 'lucide-react';
-import { Table, Tag, Avatar } from 'antd';
+import { Table, Tag, Avatar, message } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
+import { useMutation } from '@tanstack/react-query';
 import { useTeacherSchedule } from '../teacher/service/useTeacherSchedule';
 import { Pagination } from '../admin/components/pagantion';
 import { ScheduleCreateModal } from './components/schedule-create-modal';
 import { TeacherMoreModal } from '../teacher/components/teacher-more-modal';
 import { useGetTeacherById } from '../teacher/service/useGetTeacherById';
+import { request } from '../../../../config/request';
+import { ConfirmModal } from '../../../../components/confirm-modal';
 
 export const SchedulePage: React.FC = () => {
     const [page, setPage] = useState(1);
@@ -96,6 +99,62 @@ export const SchedulePage: React.FC = () => {
     // View Teacher Details State
     const [viewTeacher, setViewTeacher] = useState<any | null>(null);
     const [teacherModalOpen, setTeacherModalOpen] = useState(false);
+
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [confirmVariant, setConfirmVariant] = useState<'block' | 'unblock' | 'delete' | 'restore' | 'hard_delete'>('delete');
+    const [confirmTitle, setConfirmTitle] = useState('');
+    const [confirmMessage, setConfirmMessage] = useState('');
+    const [confirmNote, setConfirmNote] = useState<string | undefined>(undefined);
+    const [confirmRow, setConfirmRow] = useState<any | null>(null);
+    const [confirmAction, setConfirmAction] = useState<null | 'toggle_active' | 'soft_delete' | 'hard_delete'>(null);
+    const [confirmActionValue, setConfirmActionValue] = useState<boolean | null>(null);
+
+    const toggleActiveMutation = useMutation({
+        mutationFn: async ({ id, active }: { id: number; active: boolean }) => {
+            const res = await request.patch(`/schedule/is-active/${id}`, undefined, { params: { active } });
+            return res.data;
+        },
+        onSuccess: (data: any) => {
+            message.success(data?.message || 'Schedule status updated');
+            refetch();
+        },
+        onError: (error: any) => {
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to update schedule status';
+            message.error(errorMessage);
+        },
+    });
+
+    const softDeleteMutation = useMutation({
+        mutationFn: async ({ id, active }: { id: number; active: boolean }) => {
+            const res = await request.delete(`/soft-delete/${id}`, { params: { active } });
+            return res.data;
+        },
+        onSuccess: (data: any) => {
+            message.success(data?.message || 'Schedule updated');
+            refetch();
+        },
+        onError: (error: any) => {
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to update schedule';
+            message.error(errorMessage);
+        },
+    });
+
+    const hardDeleteMutation = useMutation({
+        mutationFn: async ({ id }: { id: number }) => {
+            const res = await request.delete(`/schedule/delete/${id}`);
+            return res.data;
+        },
+        onSuccess: (data: any) => {
+            message.success(data?.message || 'Schedule deleted');
+            refetch();
+        },
+        onError: (error: any) => {
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to delete schedule';
+            message.error(errorMessage);
+        },
+    });
+
+    const confirmLoading = toggleActiveMutation.isPending || softDeleteMutation.isPending || hardDeleteMutation.isPending;
 
     const handleLimitChange = (newLimit: string | number) => {
         setLimit(Number(newLimit));
@@ -190,6 +249,90 @@ export const SchedulePage: React.FC = () => {
                     {active ? 'Active' : 'Inactive'}
                 </Tag>
             ),
+        },
+        {
+            title: 'Actions',
+            key: 'actions',
+            width: 320,
+            render: (_: any, record: any) => {
+                const id = Number(record?.id);
+                const isActive = Boolean(record?.isActive);
+                const isSoftDeleted = Boolean(record?.isDeleted || record?.deleted || record?.deletedAt);
+
+                const openConfirm = (opts: {
+                    variant: 'block' | 'unblock' | 'delete' | 'restore' | 'hard_delete';
+                    title: string;
+                    message: string;
+                    note?: string;
+                    action: 'toggle_active' | 'soft_delete' | 'hard_delete';
+                    actionValue?: boolean;
+                }) => {
+                    setConfirmVariant(opts.variant);
+                    setConfirmTitle(opts.title);
+                    setConfirmMessage(opts.message);
+                    setConfirmNote(opts.note);
+                    setConfirmRow(record);
+                    setConfirmAction(opts.action);
+                    setConfirmActionValue(typeof opts.actionValue === 'boolean' ? opts.actionValue : null);
+                    setConfirmOpen(true);
+                };
+
+                return (
+                    <div className="flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
+                        <button
+                            type="button"
+                            className={`h-9 px-3 rounded-lg text-xs font-semibold border ${isActive ? 'bg-white text-red-700 border-red-200 hover:bg-red-50' : 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50'}`}
+                            onClick={() => {
+                                if (!Number.isFinite(id) || id <= 0) return;
+                                openConfirm({
+                                    variant: isActive ? 'block' : 'unblock',
+                                    title: isActive ? 'Block schedule' : 'Unblock schedule',
+                                    message: isActive ? 'Do you want to block this schedule?' : 'Do you want to unblock this schedule?',
+                                    action: 'toggle_active',
+                                    actionValue: !isActive,
+                                });
+                            }}
+                        >
+                            {isActive ? 'Block' : 'Unblock'}
+                        </button>
+
+                        <button
+                            type="button"
+                            className={`h-9 px-3 rounded-lg text-xs font-semibold border ${isSoftDeleted ? 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50' : 'bg-white text-amber-700 border-amber-200 hover:bg-amber-50'}`}
+                            onClick={() => {
+                                if (!Number.isFinite(id) || id <= 0) return;
+                                openConfirm({
+                                    variant: isSoftDeleted ? 'restore' : 'delete',
+                                    title: isSoftDeleted ? 'Restore schedule' : 'Soft delete schedule',
+                                    message: isSoftDeleted ? 'Do you want to restore this schedule?' : 'Do you want to soft delete this schedule?',
+                                    note: 'This action can be reversed.',
+                                    action: 'soft_delete',
+                                    actionValue: isSoftDeleted,
+                                });
+                            }}
+                        >
+                            {isSoftDeleted ? 'Restore' : 'Soft delete'}
+                        </button>
+
+                        <button
+                            type="button"
+                            className="h-9 px-3 rounded-lg text-xs font-semibold border bg-white text-red-800 border-red-300 hover:bg-red-50"
+                            onClick={() => {
+                                if (!Number.isFinite(id) || id <= 0) return;
+                                openConfirm({
+                                    variant: 'hard_delete',
+                                    title: 'Delete schedule',
+                                    message: 'Do you want to permanently delete this schedule?',
+                                    note: 'This action cannot be undone.',
+                                    action: 'hard_delete',
+                                });
+                            }}
+                        >
+                            Delete
+                        </button>
+                    </div>
+                );
+            },
         },
     ];
 
@@ -348,6 +491,49 @@ export const SchedulePage: React.FC = () => {
                     focusTab="schedule"
                 />
             )}
+
+            <ConfirmModal
+                open={confirmOpen}
+                variant={confirmVariant}
+                title={confirmTitle}
+                message={confirmMessage}
+                note={confirmNote}
+                loading={confirmLoading}
+                onCancel={() => {
+                    if (confirmLoading) return;
+                    setConfirmOpen(false);
+                    setConfirmRow(null);
+                    setConfirmAction(null);
+                    setConfirmActionValue(null);
+                    setConfirmNote(undefined);
+                }}
+                onConfirm={async () => {
+                    if (confirmLoading) return;
+                    const id = Number(confirmRow?.id);
+                    if (!Number.isFinite(id) || id <= 0 || !confirmAction) {
+                        setConfirmOpen(false);
+                        return;
+                    }
+                    try {
+                        if (confirmAction === 'toggle_active') {
+                            await toggleActiveMutation.mutateAsync({ id, active: Boolean(confirmActionValue) });
+                        }
+                        if (confirmAction === 'soft_delete') {
+                            await softDeleteMutation.mutateAsync({ id, active: Boolean(confirmActionValue) });
+                        }
+                        if (confirmAction === 'hard_delete') {
+                            await hardDeleteMutation.mutateAsync({ id });
+                        }
+                        setConfirmOpen(false);
+                        setConfirmRow(null);
+                        setConfirmAction(null);
+                        setConfirmActionValue(null);
+                        setConfirmNote(undefined);
+                    } catch {
+                        // errors handled in mutations
+                    }
+                }}
+            />
         </div>
     );
 };
