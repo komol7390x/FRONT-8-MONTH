@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Card, Tag, Select } from 'antd';
-import { CalendarDays, Clock, DollarSign, Link2 } from 'lucide-react';
+import { Button, Card, Modal, Tag, Select, message } from 'antd';
+import { CalendarDays, Clock, DollarSign, Link2, Pencil } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { useStudentLessons } from './service/useStudentLessons';
 import { PageLoader } from '../../components/page-loader';
 import { TelegramStudentBottomNav } from './components/telegram-student-bottom-nav';
+import { useUpdateLessonTemplate } from '../admin/super-admin/teacher/service/useUpdateLessonTemplate';
 
 export const StudentLessonsPage: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -38,7 +39,7 @@ export const StudentLessonsPage: React.FC = () => {
             }
         }
         const payload = t ? decodeJwtPayload(t) : null;
-        const id = Number(payload?.id);
+        const id = Number(payload?.id ?? payload?.studentId ?? payload?.userId);
         return Number.isFinite(id) && id > 0 ? id : 0;
     }, [tokenFromUrl]);
 
@@ -46,7 +47,7 @@ export const StudentLessonsPage: React.FC = () => {
     const initialPage = Number(searchParams.get('page')) || 1;
     const initialLimit = Number(searchParams.get('limit')) || 10;
     const initialSearch = searchParams.get('search') || '';
-    const initialStatus = searchParams.get('status') || 'pending';
+    const initialStatus = searchParams.get('status') || '';
 
     const [dayFilter, setDayFilter] = useState<string>(initialDay);
     const [page, setPage] = useState<number>(initialPage);
@@ -60,6 +61,13 @@ export const StudentLessonsPage: React.FC = () => {
         page: 1,
         limit: 1000,
     });
+
+    const { mutate: updateLesson, isPending: isUpdating } = useUpdateLessonTemplate();
+
+    const [editOpen, setEditOpen] = useState(false);
+    const [editLesson, setEditLesson] = useState<any | null>(null);
+    const [editStartStr, setEditStartStr] = useState('');
+    const [editEndStr, setEditEndStr] = useState('');
 
     useEffect(() => {
         const t = setTimeout(() => {
@@ -103,6 +111,17 @@ export const StudentLessonsPage: React.FC = () => {
         return d.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
     };
 
+    const buildMsFromTime = (baseMs: number, hhmm: string): number | null => {
+        if (!baseMs || !hhmm) return null;
+        const [hhRaw, mmRaw] = hhmm.split(':');
+        const hh = Number(hhRaw);
+        const mm = Number(mmRaw);
+        if (!Number.isFinite(hh) || !Number.isFinite(mm)) return null;
+        const d = new Date(baseMs);
+        d.setHours(hh, mm, 0, 0);
+        return d.getTime();
+    };
+
     const toMs = (value: unknown): number | null => {
         if (value == null) return null;
         const n = Number(value);
@@ -132,6 +151,58 @@ export const StudentLessonsPage: React.FC = () => {
 
     const totalPages = Math.max(1, Math.ceil(filteredLessons.length / initialLimit));
     const pageItems = filteredLessons.slice((page - 1) * initialLimit, page * initialLimit);
+
+    const openEdit = (lesson: any) => {
+        const startMs = toMs(lesson?.startTime);
+        const finishMs = toMs(lesson?.finishTime ?? lesson?.endTime);
+        if (!startMs || !finishMs) {
+            message.error('Lesson time information is missing');
+            return;
+        }
+        const st = new Date(startMs);
+        const ft = new Date(finishMs);
+        const toHHMM = (d: Date) => d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        setEditLesson(lesson);
+        setEditStartStr(toHHMM(st));
+        setEditEndStr(toHHMM(ft));
+        setEditOpen(true);
+    };
+
+    const handleSaveEdit = () => {
+        if (!editLesson?.id) {
+            message.error('Lesson ID not found');
+            return;
+        }
+        const baseMs = toMs(editLesson?.startTime);
+        if (!baseMs) {
+            message.error('Lesson time information is missing');
+            return;
+        }
+        const startMs = buildMsFromTime(baseMs, editStartStr);
+        const finishMs = buildMsFromTime(baseMs, editEndStr);
+        if (!startMs || !finishMs) {
+            message.error('Please select start and end time');
+            return;
+        }
+        if (finishMs <= startMs) {
+            message.error('End time must be after start time');
+            return;
+        }
+
+        updateLesson(
+            {
+                id: Number(editLesson.id),
+                startTime: Math.floor(startMs / 1000),
+                finishTime: Math.floor(finishMs / 1000),
+            } as any,
+            {
+                onSuccess: () => {
+                    setEditOpen(false);
+                    setEditLesson(null);
+                },
+            } as any,
+        );
+    };
 
     return (
         <div className="min-h-screen bg-gray-50 p-3 sm:p-4 pb-24">
@@ -163,6 +234,7 @@ export const StudentLessonsPage: React.FC = () => {
                             }}
                             className="w-full"
                             options={[
+                                { value: '', label: 'All' },
                                 { value: 'pending', label: 'Pending' },
                                 { value: 'booked', label: 'Booked' },
                                 { value: 'completed', label: 'Completed' },
@@ -238,20 +310,31 @@ export const StudentLessonsPage: React.FC = () => {
                                 <div className="flex items-center justify-between mt-4">
                                     <div className="flex items-center gap-1 text-amber-600 font-bold">
                                         <DollarSign size={16} />
-                                        <span>{Number(lesson.lessonPrice || 0).toLocaleString()} UZS</span>
+                                        <span>{Number(lesson.price ?? lesson.lessonPrice ?? 0).toLocaleString()} UZS</span>
                                     </div>
 
-                                    {lesson.meetLink && (
-                                        <a
-                                            href={lesson.meetLink}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition-colors"
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            size="small"
+                                            onClick={() => openEdit(lesson)}
+                                            className="h-8"
+                                            icon={<Pencil size={14} />}
                                         >
-                                            <Link2 size={14} />
-                                            Join Meeting
-                                        </a>
-                                    )}
+                                            Edit time
+                                        </Button>
+
+                                        {lesson.meetLink && (
+                                            <a
+                                                href={lesson.meetLink}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition-colors"
+                                            >
+                                                <Link2 size={14} />
+                                                Join Meeting
+                                            </a>
+                                        )}
+                                    </div>
                                 </div>
                             </Card>
                         );
@@ -288,6 +371,42 @@ export const StudentLessonsPage: React.FC = () => {
             </div>
 
             <TelegramStudentBottomNav studentId={studentId} />
+
+            <Modal
+                open={editOpen}
+                title="Edit lesson time"
+                onCancel={() => {
+                    setEditOpen(false);
+                    setEditLesson(null);
+                }}
+                onOk={handleSaveEdit}
+                okText="Save"
+                confirmLoading={isUpdating}
+            >
+                <div className="space-y-3">
+                    <div className="text-sm font-semibold text-gray-900">{String(editLesson?.lessonName ?? 'Lesson')}</div>
+                    <div className="grid grid-cols-2 gap-2">
+                        <div>
+                            <div className="text-xs text-gray-500 mb-1">Start time</div>
+                            <input
+                                type="time"
+                                value={editStartStr}
+                                onChange={(e) => setEditStartStr(e.target.value)}
+                                className="w-full h-11 px-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-green-200 text-sm shadow-sm"
+                            />
+                        </div>
+                        <div>
+                            <div className="text-xs text-gray-500 mb-1">End time</div>
+                            <input
+                                type="time"
+                                value={editEndStr}
+                                onChange={(e) => setEditEndStr(e.target.value)}
+                                className="w-full h-11 px-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-green-200 text-sm shadow-sm"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 };

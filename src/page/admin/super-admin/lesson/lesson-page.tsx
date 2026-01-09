@@ -11,7 +11,6 @@ import type { Student } from '../student/service/useGetStudents';
 import type { Teacher } from '../teacher/service/useGetTeachers';
 import { useGetStudentById } from '../student/service/useGetStudentById';
 import { useGetTeacherById } from '../teacher/service/useGetTeacherById';
-import { WeekDays } from '../teacher/service/useTeacherSchedule';
 import { PageLoader } from '../../../../components/page-loader';
 
 export const LessonPage: React.FC = () => {
@@ -34,6 +33,23 @@ export const LessonPage: React.FC = () => {
     const [teacherId, setTeacherId] = useState<number | undefined>(undefined);
     const [studentId, setStudentId] = useState<number | undefined>(undefined);
     const [active, setActive] = useState<boolean | undefined>(undefined);
+
+    const rollingWeek = useMemo(() => {
+        const order = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const todayIdx = new Date().getDay();
+        const res: Array<{ day: string; dateStr: string }> = [];
+        for (let i = 0; i < 7; i++) {
+            const idx = (todayIdx + i) % 7;
+            const day = order[idx];
+            const d = new Date();
+            d.setDate(d.getDate() + i);
+            res.push({
+                day,
+                dateStr: d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' }),
+            });
+        }
+        return res;
+    }, []);
 
     const [selectedRow, setSelectedRow] = useState<any | null>(null);
     const [chooserOpen, setChooserOpen] = useState<boolean>(false);
@@ -77,6 +93,42 @@ export const LessonPage: React.FC = () => {
         page,
         limit,
     });
+
+    const statsQuery = useLessonTemplates({
+        status,
+        teacherId,
+        studentId,
+        active,
+        search,
+        page: 1,
+        limit: 1000,
+    });
+
+    const weekdayCounts = useMemo(() => {
+        const counts: Record<string, number> = {};
+        const rows = (statsQuery.data?.data || []) as any[];
+        for (const row of rows) {
+            const d = String((row as any)?.weekDays ?? (row as any)?.weekday ?? '').trim();
+            if (!d) continue;
+            counts[d] = (counts[d] || 0) + 1;
+        }
+        return counts;
+    }, [statsQuery.data?.data]);
+
+    useEffect(() => {
+        if (weekday) return;
+        const today = rollingWeek[0]?.day;
+        if (today && (weekdayCounts[today] || 0) > 0) {
+            setWeekday(today);
+            setPage(1);
+            return;
+        }
+        const first = rollingWeek.find((x) => (weekdayCounts[x.day] || 0) > 0)?.day;
+        if (first) {
+            setWeekday(first);
+            setPage(1);
+        }
+    }, [rollingWeek, weekday, weekdayCounts]);
 
     const dataSource = (query.data?.data || []).map((row: any) => ({
         key: row?.id ?? `${row?.teacherId}-${row?.studentId}-${Math.random()}`,
@@ -153,8 +205,8 @@ export const LessonPage: React.FC = () => {
                 key: 'active',
                 width: 95,
                 render: (v) => (
-                    <span className={`inline-block px-3 py-1.5 rounded text-sm font-medium text-white min-w-22 text-center ${v ? 'bg-green-600' : 'bg-red-600'}`}>
-                        {v ? 'Active' : 'Blocked'}
+                    <span className={`inline-block px-3 py-1.5 rounded text-sm font-medium text-white min-w-22 text-center ${v ? 'bg-red-600' : 'bg-green-600'}`}>
+                        {v ? 'BLOCKED' : 'ACTIVE'}
                     </span>
                 ),
             },
@@ -211,22 +263,37 @@ export const LessonPage: React.FC = () => {
 
                 {/* Week Day Buttons */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
-                    {Object.values(WeekDays).map((day) => (
-                        <button
-                            key={day}
-                            onClick={() => {
-                                setWeekday(weekday === day ? undefined : day);
-                                setPage(1);
-                            }}
-                            className={`py-3 px-2 rounded-xl text-sm font-bold shadow-sm transition-all
-                                ${weekday === day
-                                    ? 'bg-blue-600 text-white ring-2 ring-blue-300 transform scale-105'
-                                    : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-blue-300'
-                                }`}
-                        >
-                            {day}
-                        </button>
-                    ))}
+                    {rollingWeek.map(({ day, dateStr }) => {
+                        const count = weekdayCounts[day] || 0;
+                        const isActiveDay = count > 0;
+                        const isSelected = weekday === day;
+                        return (
+                            <button
+                                key={day}
+                                onClick={() => {
+                                    if (!isActiveDay) return;
+                                    setWeekday(isSelected ? undefined : day);
+                                    setPage(1);
+                                }}
+                                disabled={!isActiveDay}
+                                className={`py-3 px-2 rounded-xl text-sm font-bold shadow-sm transition-all flex flex-col items-center justify-center gap-1
+                                    ${isSelected
+                                        ? 'bg-blue-600 text-white ring-2 ring-blue-300 transform scale-105'
+                                        : isActiveDay
+                                            ? 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-blue-300'
+                                            : 'bg-white text-gray-400 border border-gray-200 opacity-60 cursor-not-allowed'
+                                    }`}
+                            >
+                                <span>{day.slice(0, 3)}</span>
+                                <span className="text-xs font-normal opacity-80">{dateStr}</span>
+                                {isActiveDay && (
+                                    <span className={`px-2 py-0.5 rounded-full text-xs leading-none ${isSelected ? 'bg-white/30' : 'bg-blue-100 text-blue-700'}`}>
+                                        {count}
+                                    </span>
+                                )}
+                            </button>
+                        );
+                    })}
                 </div>
 
                 <div className="mt-4 p-4 rounded-2xl border border-gray-200 bg-linear-to-r from-white to-gray-50 shadow-sm space-y-3">

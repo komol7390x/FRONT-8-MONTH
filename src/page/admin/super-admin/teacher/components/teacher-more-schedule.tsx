@@ -56,7 +56,7 @@ export const TeacherMoreSchedule: React.FC<TeacherMoreScheduleProps> = ({ teache
         const order = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         const base = new Date();
         base.setHours(0, 0, 0, 0);
-        return Array.from({ length: 12 }).map((_, i) => {
+        return Array.from({ length: 7 }).map((_, i) => {
             const d = new Date(base);
             d.setDate(d.getDate() + i);
             const weekday = order[d.getDay()] || '';

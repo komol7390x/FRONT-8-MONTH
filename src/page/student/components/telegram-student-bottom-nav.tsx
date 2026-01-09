@@ -34,7 +34,7 @@ export const TelegramStudentBottomNav: React.FC<TelegramStudentBottomNavProps> =
         try {
             const t = localStorage.getItem('telegram_token') || '';
             const payload = t ? decodeJwtPayload(t) : null;
-            const id = Number(payload?.id);
+            const id = Number(payload?.id ?? payload?.studentId ?? payload?.userId);
             return Number.isFinite(id) && id > 0 ? id : 0;
         } catch {
             return 0;

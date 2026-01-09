@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Button, message } from 'antd';
+import { Button, Modal, message } from 'antd';
 import { CalendarDays, Clock } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useBookLesson } from './service/useBookLesson';
@@ -113,15 +113,66 @@ export const StudentBookConfirmPage: React.FC = () => {
                 startTime: startTimeSeconds,
                 finishTime: finishTimeSeconds,
                 showMeetLinkModal: false,
-                closeWebAppOnSuccess: true,
+                closeWebAppOnSuccess: false,
             },
             {
-                onSuccess: () => {
-                    if ((window as any).Telegram?.WebApp) {
-                        (window as any).Telegram.WebApp.close();
+                onSuccess: (data: any) => {
+                    const meetLink = data?.data?.meetLink || data?.meetLink;
+                    const serverMessage = data?.message || data?.data?.message;
+                    const bookedStartMs = selectedStartMs;
+                    const bookedEndMs = selectedEndMs;
+                    const st = new Date(bookedStartMs);
+                    const et = new Date(bookedEndMs);
+                    const day = st.toLocaleDateString('uz-UZ', { year: 'numeric', month: '2-digit', day: '2-digit' });
+                    const stTime = st.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
+                    const etTime = et.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
+
+                    if (!meetLink) {
+                        Modal.error({
+                            title: 'Booking completed, but meeting link is missing',
+                            content: (
+                                <div className="space-y-2">
+                                    <div className="text-sm font-semibold text-gray-900">{lessonName}</div>
+                                    <div className="text-xs text-gray-600">{day} • {stTime} - {etTime}</div>
+                                    <div className="text-xs text-red-600">
+                                        {serverMessage || 'Google Meet link was not generated. Please try again later or contact admin.'}
+                                    </div>
+                                    <div className="text-xs text-gray-500">Redirecting to Available Lessons in 5 seconds...</div>
+                                </div>
+                            ),
+                            okText: 'Back now',
+                            onOk: () => navigate('/telegram/student-schedule'),
+                        });
+                        setTimeout(() => {
+                            navigate('/telegram/student-schedule');
+                        }, 5000);
                         return;
                     }
-                    navigate('/telegram/student-schedule');
+
+                    Modal.success({
+                        title: 'Booked successfully',
+                        content: (
+                            <div className="space-y-2">
+                                <div className="text-sm font-semibold text-gray-900">{lessonName}</div>
+                                <div className="text-xs text-gray-600">{day} • {stTime} - {etTime}</div>
+                                {teacherId && <div className="text-xs text-gray-500">Teacher ID: {teacherId}</div>}
+                                {meetLink && (
+                                    <a
+                                        href={meetLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-xs text-blue-600 break-all"
+                                    >
+                                        {meetLink}
+                                    </a>
+                                )}
+                            </div>
+                        ),
+                        okText: 'Go to My Lessons',
+                        onOk: () => {
+                            navigate('/telegram/student-lessons');
+                        },
+                    });
                 },
             },
         );

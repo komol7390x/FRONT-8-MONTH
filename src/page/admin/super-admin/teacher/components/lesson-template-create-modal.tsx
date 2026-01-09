@@ -5,6 +5,7 @@ import { message } from 'antd';
 import { useCreateLessonTemplate } from '../service/useCreateLessonTemplate';
 import { useGetTeacherById } from '../service/useGetTeacherById';
 import { useGetStudentById } from '../../student/service/useGetStudentById';
+import { useTeacherSchedule } from '../service/useTeacherSchedule';
 
 interface LessonTemplateCreateModalProps {
     open: boolean;
@@ -44,6 +45,14 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
     });
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
+    const scheduleStatsQuery = useTeacherSchedule({
+        teacherId: teacherId || undefined,
+        active: true,
+        search: form.lessonName || undefined,
+        page: 1,
+        limit: 1000,
+    } as any);
+
     const lessonNameOptions = useMemo(() => {
         const names = (certificates || [])
             .map((c: any) => String(c?.specificationName || '').trim())
@@ -77,6 +86,7 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
 
         const base = new Date();
         base.setHours(0, 0, 0, 0);
+        base.setDate(base.getDate() + 1);
 
         return Array.from({ length: 7 }).map((_, i) => {
             const d = new Date(base);
@@ -88,11 +98,15 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
         });
     }, []);
 
+    const lessonsSource = useMemo(() => {
+        const apiRows = (scheduleStatsQuery.data as any)?.data;
+        if (Array.isArray(apiRows)) return apiRows;
+        return existingLessons || [];
+    }, [existingLessons, scheduleStatsQuery.data]);
+
     const lessonCountByDayKey = useMemo(() => {
         const map = new Map<number, number>();
-        for (const row of existingLessons || []) {
-            const stRaw = String((row as any)?.status ?? '').toLowerCase();
-            if (stRaw && stRaw !== 'available') continue;
+        for (const row of lessonsSource || []) {
             const st = toMs((row as any)?.startTime ?? (row as any)?.start ?? (row as any)?.date);
             if (!st) continue;
             const k = keyOfDay(new Date(st));
@@ -100,7 +114,7 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
         }
         return map;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [existingLessons]);
+    }, [lessonsSource]);
 
     const disabledOffsets = useMemo(() => {
         const disabled = new Set<number>();
@@ -180,6 +194,16 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
         return slot?.date ?? null;
     }, [dateSlots, selectedOffsets]);
 
+    const selectedDateLabel = useMemo(() => {
+        if (!selectedDate) return '';
+        const months = ['YAN', 'FEV', 'MAR', 'APR', 'MAY', 'IYN', 'IYL', 'AVG', 'SEN', 'OKT', 'NOY', 'DEK'];
+        const days = ['Yak', 'Dush', 'Sesh', 'Chor', 'Pay', 'Jum', 'Shan'];
+        const dd = String(selectedDate.getDate()).padStart(2, '0');
+        const label = days[selectedDate.getDay()] || '';
+        const dateLabel = `${dd}-${months[selectedDate.getMonth()]}`;
+        return `${label} ${dateLabel}`.trim();
+    }, [selectedDate]);
+
     const selectedDayCount = useMemo(() => {
         if (!selectedDate) return 0;
         return lessonCountByDayKey.get(keyOfDay(selectedDate)) ?? 0;
@@ -196,7 +220,7 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
     const lessonsForSelectedDate = useMemo(() => {
         if (!selectedDate) return [];
         const key = selectedDate.toDateString();
-        const rows = (existingLessons || [])
+        const rows = (lessonsSource || [])
             .filter((l: any) => {
                 const ms = toMs(l?.startTime ?? l?.start ?? l?.date);
                 if (!ms) return false;
@@ -206,7 +230,7 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
 
         rows.sort((a: any, b: any) => (toMs(a?.startTime) ?? 0) - (toMs(b?.startTime) ?? 0));
         return rows;
-    }, [existingLessons, selectedDate]);
+    }, [lessonsSource, selectedDate]);
 
     const handleCreateWeek = async () => {
         if (!teacherId || !isTeacherValid) {
@@ -237,7 +261,7 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
         const startHM = parseTime(form.startTime);
         const finishHM = parseTime(form.finishTime);
 
-        const tasks: Array<{ startSeconds: number; finishSeconds: number }> = [];
+        const tasks: Array<{ startMs: number; finishMs: number }> = [];
 
         const sortedOffsets = [...selectedOffsets].sort((a, b) => a - b);
         for (const offset of sortedOffsets) {
@@ -254,7 +278,7 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
                 finish.setDate(finish.getDate() + 1);
             }
 
-            tasks.push({ startSeconds: Math.floor(start.getTime() / 1000), finishSeconds: Math.floor(finish.getTime() / 1000) });
+            tasks.push({ startMs: start.getTime(), finishMs: finish.getTime() });
         }
 
         if (tasks.length === 0) {
@@ -270,8 +294,8 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
                     studentId,
                     lessonName: form.lessonName,
                     lessonPrice: Number(form.lessonPrice) || 0,
-                    startTime: t.startSeconds,
-                    finishTime: t.finishSeconds,
+                    startTime: t.startMs,
+                    finishTime: t.finishMs,
                 });
             }
             onClose();
@@ -368,6 +392,11 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
                     </div>
 
                     <div className={`grid grid-cols-1 gap-3 ${canEnterTime ? '' : 'opacity-50 pointer-events-none'}`}>
+                        {selectedDateLabel && (
+                            <div className="text-xs font-semibold text-gray-700">
+                                Selected day: <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">{selectedDateLabel}</span>
+                            </div>
+                        )}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
                             <input
@@ -467,12 +496,14 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
                                         const ft = toMs(l?.finishTime ?? l?.endTime);
                                         const stStr = st ? new Date(st).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }) : '-';
                                         const ftStr = ft ? new Date(ft).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }) : '-';
+                                        const price = Number(l?.price ?? l?.lessonPrice ?? 0);
                                         return (
                                             <div key={String(l?.id ?? idx)} className="px-3 py-2 rounded-xl border border-gray-200 bg-white">
                                                 <div className="flex items-center justify-between gap-2">
                                                     <div className="text-xs font-semibold text-gray-900 truncate">{String(l?.lessonName ?? 'Lesson')}</div>
                                                     <div className="text-[11px] font-semibold text-gray-600 shrink-0">{stStr} - {ftStr}</div>
                                                 </div>
+                                                <div className="mt-1 text-[11px] font-semibold text-amber-700">{Number.isFinite(price) ? `${price.toLocaleString()} UZS` : '-'}</div>
                                             </div>
                                         );
                                     })

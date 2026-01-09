@@ -4,7 +4,6 @@ import { CalendarDays } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useStudentSchedule } from './service/useStudentSchedule';
 import { PageLoader } from '../../components/page-loader';
-import { useGetTeachers } from '../../page/admin/super-admin/teacher/service/useGetTeachers';
 import { TelegramStudentBottomNav } from './components/telegram-student-bottom-nav';
 
 export const StudentSchedulePage: React.FC = () => {
@@ -31,26 +30,20 @@ export const StudentSchedulePage: React.FC = () => {
     };
 
     // Read initial params from URL
-    const initialTeacherId = Number(searchParams.get('teacherId')) || undefined;
     const initialDay = searchParams.get('day') || '';
     const initialPage = Number(searchParams.get('page')) || 1;
     const initialLimit = Number(searchParams.get('limit')) || 10;
-    const initialLessonName = searchParams.get('lessonName') || '';
-    const initialMinPrice = searchParams.get('minPrice') || '';
-    const initialMaxPrice = searchParams.get('maxPrice') || '';
+    const initialSelectedNamesRaw = searchParams.get('lessonNames') || '';
 
     const [dayFilter, setDayFilter] = useState<string>(initialDay);
-    const [selectedDays, setSelectedDays] = useState<string[]>(initialDay ? [initialDay] : []);
     const [page, setPage] = useState<number>(initialPage);
-    const [teacherId, setTeacherId] = useState<number | undefined>(initialTeacherId);
     const [selectedLesson, setSelectedLesson] = useState<any | null>(null);
-    const [lessonName, setLessonName] = useState<string>(initialLessonName);
-    const [minPrice, setMinPrice] = useState<string>(initialMinPrice);
-    const [maxPrice, setMaxPrice] = useState<string>(initialMaxPrice);
-
-    // Get teachers list for filter
-    const { data: teachersData } = useGetTeachers({ page: 1, limit: 100, status: true });
-    const teachers = teachersData?.data || [];
+    const [selectedLessonNames, setSelectedLessonNames] = useState<string[]>(
+        initialSelectedNamesRaw
+            .split(',')
+            .map((x) => x.trim())
+            .filter(Boolean)
+    );
 
     const studentId = useMemo(() => {
         let t = tokenFromUrl;
@@ -62,15 +55,21 @@ export const StudentSchedulePage: React.FC = () => {
             }
         }
         const payload = t ? decodeJwtPayload(t) : null;
-        const id = Number(payload?.id);
+        const id = Number(payload?.id ?? payload?.studentId ?? payload?.userId);
         return Number.isFinite(id) && id > 0 ? id : 0;
     }, [tokenFromUrl]);
 
     const isBooking = false;
 
-    const { data: scheduleData, isPending } = useStudentSchedule({
-        teacherId,
+    const statsQuery = useStudentSchedule({
         active: true,
+        page: 1,
+        limit: 1000,
+    });
+
+    const { data: scheduleData, isPending } = useStudentSchedule({
+        active: true,
+        day: dayFilter || undefined,
         page: 1,
         limit: 1000,
     });
@@ -102,24 +101,20 @@ export const StudentSchedulePage: React.FC = () => {
         const today = days[now.getDay()] || '';
         if (today) {
             setDayFilter(today);
-            setSelectedDays([today]);
         }
     }, [initialDay]);
 
     // Update URL when filters change
     useEffect(() => {
         const params: any = {};
-        if (teacherId) params.teacherId = String(teacherId);
         if (dayFilter) params.day = dayFilter;
         if (page > 1) params.page = String(page);
         if (initialLimit !== 10) params.limit = String(initialLimit);
-        if (lessonName) params.lessonName = lessonName;
-        if (minPrice) params.minPrice = minPrice;
-        if (maxPrice) params.maxPrice = maxPrice;
+        if (selectedLessonNames.length) params.lessonNames = selectedLessonNames.join(',');
         params.active = 'true';
 
         setSearchParams(params);
-    }, [teacherId, dayFilter, page, initialLimit, lessonName, minPrice, maxPrice, setSearchParams]);
+    }, [dayFilter, page, initialLimit, selectedLessonNames, setSearchParams]);
 
     const rollingWeek = useMemo(() => {
         const order = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -148,15 +143,19 @@ export const StudentSchedulePage: React.FC = () => {
         return scheduleData?.data || [];
     }, [scheduleData?.data]);
 
+    const allLessonsForCounts = useMemo(() => {
+        return statsQuery.data?.data || [];
+    }, [statsQuery.data?.data]);
+
     const weekdayCounts = useMemo(() => {
         const counts: Record<string, number> = {};
-        allLessons.forEach((lesson: any) => {
+        allLessonsForCounts.forEach((lesson: any) => {
             const d = String(lesson?.weekDays ?? lesson?.weekday ?? lesson?.day ?? '');
             if (!d) return;
             counts[d] = (counts[d] || 0) + 1;
         });
         return counts;
-    }, [allLessons]);
+    }, [allLessonsForCounts]);
 
     const toMs = (value: unknown): number | null => {
         if (value == null) return null;
@@ -168,23 +167,16 @@ export const StudentSchedulePage: React.FC = () => {
 
     const lessonsForSelectedDay = useMemo(() => {
         if (!dayFilter) return [];
-        const name = lessonName.trim().toLowerCase();
-        const min = minPrice.trim() ? Number(minPrice) : undefined;
-        const max = maxPrice.trim() ? Number(maxPrice) : undefined;
+        const selected = selectedLessonNames.map((x) => x.toLowerCase());
         const rows = allLessons
             .filter((lesson: any) => {
                 const d = String(lesson?.weekDays ?? lesson?.weekday ?? lesson?.day ?? '');
                 return d === dayFilter;
             })
             .filter((lesson: any) => {
-                if (!name) return true;
-                return String(lesson?.lessonName ?? '').toLowerCase().includes(name);
-            })
-            .filter((lesson: any) => {
-                const p = Number(lesson?.price ?? lesson?.lessonPrice ?? 0);
-                if (min != null && Number.isFinite(min) && p < min) return false;
-                if (max != null && Number.isFinite(max) && p > max) return false;
-                return true;
+                if (!selected.length) return true;
+                const ln = String(lesson?.lessonName ?? '').toLowerCase();
+                return selected.includes(ln);
             })
             .slice();
         rows.sort((a: any, b: any) => {
@@ -193,7 +185,15 @@ export const StudentSchedulePage: React.FC = () => {
             return aMs - bMs;
         });
         return rows;
-    }, [allLessons, dayFilter, lessonName, minPrice, maxPrice]);
+    }, [allLessons, dayFilter, selectedLessonNames]);
+
+    const lessonNameOptions = useMemo(() => {
+        const rows = allLessonsForCounts || [];
+        const names = rows
+            .map((r: any) => String(r?.lessonName ?? '').trim())
+            .filter(Boolean);
+        return Array.from(new Set(names)).sort((a, b) => a.localeCompare(b));
+    }, [allLessonsForCounts]);
 
     const handleBook = (lesson: any) => {
         if (!studentId) {
@@ -233,67 +233,27 @@ export const StudentSchedulePage: React.FC = () => {
                         <h1 className="text-lg font-bold text-gray-900">Available Lessons</h1>
                     </div>
 
-                    <div className="mb-4 grid grid-cols-1 gap-2">
-                        <input
-                            type="text"
-                            value={lessonName}
-                            onChange={(e) => {
-                                setLessonName(e.target.value);
-                                setPage(1);
-                            }}
-                            placeholder="Lesson name"
-                            className="w-full h-11 px-4 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-green-200 text-sm shadow-sm"
-                        />
-                        <div className="grid grid-cols-2 gap-2">
-                            <input
-                                type="number"
-                                value={minPrice}
-                                onChange={(e) => {
-                                    setMinPrice(e.target.value);
-                                    setPage(1);
-                                }}
-                                placeholder="Min price"
-                                className="w-full h-11 px-4 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-green-200 text-sm shadow-sm"
-                            />
-                            <input
-                                type="number"
-                                value={maxPrice}
-                                onChange={(e) => {
-                                    setMaxPrice(e.target.value);
-                                    setPage(1);
-                                }}
-                                placeholder="Max price"
-                                className="w-full h-11 px-4 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-green-200 text-sm shadow-sm"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Teacher Filter */}
                     <div className="mb-4">
+                        <label className="block text-xs font-semibold text-gray-600 mb-1">Filter Lesson Name</label>
                         <Select
-                            placeholder="Filter by Teacher"
+                            mode="multiple"
                             allowClear
-                            value={teacherId}
-                            onChange={(value) => {
-                                setTeacherId(value || undefined);
+                            value={selectedLessonNames}
+                            onChange={(v) => {
+                                setSelectedLessonNames((v as any[]).map((x) => String(x)));
+                                setSelectedLesson(null);
                                 setPage(1);
                             }}
+                            placeholder="Select lesson name"
                             className="w-full"
-                            showSearch
-                            filterOption={(input, option) =>
-                                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                            }
-                            options={teachers.map((t: any) => ({
-                                value: t.id,
-                                label: `${t.fullname || 'Unknown'} (ID: ${t.id})`,
-                            }))}
+                            options={lessonNameOptions.map((n) => ({ value: n, label: n }))}
                         />
                     </div>
 
                     {/* Day Filters */}
                     <div className="grid grid-cols-4 gap-2">
                         {rollingWeek.map(({ day, dateStr }) => {
-                            const isActive = selectedDays.includes(day);
+                            const isActive = dayFilter === day;
                             const count = weekdayCounts[day] || 0;
                             const disabled = count === 0;
 
@@ -303,17 +263,7 @@ export const StudentSchedulePage: React.FC = () => {
                                     onClick={() => {
                                         if (disabled) return;
                                         setSelectedLesson(null);
-                                        setSelectedDays((prev) => {
-                                            if (prev.includes(day)) {
-                                                const next = prev.filter((x) => x !== day);
-                                                if (dayFilter === day) {
-                                                    setDayFilter(next[0] || '');
-                                                }
-                                                return next;
-                                            }
-                                            setDayFilter(day);
-                                            return [...prev, day];
-                                        });
+                                        setDayFilter(day);
                                         setPage(1);
                                     }}
                                     disabled={disabled}
@@ -347,6 +297,7 @@ export const StudentSchedulePage: React.FC = () => {
                                     lessonsForSelectedDay.map((l: any) => {
                                         const st = formatTime(toMs(l?.startTime));
                                         const ft = formatTime(toMs(l?.finishTime ?? l?.endTime));
+                                        const price = Number(l?.price ?? l?.lessonPrice ?? 0);
                                         return (
                                             <button
                                                 key={String(l?.id ?? `${l?.lessonName}-${l?.startTime}`)}
@@ -358,6 +309,7 @@ export const StudentSchedulePage: React.FC = () => {
                                                     <div className="text-xs font-semibold text-gray-900 truncate">{String(l?.lessonName ?? 'Lesson')}</div>
                                                     <div className="text-[11px] font-semibold text-gray-600 shrink-0">{st} - {ft}</div>
                                                 </div>
+                                                <div className="mt-1 text-[11px] font-semibold text-amber-700">{Number.isFinite(price) ? `${price.toLocaleString()} UZS` : '-'}</div>
                                             </button>
                                         );
                                     })
@@ -380,6 +332,9 @@ export const StudentSchedulePage: React.FC = () => {
                                 <div className="text-sm font-bold text-gray-900">{selectedLesson.lessonName || 'Lesson'}</div>
                                 <div className="text-xs text-gray-500 mt-1">
                                     {formatTime(toMs(selectedLesson.startTime))} - {formatTime(toMs(selectedLesson.finishTime ?? selectedLesson.endTime))}
+                                </div>
+                                <div className="text-xs font-bold text-amber-700 mt-1">
+                                    {Number(selectedLesson.price ?? selectedLesson.lessonPrice ?? 0).toLocaleString()} UZS
                                 </div>
                             </div>
                             <Button

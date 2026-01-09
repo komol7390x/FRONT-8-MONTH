@@ -83,6 +83,12 @@ export const SchedulePage: React.FC = () => {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [createTeacherId, setCreateTeacherId] = useState<number>(0);
 
+    const createExistingScheduleQuery = useTeacherSchedule({
+        teacherId: createTeacherId || undefined,
+        limit: 1000,
+        active: true,
+    });
+
     // Teacher Data for creation (certificates)
     const createTeacherQuery = useGetTeacherById(createTeacherId || undefined);
     const createTeacherCertificates = (createTeacherQuery.data as any)?.certificates || [];
@@ -321,6 +327,7 @@ export const SchedulePage: React.FC = () => {
                 teacherId={createTeacherId}
                 showTeacherIdInput={true}
                 certificates={createTeacherCertificates}
+                existingSchedule={(createExistingScheduleQuery.data as any)?.data || []}
                 onTeacherIdChange={setCreateTeacherId}
                 onClose={() => setIsCreateOpen(false)}
                 onCreated={() => {

@@ -6,8 +6,8 @@ export interface UpdateLessonTemplatePayload {
     id: number;
     startTime: number;
     finishTime: number;
-    lessonName: string;
-    lessonPrice: number;
+    lessonName?: string;
+    lessonPrice?: number;
 }
 
 export const useUpdateLessonTemplate = () => {
@@ -15,7 +15,12 @@ export const useUpdateLessonTemplate = () => {
     return useMutation({
         mutationFn: async (payload: UpdateLessonTemplatePayload) => {
             const { id, ...body } = payload;
-            const res = await request.patch(`/lesson-template/${id}`, body);
+            const filteredBody: any = {};
+            Object.keys(body).forEach((k) => {
+                const v: any = (body as any)[k];
+                if (v !== undefined) filteredBody[k] = v;
+            });
+            const res = await request.patch(`/lesson-template/${id}`, filteredBody);
             return res.data;
         },
         onSuccess: (data: any) => {

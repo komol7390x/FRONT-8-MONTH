@@ -24,6 +24,7 @@ export interface GetPaymentsParams {
     search?: string;
     active?: boolean;
     role?: string;
+    userId?: number;
     status?: PaymentStatus | string;
     page?: number;
     limit?: number;
@@ -51,6 +52,7 @@ export const usePayments = (params: GetPaymentsParams = {}) => {
             if (params.search?.trim()) queryParams.search = params.search.trim();
             if (typeof params.active === 'boolean') queryParams.active = params.active;
             if (params.role) queryParams.role = params.role;
+            if (typeof params.userId === 'number' && Number.isFinite(params.userId)) queryParams.userId = params.userId;
             if (params.status) queryParams.status = params.status;
 
             const res = await request.get<GetPaymentsResponse>('/payment', { params: queryParams });
