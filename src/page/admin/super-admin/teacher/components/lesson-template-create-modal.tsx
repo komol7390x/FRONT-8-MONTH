@@ -204,7 +204,7 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
     const selectedDateLabel = useMemo(() => {
         if (!selectedDate) return '';
         const months = ['YAN', 'FEV', 'MAR', 'APR', 'MAY', 'IYN', 'IYL', 'AVG', 'SEN', 'OKT', 'NOY', 'DEK'];
-        const days = ['S', 'Dush', 'Sesh', 'Chor', 'Pay', 'Jum', 'Shan'];
+        const days = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"];
         const dd = String(selectedDate.getDate()).padStart(2, '0');
         const label = days[selectedDate.getDay()] || '';
         const dateLabel = `${dd}-${months[selectedDate.getMonth()]}`;
@@ -261,7 +261,16 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
             return;
         }
 
-        const currentLessonId = getLessonIdByName(form.lessonName);
+        // Get the schedule ID from the selected lesson for the selected date
+        const selectedLesson = lessonsForSelectedDate.find((l: any) =>
+            String(l?.lessonName || '').trim() === form.lessonName.trim()
+        );
+        const scheduleId = selectedLesson?.id;
+
+        if (!scheduleId) {
+            message.error('Schedule ID not found for selected lesson');
+            return;
+        }
 
         const parseTime = (t: string) => {
             const [h, m] = t.split(':').map((x) => Number(x));
@@ -301,7 +310,7 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
                 await createLesson({
                     teacherId,
                     studentId,
-                    lessonId: currentLessonId,
+                    lessonId: scheduleId,
                     startTime: t.startMs,
                     finishTime: t.finishMs,
                 });
