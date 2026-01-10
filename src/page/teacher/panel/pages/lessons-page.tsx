@@ -99,15 +99,15 @@ export const TeacherLessonsPage: React.FC = () => {
     const totalPages = query.data?.meta?.totalPages ?? (limit > 0 ? Math.ceil(total / limit) : 0);
 
     const weekdaySlots = useMemo(() => {
-        const months = ['YAN', 'FEV', 'MAR', 'APR', 'MAY', 'IYN', 'IYL', 'AVG', 'SEN', 'OKT', 'NOY', 'DEK'];
+        const months = ['Yan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         const dayNames: Array<{ key: (typeof WeekDays)[keyof typeof WeekDays]; short: string }> = [
-            { key: WeekDays.SUNDAY, short: 'Sat' },
-            { key: WeekDays.MONDAY, short: 'Sun' },
-            { key: WeekDays.TUESDAY, short: 'Mon' },
-            { key: WeekDays.WEDNESDAY, short: 'Tue' },
-            { key: WeekDays.THURSDAY, short: 'Wed' },
-            { key: WeekDays.FRIDAY, short: 'Thu' },
-            { key: WeekDays.SATURDAY, short: 'Shan' },
+            { key: WeekDays.SUNDAY, short: 'Sun' },
+            { key: WeekDays.MONDAY, short: 'Mon' },
+            { key: WeekDays.TUESDAY, short: 'Tue' },
+            { key: WeekDays.WEDNESDAY, short: 'Wed' },
+            { key: WeekDays.THURSDAY, short: 'Thu' },
+            { key: WeekDays.FRIDAY, short: 'Fri' },
+            { key: WeekDays.SATURDAY, short: 'Sat' },
         ];
 
         const base = new Date();

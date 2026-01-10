@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Card, Tag, message } from 'antd';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { CalendarDays, Trash2 } from 'lucide-react';
-import { useTeacherLessons, type TeacherLessonTemplate } from '../service/useTeacherLessons';
+import { type TeacherLessonTemplate } from '../service/useTeacherLessons';
 import { PageLoader } from '../../../../components/page-loader';
 import { request } from '../../../../config/request';
 import { ConfirmModal } from '../../../../components/confirm-modal';
@@ -14,11 +14,20 @@ export const TeacherSchedulePage: React.FC = () => {
     const limit = 10;
 
     const rollingWeek = useMemo(() => {
-        const order = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        const todayIdx = new Date().getDay();
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const today = new Date();
+        const currentDayIndex = today.getDay();
+
         return Array.from({ length: 7 }).map((_, i) => {
-            const idx = (todayIdx + i) % 7;
-            return order[idx] || '';
+            const dayIndex = (currentDayIndex + i) % 7;
+            const dayName = days[dayIndex];
+            const targetDate = new Date(today);
+            targetDate.setDate(today.getDate() + i);
+
+            return {
+                dayName,
+                dateStr: targetDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' })
+            };
         });
     }, []);
 
@@ -26,11 +35,12 @@ export const TeacherSchedulePage: React.FC = () => {
     const statsQuery = useScheduleLesson({ page: 1, limit: 1000 });
 
     // Fetch filtered data
-    const lessonsQuery = useTeacherLessons({
+    const lessonsQuery = useScheduleLesson({
         page,
         limit,
         day: dayFilter || undefined,
-        active: true
+        active: true,
+        teacherId: undefined // Will fetch current teacher's schedules
     });
 
     const qc = useQueryClient();
@@ -73,27 +83,13 @@ export const TeacherSchedulePage: React.FC = () => {
         return `${weekday} • ${date}`;
     };
 
-    const getCurrentWeekDate = (dayName: string) => {
-        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        const now = new Date();
-        const currentDayIndex = now.getDay(); // 0-6
-        const targetDayIndex = days.indexOf(dayName);
-
-        if (targetDayIndex === -1) return '';
-
-        const diff = targetDayIndex - currentDayIndex;
-        const targetDate = new Date(now);
-        targetDate.setDate(now.getDate() + diff);
-
-        return targetDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' });
-    };
 
     const dayCounts = useMemo(() => {
         const counts: Record<string, number> = {};
         if (statsQuery.data?.data) {
             statsQuery.data.data.forEach((item: any) => {
-                const d = item.weekDays || item.day || item.weekday;
-                if (d) counts[d] = (counts[d] || 0) + 1;
+                const day = item.weekDays || item.weekday;
+                if (day) counts[day] = (counts[day] || 0) + 1;
             });
         }
         return counts;
@@ -101,13 +97,12 @@ export const TeacherSchedulePage: React.FC = () => {
 
     React.useEffect(() => {
         if (dayFilter) return;
-        const today = rollingWeek[0];
-        if (!today) return;
+        const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
         if ((dayCounts[today] || 0) > 0) {
             setDayFilter(today);
             setPage(1);
         }
-    }, [dayCounts, dayFilter, rollingWeek]);
+    }, [dayCounts, dayFilter]);
 
     const grouped = useMemo(() => {
         const list = (lessonsQuery.data?.data || []) as TeacherLessonTemplate[];
@@ -162,9 +157,10 @@ export const TeacherSchedulePage: React.FC = () => {
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
-                        {rollingWeek.map((day) => {
+                        {rollingWeek.map((dayData) => {
+                            const day = dayData.dayName;
                             const count = dayCounts[day] || 0;
-                            const dateStr = getCurrentWeekDate(day);
+                            const dateStr = dayData.dateStr;
                             const isActiveDay = count > 0;
 
                             return (
