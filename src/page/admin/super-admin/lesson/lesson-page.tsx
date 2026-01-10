@@ -536,26 +536,6 @@ export const LessonPage: React.FC = () => {
                             ]}
                         />
 
-                        <Select
-                            allowClear
-                            value={weekday || undefined}
-                            onChange={(v) => {
-                                setWeekday((v as any) ?? undefined);
-                                setPage(1);
-                            }}
-                            placeholder="Weekday"
-                            style={{ width: '100%' }}
-                            options={[
-                                { value: 'Monday', label: 'Monday' },
-                                { value: 'Tuesday', label: 'Tuesday' },
-                                { value: 'Wednesday', label: 'Wednesday' },
-                                { value: 'Thursday', label: 'Thursday' },
-                                { value: 'Friday', label: 'Friday' },
-                                { value: 'Saturday', label: 'Saturday' },
-                                { value: 'Sunday', label: 'Sunday' },
-                            ]}
-                        />
-
                         <InputNumber
                             value={teacherId}
                             onChange={(v) => {

@@ -21,24 +21,45 @@ export interface ScheduleParams {
     limit?: number;
     day?: string;
     weekday?: string;
+    id?: number;
+}
+
+interface ScheduleResponse {
+    data: any[];
+    meta: {
+        totalItems: number;
+        itemCount: number;
+        itemsPerPage: number;
+        totalPages: number;
+        currentPage: number;
+    };
+    stats: {
+        active: number;
+        inactive: number;
+    };
 }
 
 export const useTeacherSchedule = (params: ScheduleParams) => {
-    return useQuery({
+    return useQuery<ScheduleResponse>({
         queryKey: ['teacher-schedule', params],
         queryFn: async () => {
             const { teacherId, active, search, page, limit, day, weekday } = params;
             const queryParams = new URLSearchParams();
+
             if (teacherId) queryParams.append('teacherId', String(teacherId));
             if (active !== undefined) queryParams.append('active', String(active));
             if (search) queryParams.append('search', search);
             if (page) queryParams.append('page', String(page));
             if (limit) queryParams.append('limit', String(limit));
+
             const selectedDay = day || weekday;
-            if (selectedDay) queryParams.append('day', selectedDay);
+            if (selectedDay) {
+                queryParams.append('day', selectedDay);
+            }
 
             const res = await request.get(`/schedule?${queryParams.toString()}`);
             return res.data;
         },
+        enabled: !!params.teacherId || !!params.search,
     });
 };

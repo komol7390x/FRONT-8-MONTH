@@ -3,35 +3,35 @@ import { request } from '../../../../../config/request';
 import { message } from 'antd';
 
 export interface CreateLessonTemplatePayload {
+    lessonId: number;
     startTime: number;
     finishTime: number;
-    lessonName: string;
-    lessonPrice: number;
-    teacherId: number;
-    studentId?: number;
+    studentId: number;
 }
 
 export const useCreateLessonTemplate = () => {
     const client = useQueryClient();
     return useMutation({
         mutationFn: async (payload: CreateLessonTemplatePayload) => {
-            const res = await request.post('/schedule', {
+            console.log(11111,payload);
+            const res = await request.post(`/lesson-template/booked-by-student/${payload.studentId}`, {
                 startTime: payload.startTime,
                 finishTime: payload.finishTime,
-                lessonName: payload.lessonName,
-                lessonPrice: payload.lessonPrice,
-                teacherId: payload.teacherId,
-                studentId: payload.studentId,
+            }, {
+                params: {
+                    lessonId: payload.lessonId,
+                },
             });
             return res.data;
         },
         onSuccess: (data: any) => {
-            message.success(data?.message || 'Lesson created');
+            message.success(data?.message || 'Weekly lessons created successfully');
+            client.invalidateQueries({ queryKey: ['lesson-template'] });
             client.invalidateQueries({ queryKey: ['teacher-lessons'] });
             client.invalidateQueries({ queryKey: ['student-lessons'] });
         },
         onError: (error: any) => {
-            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to create lesson';
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to create weekly lessons';
             message.error(errorMessage);
         },
     });

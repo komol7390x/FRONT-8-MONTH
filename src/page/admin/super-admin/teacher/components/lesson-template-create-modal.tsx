@@ -42,6 +42,7 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
         finishTime: '',
         lessonName: '',
         lessonPrice: 0,
+        lessonId: null,
     });
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
@@ -51,6 +52,7 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
         search: form.lessonName || undefined,
         page: 1,
         limit: 1000,
+        id: form.lessonId,
     } as any);
 
     const lessonNameOptions = useMemo(() => {
@@ -64,6 +66,12 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
         const found = (certificates || []).find((c: any) => String(c?.specificationName || '').trim() === name);
         const price = Number(found?.hourPrice);
         return Number.isFinite(price) ? price : 0;
+    };
+
+    // Lesson ID ni topish uchun yordamchi funksiya
+    const getLessonIdByName = (name: string) => {
+        const found = (certificates || []).find((c: any) => String(c?.specificationName || '').trim() === name);
+        return found?.id || found?.lessonId;
     };
 
     const toMs = (value: unknown): number | null => {
@@ -81,8 +89,8 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
     };
 
     const dateSlots = useMemo(() => {
-        const months = ['YAN', 'FEV', 'MAR', 'APR', 'MAY', 'IYN', 'IYL', 'AVG', 'SEN', 'OKT', 'NOY', 'DEK'];
-        const days = ['Yak', 'Dush', 'Sesh', 'Chor', 'Pay', 'Jum', 'Shan'];
+        const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
         const base = new Date();
         base.setHours(0, 0, 0, 0);
@@ -113,7 +121,6 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
             map.set(k, (map.get(k) ?? 0) + 1);
         }
         return map;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lessonsSource]);
 
     const disabledOffsets = useMemo(() => {
@@ -137,6 +144,7 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
             finishTime: '',
             lessonName: lessonNameOptions[0] || '',
             lessonPrice: lessonNameOptions[0] ? getHourPriceByName(lessonNameOptions[0]) : 0,
+            lessonId: lessonNameOptions[0] ? getLessonIdByName(lessonNameOptions[0]) : null,
         });
         setIsSubmitting(false);
     }, [dateSlots, disabledOffsets, lessonCountByDayKey, lessonNameOptions, open]);
@@ -145,7 +153,6 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
         if (!open) return;
         if (!form.lessonName.trim()) return;
         setForm((p) => ({ ...p, lessonPrice: getHourPriceByName(p.lessonName) }));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open, form.lessonName]);
 
     const hasLessonName = useMemo(() => {
@@ -197,7 +204,7 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
     const selectedDateLabel = useMemo(() => {
         if (!selectedDate) return '';
         const months = ['YAN', 'FEV', 'MAR', 'APR', 'MAY', 'IYN', 'IYL', 'AVG', 'SEN', 'OKT', 'NOY', 'DEK'];
-        const days = ['Yak', 'Dush', 'Sesh', 'Chor', 'Pay', 'Jum', 'Shan'];
+        const days = ['S', 'Dush', 'Sesh', 'Chor', 'Pay', 'Jum', 'Shan'];
         const dd = String(selectedDate.getDate()).padStart(2, '0');
         const label = days[selectedDate.getDay()] || '';
         const dateLabel = `${dd}-${months[selectedDate.getMonth()]}`;
@@ -254,6 +261,8 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
             return;
         }
 
+        const currentLessonId = getLessonIdByName(form.lessonName);
+
         const parseTime = (t: string) => {
             const [h, m] = t.split(':').map((x) => Number(x));
             return { h: Number.isFinite(h) ? h : 0, m: Number.isFinite(m) ? m : 0 };
@@ -278,7 +287,7 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
                 finish.setDate(finish.getDate() + 1);
             }
 
-            tasks.push({ startMs: start.getTime(), finishMs: finish.getTime() });
+            tasks.push({ startMs: Math.floor(start.getTime() / 1000), finishMs: Math.floor(finish.getTime() / 1000) });
         }
 
         if (tasks.length === 0) {
@@ -292,8 +301,7 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
                 await createLesson({
                     teacherId,
                     studentId,
-                    lessonName: form.lessonName,
-                    lessonPrice: Number(form.lessonPrice) || 0,
+                    lessonId: currentLessonId,
                     startTime: t.startMs,
                     finishTime: t.finishMs,
                 });
@@ -371,10 +379,15 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
                         <div className="relative">
                             <BookOpen size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-700" />
                             <select
-                                value={form.lessonName}
+                                value={form.lessonId ?? ''}
                                 onChange={(e) => {
                                     const value = e.target.value;
-                                    setForm((p) => ({ ...p, lessonName: value, lessonPrice: getHourPriceByName(value) }));
+                                    setForm((p) => ({
+                                        ...p,
+                                        lessonName: value,
+                                        lessonPrice: getHourPriceByName(value),
+                                        lessonId: getLessonIdByName(value),
+                                    }));
                                 }}
                                 className="w-full h-11 pl-10 pr-10 bg-linear-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-300"
                             >
@@ -497,8 +510,12 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
                                         const stStr = st ? new Date(st).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }) : '-';
                                         const ftStr = ft ? new Date(ft).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }) : '-';
                                         const price = Number(l?.price ?? l?.lessonPrice ?? 0);
+
+                                        // Tanlangan dars nomi bilan mos kelsa, yashil fon berish
+                                        const isCurrentLesson = String(l?.lessonName || '').trim() === form.lessonName.trim();
+
                                         return (
-                                            <div key={String(l?.id ?? idx)} className="px-3 py-2 rounded-xl border border-gray-200 bg-white">
+                                            <div key={String(l?.id ?? idx)} className={`px-3 py-2 rounded-xl border border-gray-200 transition-colors ${isCurrentLesson ? 'bg-emerald-50 border-emerald-200' : 'bg-white'}`}>
                                                 <div className="flex items-center justify-between gap-2">
                                                     <div className="text-xs font-semibold text-gray-900 truncate">{String(l?.lessonName ?? 'Lesson')}</div>
                                                     <div className="text-[11px] font-semibold text-gray-600 shrink-0">{stStr} - {ftStr}</div>

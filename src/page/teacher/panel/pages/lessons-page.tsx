@@ -101,12 +101,12 @@ export const TeacherLessonsPage: React.FC = () => {
     const weekdaySlots = useMemo(() => {
         const months = ['YAN', 'FEV', 'MAR', 'APR', 'MAY', 'IYN', 'IYL', 'AVG', 'SEN', 'OKT', 'NOY', 'DEK'];
         const dayNames: Array<{ key: (typeof WeekDays)[keyof typeof WeekDays]; short: string }> = [
-            { key: WeekDays.SUNDAY, short: 'Yak' },
-            { key: WeekDays.MONDAY, short: 'Dush' },
-            { key: WeekDays.TUESDAY, short: 'Sesh' },
-            { key: WeekDays.WEDNESDAY, short: 'Chor' },
-            { key: WeekDays.THURSDAY, short: 'Pay' },
-            { key: WeekDays.FRIDAY, short: 'Jum' },
+            { key: WeekDays.SUNDAY, short: 'Sat' },
+            { key: WeekDays.MONDAY, short: 'Sun' },
+            { key: WeekDays.TUESDAY, short: 'Mon' },
+            { key: WeekDays.WEDNESDAY, short: 'Tue' },
+            { key: WeekDays.THURSDAY, short: 'Wed' },
+            { key: WeekDays.FRIDAY, short: 'Thu' },
             { key: WeekDays.SATURDAY, short: 'Shan' },
         ];
 
