@@ -138,6 +138,7 @@ export const LessonPage: React.FC = () => {
     const dataSource = (query.data?.data || []).map((row: any) => ({
         key: row?.id ?? `${row?.teacherId}-${row?.studentId}-${Math.random()}`,
         ...row,
+        active: Boolean(row?.active ?? row?.isActive ?? true),
     }));
 
     const totalCount = query.data?.meta?.totalItems || dataSource.length;
@@ -272,7 +273,7 @@ export const LessonPage: React.FC = () => {
                 width: 95,
                 render: (v) => (
                     <span className={`inline-block px-3 py-1.5 rounded text-sm font-medium text-white min-w-22 text-center ${v ? 'bg-green-600' : 'bg-red-600'}`}>
-                        {v ? 'ACTIVE' : 'BLOCKED'}
+                        {v ? "Active" : "Blocked"}
                     </span>
                 ),
             },

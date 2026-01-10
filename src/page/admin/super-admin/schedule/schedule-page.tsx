@@ -14,7 +14,7 @@ import { ConfirmModal } from '../../../../components/confirm-modal';
 export const SchedulePage: React.FC = () => {
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
-    const [activeFilter, setActiveFilter] = useState<string>('true');
+    const [activeFilter, setActiveFilter] = useState<string>('');
     const [dayFilter, setDayFilter] = useState<string>('');
     const [searchInput, setSearchInput] = useState('');
     const [search, setSearch] = useState('');
@@ -53,7 +53,6 @@ export const SchedulePage: React.FC = () => {
     // Fetch stats for all schedule items
     const statsQuery = useTeacherSchedule({
         limit: 1000,
-        active: true,
     });
 
     // Schedule Data
@@ -89,7 +88,6 @@ export const SchedulePage: React.FC = () => {
     const createExistingScheduleQuery = useTeacherSchedule({
         teacherId: createTeacherId || undefined,
         limit: 1000,
-        active: true,
     });
 
     // Teacher Data for creation (certificates)
