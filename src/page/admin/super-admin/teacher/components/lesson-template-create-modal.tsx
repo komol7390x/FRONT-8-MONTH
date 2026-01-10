@@ -203,7 +203,7 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
 
     const selectedDateLabel = useMemo(() => {
         if (!selectedDate) return '';
-        const months = ['YAN', 'FEV', 'MAR', 'APR', 'MAY', 'IYN', 'IYL', 'AVG', 'SEN', 'OKT', 'NOY', 'DEK'];
+        const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
         const days = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"];
         const dd = String(selectedDate.getDate()).padStart(2, '0');
         const label = days[selectedDate.getDay()] || '';
