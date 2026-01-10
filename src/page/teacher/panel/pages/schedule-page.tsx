@@ -6,6 +6,7 @@ import { useTeacherLessons, type TeacherLessonTemplate } from '../service/useTea
 import { PageLoader } from '../../../../components/page-loader';
 import { request } from '../../../../config/request';
 import { ConfirmModal } from '../../../../components/confirm-modal';
+import { useScheduleLesson } from '../service/useScheduleLesson';
 
 export const TeacherSchedulePage: React.FC = () => {
     const [dayFilter, setDayFilter] = useState<string>('');
@@ -22,7 +23,7 @@ export const TeacherSchedulePage: React.FC = () => {
     }, []);
 
     // Fetch stats to calculate counts
-    const statsQuery = useTeacherLessons({ page: 1, limit: 1000 });
+    const statsQuery = useScheduleLesson({ page: 1, limit: 1000 });
 
     // Fetch filtered data
     const lessonsQuery = useTeacherLessons({

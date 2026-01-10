@@ -126,7 +126,7 @@ export const SchedulePage: React.FC = () => {
 
     const softDeleteMutation = useMutation({
         mutationFn: async ({ id, active }: { id: number; active: boolean }) => {
-            const res = await request.delete(`/soft-delete/${id}`, { params: { active } });
+            const res = await request.delete(`/schedule/soft-delete/${id}`, { params: { active } });
             return res.data;
         },
         onSuccess: (data: any) => {
@@ -304,7 +304,7 @@ export const SchedulePage: React.FC = () => {
                                 if (!Number.isFinite(id) || id <= 0) return;
                                 openConfirm({
                                     variant: isSoftDeleted ? 'restore' : 'delete',
-                                    title: isSoftDeleted ? 'Restore schedule' : 'Soft delete schedule',
+                                    title: isSoftDeleted ? 'Restore schedule' : 'Delete schedule',
                                     message: isSoftDeleted ? 'Do you want to restore this schedule?' : 'Do you want to soft delete this schedule?',
                                     note: 'This action can be reversed.',
                                     action: 'soft_delete',
@@ -313,7 +313,7 @@ export const SchedulePage: React.FC = () => {
                             }}
                         >
                             {isSoftDeleted ? <Unlock size={12} /> : <Trash2 size={12} />}
-                            {isSoftDeleted ? 'Restore' : 'Soft delete'}
+                            {isSoftDeleted ? 'Restore' : 'Delete'}
                         </button>
 
                         <button

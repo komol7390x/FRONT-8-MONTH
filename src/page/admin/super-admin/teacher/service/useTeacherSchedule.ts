@@ -60,6 +60,6 @@ export const useTeacherSchedule = (params: ScheduleParams) => {
             const res = await request.get(`/schedule?${queryParams.toString()}`);
             return res.data;
         },
-        enabled: !!params.teacherId || !!params.search,
+        enabled: true,
     });
 };
