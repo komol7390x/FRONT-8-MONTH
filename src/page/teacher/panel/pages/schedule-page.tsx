@@ -147,7 +147,7 @@ export const TeacherSchedulePage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 p-3 sm:p-6">
-            <div className="max-w-6xl mx-auto space-y-4">
+            <div className="max-w-screen-2xl mx-auto space-y-4">
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                         <div className="flex items-center gap-2">

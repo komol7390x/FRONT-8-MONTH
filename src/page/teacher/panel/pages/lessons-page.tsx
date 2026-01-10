@@ -191,7 +191,7 @@ export const TeacherLessonsPage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 p-3 sm:p-6">
-            <div className="max-w-7xl mx-auto space-y-4">
+            <div className="max-w-screen-2xl mx-auto space-y-4">
                 <div className="mt-4 p-4 rounded-2xl border border-gray-200 bg-linear-to-r from-white to-gray-50 shadow-sm space-y-3">
                     <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2">

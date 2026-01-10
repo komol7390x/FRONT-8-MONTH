@@ -398,7 +398,7 @@ export const LessonPage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 p-3 sm:p-6 overflow-x-hidden">
-            <div className="max-w-7xl mx-auto space-y-4">
+            <div className="max-w-screen-2xl mx-auto space-y-4">
                 <div className="flex items-center justify-between gap-3">
                     <Typography.Title level={3} style={{ margin: 0 }}>
                         Lesson

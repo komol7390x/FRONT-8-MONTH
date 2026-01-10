@@ -339,7 +339,7 @@ export const SchedulePage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 p-3 sm:p-6 overflow-x-hidden">
-            <div className="max-w-7xl mx-auto space-y-4">
+            <div className="max-w-screen-2xl mx-auto space-y-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <CalendarClock size={24} className="text-blue-700" />
