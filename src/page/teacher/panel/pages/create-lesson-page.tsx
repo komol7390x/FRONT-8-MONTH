@@ -23,6 +23,7 @@ export const TeacherCreateLessonPage: React.FC = () => {
 
     const lessonNameOptions = useMemo(() => {
         const names = (certificates || [])
+            .filter((c: any) => c?.isActive !== false)
             .map((c: any) => String(c?.specificationName || '').trim())
             .filter(Boolean);
         return Array.from(new Set(names));
@@ -110,19 +111,15 @@ export const TeacherCreateLessonPage: React.FC = () => {
     }, [lessonsQuery.data?.data]);
 
     const scheduleCountByDayKey = useMemo(() => {
-        const selectedName = String(form.getFieldValue('lessonName') || '').trim();
         const map = new Map<number, number>();
         for (const row of existingLessons || []) {
-            const rowName = String((row as any)?.lessonName ?? '').trim();
-            if (selectedName && rowName !== selectedName) continue;
             const st = toMs((row as any)?.startTime);
             if (!st) continue;
             const k = keyOfDay(new Date(st));
             map.set(k, (map.get(k) ?? 0) + 1);
         }
         return map;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [existingLessons, form]);
+    }, [existingLessons]);
 
     const selectedDate = useMemo(() => {
         const offset = selectedOffsets[0];

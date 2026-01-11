@@ -145,6 +145,8 @@ export const TeacherSchedulePage: React.FC = () => {
         );
     }
 
+    const activeDayCount = Object.values(dayCounts).reduce((a, b) => a + (Number(b) || 0), 0);
+
     return (
         <div className="min-h-screen bg-gray-50 p-3 sm:p-6">
             <div className="max-w-screen-2xl mx-auto space-y-4">
@@ -153,6 +155,9 @@ export const TeacherSchedulePage: React.FC = () => {
                         <div className="flex items-center gap-2">
                             <CalendarDays size={18} className="text-emerald-700" />
                             <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Schedule</h1>
+                        </div>
+                        <div className="text-xs text-gray-600">
+                            Total lessons: <span className="font-semibold text-gray-900">{activeDayCount}</span>
                         </div>
                     </div>
 
@@ -173,18 +178,18 @@ export const TeacherSchedulePage: React.FC = () => {
                                         }
                                     }}
                                     disabled={!isActiveDay}
-                                    className={`py-3 px-2 rounded-xl text-sm font-bold shadow-sm transition-all flex flex-col items-center justify-center gap-1
+                                    className={`py-3 px-2 rounded-2xl text-sm font-bold shadow-sm transition-all flex flex-col items-center justify-center gap-1
                                         ${dayFilter === day
-                                            ? 'bg-blue-600 text-white ring-2 ring-blue-300 transform scale-105'
+                                            ? 'bg-blue-600 text-white ring-2 ring-blue-300'
                                             : isActiveDay
                                                 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300'
                                                 : 'bg-white text-gray-400 border border-gray-200 opacity-60 cursor-not-allowed'
                                         }`}
                                 >
-                                    <span>{day.slice(0, 3)}</span>
-                                    <span className="text-xs font-normal opacity-80">{dateStr}</span>
+                                    <span className="tracking-wide">{day.slice(0, 3)}</span>
+                                    <span className="text-[11px] font-semibold opacity-80">{dateStr}</span>
                                     {isActiveDay && (
-                                        <span className="px-2 py-0.5 bg-white/30 rounded-full text-xs leading-none">
+                                        <span className={`px-2 py-0.5 rounded-full text-xs leading-none ${dayFilter === day ? 'bg-white/20' : 'bg-gray-900 text-white'}`}>
                                             {count}
                                         </span>
                                     )}
@@ -205,39 +210,59 @@ export const TeacherSchedulePage: React.FC = () => {
                             className="rounded-2xl"
                             title={<span className="font-bold">{formatDayHeader(g.dayMs)}</span>}
                         >
+                            <div className="grid grid-cols-12 gap-3 px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-[11px] font-bold text-gray-700">
+                                <div className="col-span-5">Lesson</div>
+                                <div className="col-span-3">Time</div>
+                                <div className="col-span-2">Status</div>
+                                <div className="col-span-1">Paid</div>
+                                <div className="col-span-1 text-right">Actions</div>
+                            </div>
                             <div className="space-y-3">
                                 {g.lessons.map((x) => {
                                     const st = String((x.lesson as any)?.status ?? '').toLowerCase();
                                     const statusColor = st === 'booked' ? 'green' : st === 'available' ? 'blue' : st ? 'gold' : 'default';
                                     const isPaid = Boolean((x.lesson as any)?.isPaid);
                                     const id = Number((x.lesson as any)?.id);
+                                    const createdAt = (x.lesson as any)?.createdAt;
                                     return (
                                         <div
                                             key={(x.lesson as any)?.id ?? `${g.dayMs}-${x.startMs}`}
-                                            className="p-3 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 transition-colors"
+                                            className="p-4 rounded-2xl border border-gray-200 bg-white hover:bg-gray-50 transition-colors"
                                         >
-                                            <div className="flex items-start justify-between gap-3">
-                                                <div className="min-w-0">
+                                            <div className="grid grid-cols-12 gap-3 items-center">
+                                                <div className="col-span-5 min-w-0">
                                                     <div className="text-sm font-bold text-gray-900 truncate">
                                                         {String((x.lesson as any)?.lessonName ?? '-')}
-                                                    </div>
-                                                    <div className="mt-1 text-xs text-gray-600">
-                                                        {formatTime(x.startMs)} - {formatTime(x.finishMs)}
                                                     </div>
                                                     {!!(x.lesson as any)?.meetLink && (
                                                         <div className="mt-1 text-[11px] text-gray-500 truncate">
                                                             {String((x.lesson as any)?.meetLink)}
                                                         </div>
                                                     )}
+                                                    {!!createdAt && (
+                                                        <div className="mt-1 text-[11px] text-gray-400 truncate">
+                                                            {String(createdAt)}
+                                                        </div>
+                                                    )}
                                                 </div>
 
-                                                <div className="shrink-0 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                                <div className="col-span-3 text-xs font-semibold text-gray-700">
+                                                    {formatTime(x.startMs)} - {formatTime(x.finishMs)}
+                                                </div>
+
+                                                <div className="col-span-2">
                                                     <Tag className="m-0" color={statusColor as any}>
                                                         {String((x.lesson as any)?.status ?? '-')}
                                                     </Tag>
-                                                    <Tag className="m-0" color={isPaid ? 'green' : 'red'}>
-                                                        {isPaid ? 'Paid' : 'Unpaid'}
-                                                    </Tag>
+                                                </div>
+
+                                                <div className="col-span-1">
+                                                    <span className={`inline-flex items-center justify-center px-2 py-1 rounded-lg text-[11px] font-bold ${isPaid ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                                                        {isPaid ? 'Yes' : 'No'}
+                                                    </span>
+                                                </div>
+
+                                                <div className="col-span-1 flex justify-end" onClick={(e) => e.stopPropagation()}>
                                                     <button
                                                         type="button"
                                                         disabled={!Number.isFinite(id) || id <= 0}

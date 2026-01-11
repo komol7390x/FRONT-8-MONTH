@@ -1,5 +1,5 @@
 import { Badge, type MenuProps } from 'antd';
-import { BarChart3, CreditCard, UserLock, Users, Video, FileBadge2 } from 'lucide-react';
+import { BarChart3, CalendarDays, CreditCard, UserLock, Users, Video, FileBadge2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 
@@ -63,6 +63,11 @@ export const items: MenuItem[] = [
         key: 'lesson-page',
         label: <Link to={'/admin/lesson'} className="font-semibold">Lesson</Link>,
         icon: <Video size={20} />,
+    },
+    {
+        key: 'schedule-page',
+        label: <Link to={'/admin/schedule'} className="font-semibold">Schedule</Link>,
+        icon: <CalendarDays size={20} />,
     },
     {
         key: 'certificate-page',

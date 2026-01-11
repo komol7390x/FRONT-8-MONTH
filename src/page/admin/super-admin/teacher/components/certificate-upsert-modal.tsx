@@ -66,6 +66,12 @@ export const CertificateUpsertModal: React.FC<CertificateUpsertModalProps> = ({
             message.warning('description is required');
             return;
         }
+
+        const hp = Number(form.hourPrice);
+        if (!Number.isFinite(hp) || hp <= 0) {
+            message.warning('hourPrice is required');
+            return;
+        }
         const finalTeacherId = Number(teacherId || form.teacherId);
         if (!finalTeacherId) {
             message.warning('teacherId is required');

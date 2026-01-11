@@ -76,6 +76,7 @@ export const adminRoutes = (
             </Route>
 
             <Route path="lesson" element={<LessonPage />} />
+            <Route path="schedule" element={<SchedulePage />} />
             <Route path="certificate" element={<CertificatePage />} />
             <Route path="payment" element={<PaymentPage />} />
             <Route path="notification" element={<NotificationPage />} />

@@ -134,15 +134,6 @@ export const SettingsPage: React.FC = () => {
                             </div>
 
                             <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
-                                <div className="text-xs text-gray-600">Deleted</div>
-                                <div className="mt-1">
-                                    <span className={`inline-block px-3 py-1.5 rounded text-sm font-medium text-white min-w-22 text-center ${details?.isDeleted ? 'bg-red-600' : 'bg-green-600'}`}>
-                                        {details?.isDeleted ? 'Deleted' : 'Not deleted'}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
                                 <div className="text-xs text-gray-600">Created</div>
                                 <div className="mt-1 text-sm font-semibold text-gray-900 truncate">{formatDateTime(details?.createdAt)}</div>
                             </div>

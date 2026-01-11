@@ -25,6 +25,7 @@ export const Sidebar = () => {
         if (p.startsWith('/admin/student')) return { selectedKeys: ['student-all'], openKeys: ['sub3'] };
 
         if (p.startsWith('/admin/lesson')) return { selectedKeys: ['lesson-page'], openKeys: [] };
+        if (p.startsWith('/admin/schedule')) return { selectedKeys: ['schedule-page'], openKeys: [] };
         if (p.startsWith('/admin/certificate')) return { selectedKeys: ['certificate-page'], openKeys: [] };
         if (p.startsWith('/admin/payment')) return { selectedKeys: ['payment-page'], openKeys: [] };
 
