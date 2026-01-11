@@ -22,6 +22,16 @@ export const TeacherPaymentPage: React.FC = () => {
 
     const query = useTeacherPayments({ status, search, page, limit });
 
+    const formatStatusLabel = (value: any) => {
+        const s = String(value ?? '').trim();
+        if (!s) return '-';
+        if (s === 'pendingCanceled') return 'Pending Canceled';
+        if (s === 'paidCanceled') return 'Paid Canceled';
+        if (s === 'pending') return 'Pending';
+        if (s === 'paid') return 'Paid';
+        return s;
+    };
+
     const dataSource = (query.data?.data || []).map((row: any, idx: number) => {
         const normalizedAmount = row?.amount ?? row?.price ?? row?.sum ?? row?.total ?? row?.paymentAmount ?? row?.value;
         return {
@@ -100,10 +110,10 @@ export const TeacherPaymentPage: React.FC = () => {
                             placeholder="Status"
                             style={{ width: '100%' }}
                             options={[
-                                { value: 'pending', label: 'pending' },
-                                { value: 'success', label: 'success' },
-                                { value: 'cancelled', label: 'cancelled' },
-                                { value: 'failed', label: 'failed' },
+                                { value: 'pending', label: formatStatusLabel('pending') },
+                                { value: 'success', label: 'Success' },
+                                { value: 'cancelled', label: 'Cancelled' },
+                                { value: 'failed', label: 'Failed' },
                             ]}
                         />
                         <div className="flex gap-2">
@@ -162,7 +172,7 @@ export const TeacherPaymentPage: React.FC = () => {
                                             </div>
 
                                             <div className="col-span-2 pr-3 sm:pr-5">
-                                                <Tag className="m-0" color={r.__statusColor as any}>{String(r?.status ?? '-')}</Tag>
+                                                <Tag className="m-0" color={r.__statusColor as any}>{formatStatusLabel(r?.status)}</Tag>
                                             </div>
 
                                             <div className="col-span-1 pr-3 sm:pr-5">

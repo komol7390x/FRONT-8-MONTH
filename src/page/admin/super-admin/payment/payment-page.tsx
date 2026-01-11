@@ -106,6 +106,16 @@ export const PaymentPage: React.FC = () => {
         setPage(1);
     };
 
+    const formatStatusLabel = (value: any) => {
+        const s = String(value ?? '').trim();
+        if (!s) return '-';
+        if (s === PaymentStatus.PENDING) return 'Pending';
+        if (s === PaymentStatus.PAID) return 'Paid';
+        if (s === PaymentStatus.PENDING_CANCELED) return 'Pending Canceled';
+        if (s === PaymentStatus.PAID_CANCELED) return 'Paid Canceled';
+        return s;
+    };
+
     const columns: ColumnsType<any> = useMemo(
         () => [
             {
@@ -132,7 +142,7 @@ export const PaymentPage: React.FC = () => {
                 render: (v) => {
                     const s = String(v || '').toLowerCase();
                     const color = s.includes('paid') ? 'green' : s.includes('pending') ? 'gold' : 'default';
-                    return <Tag className="m-0" color={color as any}>{String(v || '-')}</Tag>;
+                    return <Tag className="m-0" color={color as any}>{formatStatusLabel(v)}</Tag>;
                 },
             },
             {
@@ -265,10 +275,10 @@ export const PaymentPage: React.FC = () => {
                         {(
                             [
                                 { key: 'ALL', label: 'All', value: undefined },
-                                { key: PaymentStatus.PENDING, label: PaymentStatus.PENDING, value: PaymentStatus.PENDING },
-                                { key: PaymentStatus.PAID, label: PaymentStatus.PAID, value: PaymentStatus.PAID },
-                                { key: PaymentStatus.PENDING_CANCELED, label: PaymentStatus.PENDING_CANCELED, value: PaymentStatus.PENDING_CANCELED },
-                                { key: PaymentStatus.PAID_CANCELED, label: PaymentStatus.PAID_CANCELED, value: PaymentStatus.PAID_CANCELED },
+                                { key: PaymentStatus.PENDING, label: formatStatusLabel(PaymentStatus.PENDING), value: PaymentStatus.PENDING },
+                                { key: PaymentStatus.PAID, label: formatStatusLabel(PaymentStatus.PAID), value: PaymentStatus.PAID },
+                                { key: PaymentStatus.PENDING_CANCELED, label: formatStatusLabel(PaymentStatus.PENDING_CANCELED), value: PaymentStatus.PENDING_CANCELED },
+                                { key: PaymentStatus.PAID_CANCELED, label: formatStatusLabel(PaymentStatus.PAID_CANCELED), value: PaymentStatus.PAID_CANCELED },
                             ]
                         ).map((t) => {
                             const activeTab = (t.value ?? undefined) === (status ?? undefined);

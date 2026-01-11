@@ -30,7 +30,7 @@ export const TeacherSettingsPage: React.FC = () => {
 
     if (details.isPending) {
         return (
-            <div className="flex justify-center items-center h-64">
+            <div className="min-h-screen bg-gray-50 flex justify-center items-center p-6">
                 <PageLoader />
             </div>
         );
@@ -83,6 +83,8 @@ export const TeacherSettingsPage: React.FC = () => {
         }
     };
 
+    const isBlocked = (details.data as any)?.isActive === false;
+
     return (
         <div className="min-h-screen bg-gray-50 p-3 sm:p-6">
             <div className="max-w-screen-2xl mx-auto space-y-4">
@@ -91,6 +93,15 @@ export const TeacherSettingsPage: React.FC = () => {
                         <ShieldCheck size={18} className="text-cyan-700" />
                         <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Settings</h1>
                     </div>
+
+                    {isBlocked && (
+                        <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-4">
+                            <div className="text-sm font-bold text-red-700">You are blocked</div>
+                            <div className="mt-1 text-xs text-red-700/90">
+                                Admin unblock qilmaguncha panelning boshqa bo'limlari ishlamaydi.
+                            </div>
+                        </div>
+                    )}
 
                     <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-3">
                         <div className="lg:col-span-1 p-4 bg-gray-50 rounded-xl border border-gray-200">
