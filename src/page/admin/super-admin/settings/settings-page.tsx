@@ -128,7 +128,7 @@ export const SettingsPage: React.FC = () => {
                                 <div className="text-xs text-gray-600">Active</div>
                                 <div className="mt-1">
                                     <span className={`inline-block px-3 py-1.5 rounded text-sm font-medium text-white min-w-22 text-center ${(details?.isActive ?? true) ? 'bg-green-600' : 'bg-red-600'}`}>
-                                        {(details?.isActive ?? true) ? 'Active' : 'Inactive'}
+                                        {(details?.isActive ?? true) ? 'Active' : 'Blocked'}
                                     </span>
                                 </div>
                             </div>

@@ -35,7 +35,7 @@ interface ScheduleResponse {
     };
     stats: {
         active: number;
-        inactive: number;
+        blocked: number;
     };
 }
 

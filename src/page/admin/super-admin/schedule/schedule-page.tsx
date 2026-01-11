@@ -244,7 +244,7 @@ export const SchedulePage: React.FC = () => {
             key: 'isActive',
             render: (active) => (
                 <Tag color={active ? 'success' : 'error'} className="font-semibold">
-                    {active ? 'Active' : 'Inactive'}
+                    {active ? 'Active' : 'Blocked'}
                 </Tag>
             ),
         },
@@ -417,7 +417,7 @@ export const SchedulePage: React.FC = () => {
                         >
                             <option value="">All Status</option>
                             <option value="true">Active</option>
-                            <option value="false">Inactive</option>
+                            <option value="false">Blocked</option>
                         </select>
                     </div>
 

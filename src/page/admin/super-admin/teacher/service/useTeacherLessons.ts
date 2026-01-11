@@ -47,7 +47,7 @@ export interface LessonTemplateResponse {
     };
     stats?: {
         active?: number;
-        inactive?: number;
+        blocked?: number;
         deleted?: number;
     };
 }

@@ -72,7 +72,7 @@ export const StudentPaymentsPage: React.FC = () => {
 
     const query = usePayments({
         status,
-        active: true,
+        active: false,
         role: 'STUDENT',
         userId: studentId || undefined,
         search,

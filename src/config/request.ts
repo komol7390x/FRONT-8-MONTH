@@ -60,6 +60,14 @@ request.interceptors.request.use((config) => {
     }
 
     if (telegramToken) {
+        const headers: any = (config.headers ?? {}) as any;
+        if (!headers.Authorization) {
+            headers.Authorization = `Bearer ${telegramToken}`;
+            config.headers = headers;
+        }
+    }
+
+    if (telegramToken) {
         const params: any = (config.params ?? {}) as any;
         if (!params.token) {
             config.params = { ...params, token: telegramToken };

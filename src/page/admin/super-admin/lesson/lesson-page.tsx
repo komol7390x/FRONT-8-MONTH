@@ -533,7 +533,7 @@ export const LessonPage: React.FC = () => {
                             style={{ width: '100%' }}
                             options={[
                                 { value: 'true', label: 'Active' },
-                                { value: 'false', label: 'Inactive' },
+                                { value: 'false', label: 'Blocked' },
                             ]}
                         />
 

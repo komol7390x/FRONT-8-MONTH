@@ -36,7 +36,7 @@ export const StatisticsAdmin = () => {
         },
         {
             title: 'Blocked Adminlar',
-            value: data?.inactive || 0,
+            value: data?.blocked || 0,
             icon: <UserMinus className="text-amber-500" size={24} />,
             color: '#fffbe6',
             border: '#ffe58f',

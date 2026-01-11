@@ -26,7 +26,7 @@ export const AdminMoreInfo: React.FC<AdminMoreInfoProps> = ({ admin }) => {
                                 : 'bg-red-100 text-red-700'
                                 }`}
                         >
-                            {admin.isActive ? 'Active' : 'Inactive'}
+                            {admin.isActive ? 'Active' : 'Blocked'}
                         </span>
                         <span
                             className={`text-xs font-semibold px-2 py-1 rounded ${admin.isDeleted

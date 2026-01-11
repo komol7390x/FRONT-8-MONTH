@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 export interface TeacherStats {
     all: number;
     active: number;
-    inactive: number;
+    blocked: number;
     deleted: number;
 }
 
