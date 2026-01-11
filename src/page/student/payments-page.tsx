@@ -37,10 +37,21 @@ export const StudentPaymentsPage: React.FC = () => {
                 t = '';
             }
         }
+
         const payload = t ? decodeJwtPayload(t) : null;
-        const id = Number(payload?.id ?? payload?.studentId ?? payload?.userId);
-        return Number.isFinite(id) && id > 0 ? id : 0;
-    }, [tokenFromUrl]);
+        const idFromToken = Number(payload?.id ?? payload?.studentId ?? payload?.userId);
+        if (Number.isFinite(idFromToken) && idFromToken > 0) return idFromToken;
+
+        const idFromQuery = Number(searchParams.get('userId'));
+        if (Number.isFinite(idFromQuery) && idFromQuery > 0) return idFromQuery;
+
+        try {
+            const idFromStorage = Number(localStorage.getItem('telegram_student_id'));
+            return Number.isFinite(idFromStorage) && idFromStorage > 0 ? idFromStorage : 0;
+        } catch {
+            return 0;
+        }
+    }, [searchParams, tokenFromUrl]);
 
     const initialSearch = searchParams.get('search') || '';
     const initialStatus = searchParams.get('status') || '';

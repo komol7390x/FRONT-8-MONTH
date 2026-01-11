@@ -116,6 +116,19 @@ export const PaymentPage: React.FC = () => {
         return s;
     };
 
+    const formatDateTime = (value: any) => {
+        if (!value) return '-';
+        const d = new Date(String(value));
+        if (Number.isNaN(d.getTime())) return String(value);
+        return d.toLocaleString('uz-UZ', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+        });
+    };
+
     const columns: ColumnsType<any> = useMemo(
         () => [
             {
@@ -157,7 +170,13 @@ export const PaymentPage: React.FC = () => {
                 ),
             },
             { title: 'Amount', dataIndex: 'amount', key: 'amount', width: 140, render: (v) => <Tag className="m-0" color="gold">{v ?? '-'}</Tag> },
-            { title: 'Created', dataIndex: 'createdAt', key: 'createdAt', width: 190, render: (v) => (v ? String(v) : '-') },
+            {
+                title: 'Created',
+                dataIndex: 'createdAt',
+                key: 'createdAt',
+                width: 190,
+                render: (v) => <span className="text-xs text-gray-700 whitespace-nowrap">{formatDateTime(v)}</span>,
+            },
         ],
         [limit, page],
     );

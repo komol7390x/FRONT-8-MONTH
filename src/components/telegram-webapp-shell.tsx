@@ -39,6 +39,16 @@ const getTelegramToken = (): string => {
     return '';
 };
 
+const getTelegramUserId = (): string => {
+    try {
+        const tgId = (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.id;
+        if (tgId == null) return '';
+        return String(tgId);
+    } catch {
+        return '';
+    }
+};
+
 export const TelegramWebAppShell: React.FC<React.PropsWithChildren> = ({ children }) => {
     const location = useLocation();
 
@@ -53,6 +63,20 @@ export const TelegramWebAppShell: React.FC<React.PropsWithChildren> = ({ childre
         return Number.isFinite(id) && id > 0 ? id : 0;
     }, [tokenPayload]);
 
+    const studentIdFromStorage = useMemo(() => {
+        try {
+            const v = localStorage.getItem('telegram_student_id');
+            const n = Number(v);
+            return Number.isFinite(n) && n > 0 ? n : 0;
+        } catch {
+            return 0;
+        }
+    }, [location.key]);
+
+    const [studentIdResolved, setStudentIdResolved] = useState<number>(0);
+
+    const studentId = studentIdFromToken || studentIdResolved || studentIdFromStorage;
+
     const [serverActive, setServerActive] = useState<boolean | null>(null);
     const [serverCheckPending, setServerCheckPending] = useState<boolean>(false);
 
@@ -60,13 +84,13 @@ export const TelegramWebAppShell: React.FC<React.PropsWithChildren> = ({ childre
         let cancelled = false;
 
         const run = async () => {
-            if (!studentIdFromToken) {
+            if (!studentId) {
                 setServerActive(null);
                 return;
             }
             setServerCheckPending(true);
             try {
-                const res = await request.get(`/student/${studentIdFromToken}`);
+                const res = await request.get(`/student/${studentId}`);
                 const raw: any = res?.data;
                 const active = raw?.data?.isActive;
                 if (!cancelled) {
@@ -87,14 +111,54 @@ export const TelegramWebAppShell: React.FC<React.PropsWithChildren> = ({ childre
         return () => {
             cancelled = true;
         };
-    }, [studentIdFromToken, location.pathname]);
+    }, [studentId, location.pathname]);
+
+    useEffect(() => {
+        let cancelled = false;
+        const run = async () => {
+            if (studentIdFromToken || studentIdFromStorage) return;
+            const tgId = getTelegramUserId();
+            if (!tgId) return;
+
+            try {
+                const res = await request.get(`/student/telegram/${tgId}`);
+                const raw: any = res?.data;
+                const id = Number(raw?.data?.id ?? raw?.data?.data?.id);
+                if (cancelled) return;
+                if (Number.isFinite(id) && id > 0) {
+                    try {
+                        localStorage.setItem('telegram_student_id', String(id));
+                    } catch {
+                        // ignore
+                    }
+
+                    try {
+                        window.dispatchEvent(new CustomEvent('telegram-student-id-updated', { detail: { studentId: id } }));
+                    } catch {
+                        // ignore
+                    }
+
+                    if (!cancelled) {
+                        setStudentIdResolved(id);
+                    }
+                }
+            } catch {
+                // ignore
+            }
+        };
+
+        run();
+        return () => {
+            cancelled = true;
+        };
+    }, [studentIdFromStorage, studentIdFromToken, location.key]);
 
     const isBlocked = useMemo(() => {
-        if (studentIdFromToken) {
+        if (studentId) {
             return serverActive === false;
         }
         return tokenPayload?.isActive === false;
-    }, [serverActive, studentIdFromToken, tokenPayload?.isActive]);
+    }, [serverActive, studentId, tokenPayload?.isActive]);
 
     useEffect(() => {
         const tg = (window as any).Telegram?.WebApp;
@@ -140,7 +204,7 @@ export const TelegramWebAppShell: React.FC<React.PropsWithChildren> = ({ childre
         };
     }, [location.pathname]);
 
-    if (studentIdFromToken && serverCheckPending) {
+    if (studentId && serverCheckPending) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center" style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
                 <PageLoader />
