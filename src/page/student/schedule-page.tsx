@@ -45,7 +45,20 @@ export const StudentSchedulePage: React.FC = () => {
             .filter(Boolean)
     );
 
-    const studentId = useMemo(() => {
+    const [studentIdResolved, setStudentIdResolved] = useState<number>(0);
+
+    useEffect(() => {
+        const handler = (e: any) => {
+            const id = Number(e?.detail?.studentId);
+            if (Number.isFinite(id) && id > 0) {
+                setStudentIdResolved(id);
+            }
+        };
+        window.addEventListener('telegram-student-id-updated', handler as any);
+        return () => window.removeEventListener('telegram-student-id-updated', handler as any);
+    }, []);
+
+    const studentIdFromToken = useMemo(() => {
         let t = tokenFromUrl;
         if (!t) {
             try {
@@ -58,6 +71,18 @@ export const StudentSchedulePage: React.FC = () => {
         const id = Number(payload?.id ?? payload?.studentId ?? payload?.userId);
         return Number.isFinite(id) && id > 0 ? id : 0;
     }, [tokenFromUrl]);
+
+    const studentIdFromStorage = useMemo(() => {
+        try {
+            const v = localStorage.getItem('telegram_student_id');
+            const n = Number(v);
+            return Number.isFinite(n) && n > 0 ? n : 0;
+        } catch {
+            return 0;
+        }
+    }, [tokenFromUrl]);
+
+    const studentId = studentIdFromToken || studentIdResolved || studentIdFromStorage;
 
     const isBooking = false;
 

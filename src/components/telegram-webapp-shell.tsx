@@ -189,6 +189,25 @@ export const TelegramWebAppShell: React.FC<React.PropsWithChildren> = ({ childre
             // ignore
         }
 
+        const setViewportHeight = () => {
+            try {
+                const vh = Number(tg.viewportHeight);
+                if (Number.isFinite(vh) && vh > 0) {
+                    document.documentElement.style.setProperty('--tg-viewport-height', `${vh}px`);
+                }
+            } catch {
+                // ignore
+            }
+        };
+
+        setViewportHeight();
+
+        try {
+            tg.onEvent?.('viewportChanged', setViewportHeight);
+        } catch {
+            // ignore
+        }
+
         const prevHtmlOverflow = document.documentElement.style.overflow;
         const prevBodyOverflow = document.body.style.overflow;
         const prevBodyHeight = document.body.style.height;
@@ -198,19 +217,16 @@ export const TelegramWebAppShell: React.FC<React.PropsWithChildren> = ({ childre
         document.body.style.height = '100vh';
 
         return () => {
+            try {
+                tg.offEvent?.('viewportChanged', setViewportHeight);
+            } catch {
+                // ignore
+            }
             document.documentElement.style.overflow = prevHtmlOverflow;
             document.body.style.overflow = prevBodyOverflow;
             document.body.style.height = prevBodyHeight;
         };
     }, [location.pathname]);
-
-    if (studentId && serverCheckPending) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center" style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
-                <PageLoader />
-            </div>
-        );
-    }
 
     if (isBlocked) {
         return (
@@ -228,10 +244,15 @@ export const TelegramWebAppShell: React.FC<React.PropsWithChildren> = ({ childre
     }
 
     return (
-        <div className="min-h-screen" style={{ height: '100vh', overflow: 'hidden' }}>
+        <div className="min-h-screen" style={{ height: 'var(--tg-viewport-height, 100vh)', overflow: 'hidden' }}>
             <div style={{ height: '100%', overflowY: 'auto', WebkitOverflowScrolling: 'touch', paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
                 {children}
             </div>
+            {studentId && serverCheckPending && (
+                <div className="fixed inset-0 bg-gray-50/70 z-10 flex items-center justify-center pointer-events-none" style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
+                    <PageLoader />
+                </div>
+            )}
         </div>
     );
 };
