@@ -141,10 +141,10 @@ export const StudentBookConfirmPage: React.FC = () => {
                                 </div>
                             ),
                             okText: 'Back now',
-                            onOk: () => navigate('/telegram/student-schedule'),
+                            onOk: () => navigate('/tgb'),
                         });
                         setTimeout(() => {
-                            navigate('/telegram/student-schedule');
+                            navigate('/tgb');
                         }, 5000);
                         return;
                     }
