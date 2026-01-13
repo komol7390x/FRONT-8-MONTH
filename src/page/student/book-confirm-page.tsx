@@ -9,7 +9,7 @@ export const StudentBookConfirmPage: React.FC = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
 
-    const studentId = Number(searchParams.get('studentId')) || 0;
+    const studentIdFromQuery = Number(searchParams.get('studentId')) || 0;
     const lessonId = Number(searchParams.get('lessonId')) || 0;
     const lessonName = searchParams.get('lessonName') || 'Lesson';
     const teacherId = searchParams.get('teacherId') || '';
@@ -31,6 +31,59 @@ export const StudentBookConfirmPage: React.FC = () => {
 
     const [startTimeStr, setStartTimeStr] = useState<string>(initialStart);
     const [endTimeStr, setEndTimeStr] = useState<string>(initialEnd);
+
+    const decodeJwtPayload = (token: string): any | null => {
+        try {
+            const parts = token.split('.');
+            if (parts.length < 2) return null;
+            const b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+            const pad = b64.length % 4 === 0 ? '' : '='.repeat(4 - (b64.length % 4));
+            const json = decodeURIComponent(
+                Array.prototype.map
+                    .call(atob(b64 + pad), (c: string) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+                    .join('')
+            );
+            return JSON.parse(json);
+        } catch {
+            return null;
+        }
+    };
+
+    const [studentIdResolved, setStudentIdResolved] = useState<number>(0);
+
+    useEffect(() => {
+        const handler = (e: any) => {
+            const id = Number(e?.detail?.studentId);
+            if (Number.isFinite(id) && id > 0) {
+                setStudentIdResolved(id);
+            }
+        };
+        window.addEventListener('telegram-student-id-updated', handler as any);
+        return () => window.removeEventListener('telegram-student-id-updated', handler as any);
+    }, []);
+
+    const studentIdFromToken = useMemo(() => {
+        try {
+            const t = localStorage.getItem('telegram_token') || '';
+            const payload = t ? decodeJwtPayload(t) : null;
+            const id = Number(payload?.id ?? payload?.studentId ?? payload?.userId);
+            return Number.isFinite(id) && id > 0 ? id : 0;
+        } catch {
+            return 0;
+        }
+    }, []);
+
+    const studentIdFromStorage = useMemo(() => {
+        try {
+            const v = localStorage.getItem('telegram_student_id');
+            const n = Number(v);
+            return Number.isFinite(n) && n > 0 ? n : 0;
+        } catch {
+            return 0;
+        }
+    }, []);
+
+    const studentId = studentIdFromQuery || studentIdFromToken || studentIdResolved || studentIdFromStorage;
 
     useEffect(() => {
         setStartTimeStr(initialStart);
@@ -141,10 +194,10 @@ export const StudentBookConfirmPage: React.FC = () => {
                                 </div>
                             ),
                             okText: 'Back now',
-                            onOk: () => navigate('/telegram/student-schedule'),
+                            onOk: () => navigate('/tgb'),
                         });
                         setTimeout(() => {
-                            navigate('/telegram/student-schedule');
+                            navigate('/tgb');
                         }, 5000);
                         return;
                     }

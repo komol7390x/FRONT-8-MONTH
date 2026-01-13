@@ -123,7 +123,7 @@ export const TeacherMoreCertificates: React.FC<TeacherMoreCertificatesProps> = (
                     >
                         <option value="">Status: All</option>
                         <option value="true">Active</option>
-                        <option value="false">Inactive</option>
+                        <option value="false">Blocked</option>
                     </select>
 
                     <select
@@ -171,7 +171,7 @@ export const TeacherMoreCertificates: React.FC<TeacherMoreCertificatesProps> = (
                                     </p>
                                 </div>
                                 <div className="flex items-center gap-2 shrink-0">
-                                    <span className={`text-xs font-semibold px-2 py-1 rounded ${badgeActive}`}>{c?.isActive ? 'Active' : 'Inactive'}</span>
+                                    <span className={`text-xs font-semibold px-2 py-1 rounded ${badgeActive}`}>{c?.isActive ? 'Active' : 'Blocked'}</span>
                                     {c?.isDeleted ? (
                                         <span className={`text-xs font-semibold px-2 py-1 rounded ${badgeDeleted}`}>Deleted</span>
                                     ) : (

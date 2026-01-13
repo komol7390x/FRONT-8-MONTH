@@ -14,7 +14,7 @@ import { ConfirmModal } from '../../../../components/confirm-modal';
 export const SchedulePage: React.FC = () => {
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
-    const [activeFilter, setActiveFilter] = useState<string>('true');
+    const [activeFilter, setActiveFilter] = useState<string>('');
     const [dayFilter, setDayFilter] = useState<string>('');
     const [searchInput, setSearchInput] = useState('');
     const [search, setSearch] = useState('');
@@ -53,7 +53,6 @@ export const SchedulePage: React.FC = () => {
     // Fetch stats for all schedule items
     const statsQuery = useTeacherSchedule({
         limit: 1000,
-        active: true,
     });
 
     // Schedule Data
@@ -89,7 +88,6 @@ export const SchedulePage: React.FC = () => {
     const createExistingScheduleQuery = useTeacherSchedule({
         teacherId: createTeacherId || undefined,
         limit: 1000,
-        active: true,
     });
 
     // Teacher Data for creation (certificates)
@@ -126,7 +124,7 @@ export const SchedulePage: React.FC = () => {
 
     const softDeleteMutation = useMutation({
         mutationFn: async ({ id, active }: { id: number; active: boolean }) => {
-            const res = await request.delete(`/soft-delete/${id}`, { params: { active } });
+            const res = await request.delete(`/schedule/soft-delete/${id}`, { params: { active } });
             return res.data;
         },
         onSuccess: (data: any) => {
@@ -246,7 +244,7 @@ export const SchedulePage: React.FC = () => {
             key: 'isActive',
             render: (active) => (
                 <Tag color={active ? 'success' : 'error'} className="font-semibold">
-                    {active ? 'Active' : 'Inactive'}
+                    {active ? 'Active' : 'Blocked'}
                 </Tag>
             ),
         },
@@ -304,7 +302,7 @@ export const SchedulePage: React.FC = () => {
                                 if (!Number.isFinite(id) || id <= 0) return;
                                 openConfirm({
                                     variant: isSoftDeleted ? 'restore' : 'delete',
-                                    title: isSoftDeleted ? 'Restore schedule' : 'Soft delete schedule',
+                                    title: isSoftDeleted ? 'Restore schedule' : 'Delete schedule',
                                     message: isSoftDeleted ? 'Do you want to restore this schedule?' : 'Do you want to soft delete this schedule?',
                                     note: 'This action can be reversed.',
                                     action: 'soft_delete',
@@ -313,7 +311,7 @@ export const SchedulePage: React.FC = () => {
                             }}
                         >
                             {isSoftDeleted ? <Unlock size={12} /> : <Trash2 size={12} />}
-                            {isSoftDeleted ? 'Restore' : 'Soft delete'}
+                            {isSoftDeleted ? 'Restore' : 'Delete'}
                         </button>
 
                         <button
@@ -341,7 +339,7 @@ export const SchedulePage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 p-3 sm:p-6 overflow-x-hidden">
-            <div className="max-w-7xl mx-auto space-y-4">
+            <div className="max-w-screen-2xl mx-auto space-y-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <CalendarClock size={24} className="text-blue-700" />
@@ -419,7 +417,7 @@ export const SchedulePage: React.FC = () => {
                         >
                             <option value="">All Status</option>
                             <option value="true">Active</option>
-                            <option value="false">Inactive</option>
+                            <option value="false">Blocked</option>
                         </select>
                     </div>
 

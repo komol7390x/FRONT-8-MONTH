@@ -11,6 +11,19 @@ export const TelegramStudentBottomNav: React.FC<TelegramStudentBottomNavProps> =
     const location = useLocation();
     const params = useParams();
 
+    const [resolvedStudentId, setResolvedStudentId] = React.useState<number>(0);
+
+    React.useEffect(() => {
+        const handler = (e: any) => {
+            const id = Number(e?.detail?.studentId);
+            if (Number.isFinite(id) && id > 0) {
+                setResolvedStudentId(id);
+            }
+        };
+        window.addEventListener('telegram-student-id-updated', handler as any);
+        return () => window.removeEventListener('telegram-student-id-updated', handler as any);
+    }, []);
+
     const decodeJwtPayload = (token: string): any | null => {
         try {
             const parts = token.split('.');
@@ -31,22 +44,30 @@ export const TelegramStudentBottomNav: React.FC<TelegramStudentBottomNavProps> =
     const effectiveStudentId = React.useMemo(() => {
         if (typeof studentId === 'number' && studentId > 0) return studentId;
         if (params.studentId && Number(params.studentId) > 0) return Number(params.studentId);
+        if (resolvedStudentId > 0) return resolvedStudentId;
         try {
             const t = localStorage.getItem('telegram_token') || '';
             const payload = t ? decodeJwtPayload(t) : null;
             const id = Number(payload?.id ?? payload?.studentId ?? payload?.userId);
             return Number.isFinite(id) && id > 0 ? id : 0;
         } catch {
+            // ignore
+        }
+
+        try {
+            const idFromStorage = Number(localStorage.getItem('telegram_student_id'));
+            return Number.isFinite(idFromStorage) && idFromStorage > 0 ? idFromStorage : 0;
+        } catch {
             return 0;
         }
-    }, [params.studentId, studentId]);
+    }, [params.studentId, resolvedStudentId, studentId]);
 
     const items = [
         {
             key: 'schedule',
             label: 'Schedule',
             icon: CalendarDays,
-            to: '/telegram/student-schedule',
+            to: '/tgb',
         },
         {
             key: 'lessons',

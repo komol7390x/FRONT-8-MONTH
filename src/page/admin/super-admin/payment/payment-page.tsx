@@ -106,6 +106,29 @@ export const PaymentPage: React.FC = () => {
         setPage(1);
     };
 
+    const formatStatusLabel = (value: any) => {
+        const s = String(value ?? '').trim();
+        if (!s) return '-';
+        if (s === PaymentStatus.PENDING) return 'Pending';
+        if (s === PaymentStatus.PAID) return 'Paid';
+        if (s === PaymentStatus.PENDING_CANCELED) return 'Pending Canceled';
+        if (s === PaymentStatus.PAID_CANCELED) return 'Paid Canceled';
+        return s;
+    };
+
+    const formatDateTime = (value: any) => {
+        if (!value) return '-';
+        const d = new Date(String(value));
+        if (Number.isNaN(d.getTime())) return String(value);
+        return d.toLocaleString('uz-UZ', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+        });
+    };
+
     const columns: ColumnsType<any> = useMemo(
         () => [
             {
@@ -132,7 +155,7 @@ export const PaymentPage: React.FC = () => {
                 render: (v) => {
                     const s = String(v || '').toLowerCase();
                     const color = s.includes('paid') ? 'green' : s.includes('pending') ? 'gold' : 'default';
-                    return <Tag className="m-0" color={color as any}>{String(v || '-')}</Tag>;
+                    return <Tag className="m-0" color={color as any}>{formatStatusLabel(v)}</Tag>;
                 },
             },
             {
@@ -141,13 +164,19 @@ export const PaymentPage: React.FC = () => {
                 key: 'active',
                 width: 110,
                 render: (v) => (
-                    <span className={`inline-block px-3 py-1.5 rounded text-sm font-medium text-white min-w-22 text-center ${v ? 'bg-green-600' : 'bg-red-600'}`}>
-                        {v ? 'Active' : 'Inactive'}
+                    <span className={`inline-flex items-center justify-center px-2.5 py-1 rounded-md text-xs font-semibold text-white min-w-[72px] ${v ? 'bg-green-600' : 'bg-red-600'}`}>
+                        {v ? 'Active' : 'Blocked'}
                     </span>
                 ),
             },
             { title: 'Amount', dataIndex: 'amount', key: 'amount', width: 140, render: (v) => <Tag className="m-0" color="gold">{v ?? '-'}</Tag> },
-            { title: 'Created', dataIndex: 'createdAt', key: 'createdAt', width: 190, render: (v) => (v ? String(v) : '-') },
+            {
+                title: 'Created',
+                dataIndex: 'createdAt',
+                key: 'createdAt',
+                width: 190,
+                render: (v) => <span className="text-xs text-gray-700 whitespace-nowrap">{formatDateTime(v)}</span>,
+            },
         ],
         [limit, page],
     );
@@ -239,7 +268,7 @@ export const PaymentPage: React.FC = () => {
                             style={{ width: '100%' }}
                             options={[
                                 { value: 'true', label: 'Active' },
-                                { value: 'false', label: 'Inactive' },
+                                { value: 'false', label: 'Blocked' },
                             ]}
                         />
 
@@ -259,33 +288,33 @@ export const PaymentPage: React.FC = () => {
                                 { value: Roles.STUDENT, label: Roles.STUDENT },
                             ]}
                         />
+                    </div>
 
-                        <div className="flex items-center gap-2 flex-wrap">
-                            {(
-                                [
-                                    { key: 'ALL', label: 'All', value: undefined },
-                                    { key: PaymentStatus.PENDING, label: PaymentStatus.PENDING, value: PaymentStatus.PENDING },
-                                    { key: PaymentStatus.PAID, label: PaymentStatus.PAID, value: PaymentStatus.PAID },
-                                    { key: PaymentStatus.PENDING_CANCELED, label: PaymentStatus.PENDING_CANCELED, value: PaymentStatus.PENDING_CANCELED },
-                                    { key: PaymentStatus.PAID_CANCELED, label: PaymentStatus.PAID_CANCELED, value: PaymentStatus.PAID_CANCELED },
-                                ]
-                            ).map((t) => {
-                                const activeTab = (t.value ?? undefined) === (status ?? undefined);
-                                return (
-                                    <button
-                                        key={t.key}
-                                        type="button"
-                                        onClick={() => {
-                                            setStatus(t.value as any);
-                                            setPage(1);
-                                        }}
-                                        className={`h-10 px-3 rounded-xl border text-xs font-semibold transition-colors ${activeTab ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}
-                                    >
-                                        {t.label}
-                                    </button>
-                                );
-                            })}
-                        </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                        {(
+                            [
+                                { key: 'ALL', label: 'All', value: undefined },
+                                { key: PaymentStatus.PENDING, label: formatStatusLabel(PaymentStatus.PENDING), value: PaymentStatus.PENDING },
+                                { key: PaymentStatus.PAID, label: formatStatusLabel(PaymentStatus.PAID), value: PaymentStatus.PAID },
+                                { key: PaymentStatus.PENDING_CANCELED, label: formatStatusLabel(PaymentStatus.PENDING_CANCELED), value: PaymentStatus.PENDING_CANCELED },
+                                { key: PaymentStatus.PAID_CANCELED, label: formatStatusLabel(PaymentStatus.PAID_CANCELED), value: PaymentStatus.PAID_CANCELED },
+                            ]
+                        ).map((t) => {
+                            const activeTab = (t.value ?? undefined) === (status ?? undefined);
+                            return (
+                                <button
+                                    key={t.key}
+                                    type="button"
+                                    onClick={() => {
+                                        setStatus(t.value as any);
+                                        setPage(1);
+                                    }}
+                                    className={`h-9 px-3 rounded-lg border text-xs font-semibold whitespace-nowrap leading-none transition-colors ${activeTab ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}
+                                >
+                                    {t.label}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
 

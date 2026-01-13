@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 interface UserStats {
     all: number;
     active: number;
-    inactive: number;
+    blocked: number;
     deleted: number;
 }
 

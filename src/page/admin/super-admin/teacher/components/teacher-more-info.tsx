@@ -25,7 +25,7 @@ export const TeacherMoreInfo: React.FC<TeacherMoreInfoProps> = ({ teacher }) => 
                                 : 'bg-red-100 text-red-700'
                                 }`}
                         >
-                            {(teacher as any).isActive ? 'Active' : 'Inactive'}
+                            {(teacher as any).isActive ? 'Active' : 'Blocked'}
                         </span>
                         <span
                             className={`text-xs font-semibold px-2 py-1 rounded ${(teacher as any).isDeleted

@@ -35,20 +35,21 @@ export interface TeacherLessonsParams {
     page?: number;
     limit?: number;
     day?: string;
+    teacherId?: number;
 }
 
-export const useTeacherLessons = (params: TeacherLessonsParams = {}) => {
+export const useScheduleLesson = (params: TeacherLessonsParams = {}) => {
     return useQuery<TeacherLessonsResponse>({
         queryKey: ['teacher-lessons', params],
         queryFn: async () => {
-            const res = await request.get<TeacherLessonsResponse>('/lesson-template/teacher', {
+            const res = await request.get<TeacherLessonsResponse>('/schedule', {
                 params: {
-                    status: params.status,
-                    weekday: params.weekday,
-                    isPaid: typeof params.isPaid === 'boolean' ? String(params.isPaid) : undefined,
+                    teacherId: params.teacherId,
+                    active: params.active,
                     search: params.search,
                     page: params.page,
                     limit: params.limit,
+                    day: params.day || params.weekday,
                 },
             });
 

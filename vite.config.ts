@@ -7,9 +7,9 @@ import path from 'path'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
-    allowedHosts: [
-      'cataractal-unperiphrastic-catherina.ngrok-free.dev'
-    ]
+    allowedHosts: true,
+    host: true,
+    port: 5050,
   },
   resolve: {
     alias: {

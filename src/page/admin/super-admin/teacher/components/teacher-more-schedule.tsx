@@ -92,7 +92,7 @@ export const TeacherMoreSchedule: React.FC<TeacherMoreScheduleProps> = ({ teache
                     type="button"
                     onClick={() => setIsCreateOpen(true)}
                     disabled={!hasActiveCertificate}
-                    title={!hasActiveCertificate ? "Certificate inactive or missing" : "Add Schedule"}
+                    title={!hasActiveCertificate ? "Certificate blocked or missing" : "Add Schedule"}
                     className={`px-3 py-1.5 text-white rounded text-xs font-semibold flex items-center gap-1 transition-colors
                         ${hasActiveCertificate
                             ? 'bg-blue-600 hover:bg-blue-700'
@@ -163,7 +163,7 @@ export const TeacherMoreSchedule: React.FC<TeacherMoreScheduleProps> = ({ teache
                 >
                     <option value="">All Status</option>
                     <option value="true">Active</option>
-                    <option value="false">Inactive</option>
+                    <option value="false">Blocked</option>
                 </select>
             </div>
 
@@ -201,7 +201,7 @@ export const TeacherMoreSchedule: React.FC<TeacherMoreScheduleProps> = ({ teache
                                     )}
                                 </div>
                                 <div className={`px-2 py-1 rounded text-xs font-semibold ${item.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                    {item.isActive ? 'Active' : 'Inactive'}
+                                    {item.isActive ? 'Active' : 'Blocked'}
                                 </div>
                             </div>
                         </div>

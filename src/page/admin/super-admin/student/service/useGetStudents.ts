@@ -47,7 +47,7 @@ export interface GetStudentsResponse {
     };
     stats?: {
         active?: number;
-        inactive?: number;
+        blocked?: number;
         deleted?: number;
     };
 }

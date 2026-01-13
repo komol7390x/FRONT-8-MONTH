@@ -23,6 +23,7 @@ export const TeacherCreateLessonPage: React.FC = () => {
 
     const lessonNameOptions = useMemo(() => {
         const names = (certificates || [])
+            .filter((c: any) => c?.isActive !== false)
             .map((c: any) => String(c?.specificationName || '').trim())
             .filter(Boolean);
         return Array.from(new Set(names));
@@ -110,19 +111,15 @@ export const TeacherCreateLessonPage: React.FC = () => {
     }, [lessonsQuery.data?.data]);
 
     const scheduleCountByDayKey = useMemo(() => {
-        const selectedName = String(form.getFieldValue('lessonName') || '').trim();
         const map = new Map<number, number>();
         for (const row of existingLessons || []) {
-            const rowName = String((row as any)?.lessonName ?? '').trim();
-            if (selectedName && rowName !== selectedName) continue;
             const st = toMs((row as any)?.startTime);
             if (!st) continue;
             const k = keyOfDay(new Date(st));
             map.set(k, (map.get(k) ?? 0) + 1);
         }
         return map;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [existingLessons, form]);
+    }, [existingLessons]);
 
     const selectedDate = useMemo(() => {
         const offset = selectedOffsets[0];
@@ -290,7 +287,7 @@ export const TeacherCreateLessonPage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 p-3 sm:p-6">
-            <div className="max-w-6xl mx-auto space-y-4">
+            <div className="max-w-screen-2xl mx-auto space-y-4">
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6">
                     <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-2">

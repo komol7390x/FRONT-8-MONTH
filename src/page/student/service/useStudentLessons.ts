@@ -50,16 +50,8 @@ export const useStudentLessons = (studentId: number | undefined, params: Student
             });
 
             const raw: any = res.data;
-            const nested = raw?.data?.data ? raw.data : undefined;
-            const dataArray = Array.isArray(raw)
-                ? raw
-                : Array.isArray(raw?.data)
-                    ? raw.data
-                    : Array.isArray(nested?.data)
-                        ? nested.data
-                        : [];
-
-            const meta = raw?.meta || raw?.data?.meta || nested?.meta;
+            const dataArray = Array.isArray(raw?.data) ? raw.data : [];
+            const meta = raw?.meta;
 
             return {
                 data: dataArray,

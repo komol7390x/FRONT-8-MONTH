@@ -8,7 +8,16 @@ import { TelegramStudentBottomNav } from './components/telegram-student-bottom-n
 
 export const StudentProfilePage: React.FC = () => {
     const { studentId } = useParams<{ studentId: string }>();
-    const id = Number(studentId) || 1;
+    const id = React.useMemo(() => {
+        const fromParam = Number(studentId);
+        if (Number.isFinite(fromParam) && fromParam > 0) return fromParam;
+        try {
+            const fromStorage = Number(localStorage.getItem('telegram_student_id'));
+            return Number.isFinite(fromStorage) && fromStorage > 0 ? fromStorage : 0;
+        } catch {
+            return 0;
+        }
+    }, [studentId]);
 
     const { data: student, isPending } = useGetStudentById(id);
 
@@ -26,7 +35,7 @@ export const StudentProfilePage: React.FC = () => {
             <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
                 <div className="max-w-md mx-auto px-4 py-4">
                     <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-gradient-to-tr from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                        <div className="w-12 h-12 bg-linear-to-tr from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
                             {fullname ? fullname.charAt(0).toUpperCase() : 'S'}
                         </div>
                         <div>

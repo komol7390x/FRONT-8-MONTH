@@ -127,18 +127,6 @@ export const LoginTeacher = () => {
                     </Form.Item>
 
                     <Form.Item className="mb-3">
-                        <Link to="/teacher/register" className="block">
-                            <Button
-                                block
-                                size="large"
-                                className="h-12 text-base font-semibold rounded-md"
-                            >
-                                Ro‘yxatdan o‘tish
-                            </Button>
-                        </Link>
-                    </Form.Item>
-
-                    <Form.Item className="mb-3">
                         <Button
                             block
                             size="large"

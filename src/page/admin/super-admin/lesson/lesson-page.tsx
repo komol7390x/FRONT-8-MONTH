@@ -138,6 +138,7 @@ export const LessonPage: React.FC = () => {
     const dataSource = (query.data?.data || []).map((row: any) => ({
         key: row?.id ?? `${row?.teacherId}-${row?.studentId}-${Math.random()}`,
         ...row,
+        active: Boolean(row?.active ?? row?.isActive ?? true),
     }));
 
     const totalCount = query.data?.meta?.totalItems || dataSource.length;
@@ -272,7 +273,7 @@ export const LessonPage: React.FC = () => {
                 width: 95,
                 render: (v) => (
                     <span className={`inline-block px-3 py-1.5 rounded text-sm font-medium text-white min-w-22 text-center ${v ? 'bg-green-600' : 'bg-red-600'}`}>
-                        {v ? 'ACTIVE' : 'BLOCKED'}
+                        {v ? "Active" : "Blocked"}
                     </span>
                 ),
             },
@@ -397,7 +398,7 @@ export const LessonPage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 p-3 sm:p-6 overflow-x-hidden">
-            <div className="max-w-7xl mx-auto space-y-4">
+            <div className="max-w-screen-2xl mx-auto space-y-4">
                 <div className="flex items-center justify-between gap-3">
                     <Typography.Title level={3} style={{ margin: 0 }}>
                         Lesson
@@ -532,27 +533,7 @@ export const LessonPage: React.FC = () => {
                             style={{ width: '100%' }}
                             options={[
                                 { value: 'true', label: 'Active' },
-                                { value: 'false', label: 'Inactive' },
-                            ]}
-                        />
-
-                        <Select
-                            allowClear
-                            value={weekday || undefined}
-                            onChange={(v) => {
-                                setWeekday((v as any) ?? undefined);
-                                setPage(1);
-                            }}
-                            placeholder="Weekday"
-                            style={{ width: '100%' }}
-                            options={[
-                                { value: 'Monday', label: 'Monday' },
-                                { value: 'Tuesday', label: 'Tuesday' },
-                                { value: 'Wednesday', label: 'Wednesday' },
-                                { value: 'Thursday', label: 'Thursday' },
-                                { value: 'Friday', label: 'Friday' },
-                                { value: 'Saturday', label: 'Saturday' },
-                                { value: 'Sunday', label: 'Sunday' },
+                                { value: 'false', label: 'Blocked' },
                             ]}
                         />
 

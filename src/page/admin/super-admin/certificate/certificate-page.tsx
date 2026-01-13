@@ -111,7 +111,7 @@ export const CertificatePage: React.FC = () => {
                 width: 110,
                 render: (v) => (
                     <span className={`inline-block px-3 py-1.5 rounded text-sm font-medium text-white min-w-22 text-center ${v ? 'bg-green-600' : 'bg-red-600'}`}>
-                        {v ? 'Active' : 'Inactive'}
+                        {v ? 'Active' : 'Blocked'}
                     </span>
                 ),
             },
@@ -226,7 +226,7 @@ export const CertificatePage: React.FC = () => {
                             style={{ width: '100%' }}
                             options={[
                                 { value: 'true', label: 'Active' },
-                                { value: 'false', label: 'Inactive' },
+                                { value: 'false', label: 'Blocked' },
                             ]}
                         />
 

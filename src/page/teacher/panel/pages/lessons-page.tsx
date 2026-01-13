@@ -99,15 +99,15 @@ export const TeacherLessonsPage: React.FC = () => {
     const totalPages = query.data?.meta?.totalPages ?? (limit > 0 ? Math.ceil(total / limit) : 0);
 
     const weekdaySlots = useMemo(() => {
-        const months = ['YAN', 'FEV', 'MAR', 'APR', 'MAY', 'IYN', 'IYL', 'AVG', 'SEN', 'OKT', 'NOY', 'DEK'];
+        const months = ['Yan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         const dayNames: Array<{ key: (typeof WeekDays)[keyof typeof WeekDays]; short: string }> = [
-            { key: WeekDays.SUNDAY, short: 'Yak' },
-            { key: WeekDays.MONDAY, short: 'Dush' },
-            { key: WeekDays.TUESDAY, short: 'Sesh' },
-            { key: WeekDays.WEDNESDAY, short: 'Chor' },
-            { key: WeekDays.THURSDAY, short: 'Pay' },
-            { key: WeekDays.FRIDAY, short: 'Jum' },
-            { key: WeekDays.SATURDAY, short: 'Shan' },
+            { key: WeekDays.SUNDAY, short: 'Sun' },
+            { key: WeekDays.MONDAY, short: 'Mon' },
+            { key: WeekDays.TUESDAY, short: 'Tue' },
+            { key: WeekDays.WEDNESDAY, short: 'Wed' },
+            { key: WeekDays.THURSDAY, short: 'Thu' },
+            { key: WeekDays.FRIDAY, short: 'Fri' },
+            { key: WeekDays.SATURDAY, short: 'Sat' },
         ];
 
         const base = new Date();
@@ -191,7 +191,7 @@ export const TeacherLessonsPage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 p-3 sm:p-6">
-            <div className="max-w-7xl mx-auto space-y-4">
+            <div className="max-w-screen-2xl mx-auto space-y-4">
                 <div className="mt-4 p-4 rounded-2xl border border-gray-200 bg-linear-to-r from-white to-gray-50 shadow-sm space-y-3">
                     <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2">

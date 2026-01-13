@@ -37,10 +37,21 @@ export const StudentPaymentsPage: React.FC = () => {
                 t = '';
             }
         }
+
         const payload = t ? decodeJwtPayload(t) : null;
-        const id = Number(payload?.id ?? payload?.studentId ?? payload?.userId);
-        return Number.isFinite(id) && id > 0 ? id : 0;
-    }, [tokenFromUrl]);
+        const idFromToken = Number(payload?.id ?? payload?.studentId ?? payload?.userId);
+        if (Number.isFinite(idFromToken) && idFromToken > 0) return idFromToken;
+
+        const idFromQuery = Number(searchParams.get('userId'));
+        if (Number.isFinite(idFromQuery) && idFromQuery > 0) return idFromQuery;
+
+        try {
+            const idFromStorage = Number(localStorage.getItem('telegram_student_id'));
+            return Number.isFinite(idFromStorage) && idFromStorage > 0 ? idFromStorage : 0;
+        } catch {
+            return 0;
+        }
+    }, [searchParams, tokenFromUrl]);
 
     const initialSearch = searchParams.get('search') || '';
     const initialStatus = searchParams.get('status') || '';
@@ -63,16 +74,29 @@ export const StudentPaymentsPage: React.FC = () => {
 
     useEffect(() => {
         const params: any = {};
+        if (tokenFromUrl) params.token = tokenFromUrl;
+        if (studentId) params.userId = String(studentId);
+        params.role = 'STUDENT';
         if (status) params.status = status;
         if (search) params.search = search;
         if (page > 1) params.page = String(page);
         if (limit !== 10) params.limit = String(limit);
         setSearchParams(params);
-    }, [status, search, page, limit, setSearchParams]);
+    }, [tokenFromUrl, studentId, status, search, page, limit, setSearchParams]);
+
+    const formatStatus = (value: any) => {
+        const s = String(value ?? '').trim();
+        if (!s) return '-';
+        if (s === 'pendingCanceled') return 'Pending Canceled';
+        if (s === 'paidCanceled') return 'Paid Canceled';
+        if (s === 'pending') return 'Pending';
+        if (s === 'paid') return 'Paid';
+        return s;
+    };
 
     const query = usePayments({
         status,
-        active: true,
+        active: undefined,
         role: 'STUDENT',
         userId: studentId || undefined,
         search,
@@ -142,11 +166,11 @@ export const StudentPaymentsPage: React.FC = () => {
                             placeholder="Status"
                             style={{ width: '100%' }}
                             options={[
-                                { value: '', label: 'all' },
-                                { value: 'pending', label: 'pending' },
-                                { value: 'paid', label: 'paid' },
-                                { value: 'pendingCanceled', label: 'pendingCanceled' },
-                                { value: 'paidCanceled', label: 'paidCanceled' },
+                                { value: '', label: 'All' },
+                                { value: 'pending', label: 'Pending' },
+                                { value: 'paid', label: 'Paid' },
+                                { value: 'pendingCanceled', label: 'Pending Canceled' },
+                                { value: 'paidCanceled', label: 'Paid Canceled' },
                             ]}
                         />
                     </div>
@@ -163,7 +187,7 @@ export const StudentPaymentsPage: React.FC = () => {
                 )}
 
                 {rows.map((p: any, idx: number) => {
-                    const st = String(p?.status ?? '-');
+                    const st = formatStatus(p?.status);
                     const isPaid = st.toLowerCase().includes('paid');
                     const isPending = st.toLowerCase().includes('pending');
                     const pillClass = isPaid

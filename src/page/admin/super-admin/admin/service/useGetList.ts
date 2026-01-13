@@ -56,7 +56,7 @@ export interface GetListResponse {
     };
     stats: {
         active: number;
-        inactive: number;
+        blocked: number;
         deleted: number;
     };
 }
