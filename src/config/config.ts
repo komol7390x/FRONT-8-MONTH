@@ -1,6 +1,11 @@
-export const config = {
-    BACKEND_URL: String(import.meta.env.VITE_BACKEND_URL || 'https://komol.uz/api/v1'),
-    FRONTEND_URL: String(import.meta.env.VITE_FRONTEND_URL || 'https://komol.uz'),
-};
+const isDevelopment = import.meta.env.VITE_NODE_ENV === 'development';
 
-console.log(config);
+export const config = {
+    BACKEND_URL: isDevelopment
+        ? import.meta.env.VITE_BACKEND_URL_SERVER
+        : import.meta.env.VITE_BACKEND_URL_LOCAL,
+
+    FRONTEND_URL: isDevelopment
+        ? import.meta.env.VITE_FRONTEND_URL_SERVER
+        : import.meta.env.VITE_FRONTEND_URL_LOCAL
+};
