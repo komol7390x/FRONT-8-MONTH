@@ -9,7 +9,6 @@ import { TokenName } from '../../../config/enum';
 import { Roles } from '../../../config/roles';
 import { Button, Card, Form, Input, Typography } from "antd";
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { config } from '../../../config/config';
 const { Title } = Typography;
 
 const formSchema = z.object({
@@ -57,7 +56,7 @@ export const LoginAdmin = () => {
         <div className="flex justify-center items-center min-height-screen min-h-screen bg-[#f0f2f5] p-3 sm:p-4 md:p-6">
             <Card className="w-full max-w-md sm:max-w-lg md:max-w-xl shadow-lg rounded-xl">
                 <div >
-                    <Link to={config.FRONTEND_URL}>
+                    <Link to='/'>
                         <Button style={{ fontSize: '15px', boxSizing: 'border-box', backgroundColor: 'green', color: 'white' }}>Back</Button>
                     </Link>
                 </div>
