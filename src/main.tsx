@@ -11,6 +11,12 @@ const client = new QueryClient({
     }
   }
 })
+
+if (!window.location.hash && window.location.pathname !== '/') {
+  const next = `/#${window.location.pathname}${window.location.search}`
+  window.location.replace(next)
+}
+
 createRoot(document.getElementById('root')!).render(
   <QueryClientProvider client={client} >
     <HashRouter>
