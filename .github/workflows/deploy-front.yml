@@ -1,0 +1,46 @@
+name: Deploy Frontend Staging
+
+on:
+  push:
+    branches:
+      - staging
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            # 1. Xatolik yuz bersa skriptni to'xtatish
+            set -e
+
+            # 2. Loyiha papkasiga kirish
+            cd ~/Komol/front/FRONT-8-MONTH
+            
+            # 3. Kodni yangilash
+            echo "Kodni yangilash boshlandi..."
+            git checkout staging
+            git pull origin staging
+            
+            # 4. Kutubxonalarni o'rnatish
+            echo "Kutubxonalar o'rnatilmoqda..."
+            npm install
+            
+            # 5. Build jarayoni (RAM limitini 2048 ga oshirish)
+            echo "Build boshlandi (2048MB limit bilan)..."
+            export NODE_OPTIONS="--max-old-space-size=2048"
+            npx vite build
+            
+            # 6. PM2 orqali restart (Frontend ID: 8)
+            echo "PM2 jarayoni yangilanmoqda..."
+            pm2 restart 8 --update-env
+            
+            # 7. Holatni saqlash
+            pm2 save
+            
+            echo "Deploy muvaffaqiyatli yakunlandi!"
