@@ -8,8 +8,16 @@ export const request = axios.create({
 });
 
 request.interceptors.request.use((config) => {
+    let isTelegramContext = false;
+    try {
+        const p = window.location.pathname || '';
+        isTelegramContext = p === '/tgb' || p.startsWith('/telegram');
+    } catch {
+        isTelegramContext = false;
+    }
+
     const frontToken = Cookies.get(TokenName.TOKEN_NAME);
-    if (frontToken) {
+    if (frontToken && !isTelegramContext) {
         config.headers.Authorization = `Bearer ${frontToken}`
     }
     let telegramToken: string | undefined;
@@ -46,7 +54,7 @@ request.interceptors.request.use((config) => {
         }
     }
 
-    if (telegramToken) {
+    if (telegramToken && !isTelegramContext) {
         try {
             localStorage.setItem('telegram_token', telegramToken);
         } catch {
@@ -59,7 +67,7 @@ request.interceptors.request.use((config) => {
         }
     }
 
-    if (telegramToken) {
+    if (telegramToken && !isTelegramContext) {
         const headers: any = (config.headers ?? {}) as any;
         if (!headers.Authorization) {
             headers.Authorization = `Bearer ${telegramToken}`;
@@ -67,7 +75,7 @@ request.interceptors.request.use((config) => {
         }
     }
 
-    if (telegramToken) {
+    if (telegramToken && !isTelegramContext) {
         const params: any = (config.params ?? {}) as any;
         if (!params.token) {
             config.params = { ...params, token: telegramToken };

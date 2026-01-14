@@ -47,7 +47,7 @@ export const LoginTeacher = () => {
                     return;
                 }
                 Cookies.set(TokenName.TOKEN_NAME, token);
-                navigate('/teacher-panel');
+                navigate('/teacher-panel/settings');
             },
             onError: (err: any) => {
                 console.error('Teacher login error:', err);

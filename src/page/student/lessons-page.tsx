@@ -9,39 +9,30 @@ import { useUpdateLessonTemplate } from '../admin/super-admin/teacher/service/us
 
 export const StudentLessonsPage: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
+    const [studentIdResolved, setStudentIdResolved] = useState<number>(0);
 
-    const tokenFromUrl = searchParams.get('token') || '';
-
-    const decodeJwtPayload = (token: string): any | null => {
-        try {
-            const parts = token.split('.');
-            if (parts.length < 2) return null;
-            const b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-            const pad = b64.length % 4 === 0 ? '' : '='.repeat(4 - (b64.length % 4));
-            const json = decodeURIComponent(
-                Array.prototype.map
-                    .call(atob(b64 + pad), (c: string) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-                    .join('')
-            );
-            return JSON.parse(json);
-        } catch {
-            return null;
-        }
-    };
+    useEffect(() => {
+        const handler = (e: any) => {
+            const id = Number(e?.detail?.studentId);
+            if (Number.isFinite(id) && id > 0) {
+                setStudentIdResolved(id);
+            }
+        };
+        window.addEventListener('telegram-student-id-updated', handler as any);
+        return () => window.removeEventListener('telegram-student-id-updated', handler as any);
+    }, []);
 
     const studentId = useMemo(() => {
-        let t = tokenFromUrl;
-        if (!t) {
-            try {
-                t = localStorage.getItem('telegram_token') || '';
-            } catch {
-                t = '';
-            }
+        const idFromQuery = Number(searchParams.get('userId') || searchParams.get('studentId'));
+        if (Number.isFinite(idFromQuery) && idFromQuery > 0) return idFromQuery;
+        if (studentIdResolved > 0) return studentIdResolved;
+        try {
+            const idFromStorage = Number(localStorage.getItem('telegram_student_id'));
+            return Number.isFinite(idFromStorage) && idFromStorage > 0 ? idFromStorage : 0;
+        } catch {
+            return 0;
         }
-        const payload = t ? decodeJwtPayload(t) : null;
-        const id = Number(payload?.id ?? payload?.studentId ?? payload?.userId);
-        return Number.isFinite(id) && id > 0 ? id : 0;
-    }, [tokenFromUrl]);
+    }, [searchParams, studentIdResolved]);
 
     const initialDay = searchParams.get('weekday') || '';
     const initialPage = Number(searchParams.get('page')) || 1;

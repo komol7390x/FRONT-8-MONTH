@@ -8,6 +8,8 @@ import { TokenName } from '../../../config/enum';
 import { jwtDecode } from 'jwt-decode';
 import { Roles } from '../../../config/roles';
 import { useEffect, useRef, useState } from 'react';
+import { useTeacherDetails } from './service/useTeacherDetails';
+import { PageLoader } from '../../../components/page-loader';
 
 const { Header, Content, Footer } = Layout;
 
@@ -17,6 +19,7 @@ export const TeacherDashboard: React.FC = () => {
     const token = Cookies.get(TokenName.TOKEN_NAME);
     const contentRef = useRef<HTMLDivElement>(null);
     const [showFooter, setShowFooter] = useState(false);
+    const details = useTeacherDetails();
 
     if (!token) {
         return <Navigate to="/teacher/login" replace />;
@@ -37,7 +40,18 @@ export const TeacherDashboard: React.FC = () => {
         return <Navigate to="/teacher/login" replace />;
     }
 
-    if (isActive === false && location.pathname !== '/teacher-panel/settings') {
+    const serverIsActive = (details.data as any)?.isActive;
+    const blocked = isActive === false || serverIsActive === false;
+
+    if (details.isPending && location.pathname !== '/teacher-panel/settings') {
+        return (
+            <div className="min-h-screen bg-gray-50 flex justify-center items-center p-6">
+                <PageLoader />
+            </div>
+        );
+    }
+
+    if (blocked && location.pathname !== '/teacher-panel/settings') {
         return <Navigate to="/teacher-panel/settings" replace />;
     }
 
@@ -105,7 +119,7 @@ export const TeacherDashboard: React.FC = () => {
                 </Header>
 
                 <Content className="flex-1 overflow-hidden flex flex-col">
-                    <div 
+                    <div
                         ref={contentRef}
                         className="flex-1 overflow-y-auto custom-scrollbar p-3 sm:p-4 md:p-6"
                     >

@@ -13,7 +13,7 @@ export const MainPage = () => {
                     <p className='text-base sm:text-lg text-gray-600 mt-2'>Xush kelibsiz!</p>
                     <p className="text-sm sm:text-base text-gray-500 max-w-md px-2">
                         Agar platformamizdan  <a
-                            href="https://t.me/online_course_7390_bot"
+                            href={config.TELEGRAM_URL}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="font-semibold text-blue-500 hover:underline"
@@ -22,7 +22,7 @@ export const MainPage = () => {
                         </a>{" "} sifatida foydalanmoqchi bo'lsangiz Telegram botga oting
                     </p>
                     <a
-                        href="https://t.me/online_course_7390_bot"
+                        href={config.TELEGRAM_URL}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="w-full max-w-md"

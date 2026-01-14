@@ -10,25 +10,6 @@ export const StudentSchedulePage: React.FC = () => {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
 
-    const tokenFromUrl = searchParams.get('token') || '';
-
-    const decodeJwtPayload = (token: string): any | null => {
-        try {
-            const parts = token.split('.');
-            if (parts.length < 2) return null;
-            const b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-            const pad = b64.length % 4 === 0 ? '' : '='.repeat(4 - (b64.length % 4));
-            const json = decodeURIComponent(
-                Array.prototype.map
-                    .call(atob(b64 + pad), (c: string) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-                    .join('')
-            );
-            return JSON.parse(json);
-        } catch {
-            return null;
-        }
-    };
-
     // Read initial params from URL
     const initialDay = searchParams.get('day') || '';
     const initialPage = Number(searchParams.get('page')) || 1;
@@ -58,19 +39,10 @@ export const StudentSchedulePage: React.FC = () => {
         return () => window.removeEventListener('telegram-student-id-updated', handler as any);
     }, []);
 
-    const studentIdFromToken = useMemo(() => {
-        let t = tokenFromUrl;
-        if (!t) {
-            try {
-                t = localStorage.getItem('telegram_token') || '';
-            } catch {
-                t = '';
-            }
-        }
-        const payload = t ? decodeJwtPayload(t) : null;
-        const id = Number(payload?.id ?? payload?.studentId ?? payload?.userId);
+    const studentIdFromQuery = useMemo(() => {
+        const id = Number(searchParams.get('userId') || searchParams.get('studentId'));
         return Number.isFinite(id) && id > 0 ? id : 0;
-    }, [tokenFromUrl]);
+    }, [searchParams]);
 
     const studentIdFromStorage = useMemo(() => {
         try {
@@ -80,9 +52,9 @@ export const StudentSchedulePage: React.FC = () => {
         } catch {
             return 0;
         }
-    }, [tokenFromUrl]);
+    }, [searchParams]);
 
-    const studentId = studentIdFromToken || studentIdResolved || studentIdFromStorage;
+    const studentId = studentIdFromQuery || studentIdResolved || studentIdFromStorage;
 
     const isBooking = false;
 
@@ -100,24 +72,13 @@ export const StudentSchedulePage: React.FC = () => {
     });
 
     useEffect(() => {
-        if (!tokenFromUrl) return;
-        try {
-            localStorage.setItem('telegram_token', tokenFromUrl);
-        } catch {
-            // ignore
-        }
-
-        try {
-            document.cookie = `telegram_token=${encodeURIComponent(tokenFromUrl)}; path=/; SameSite=Lax`;
-        } catch {
-            // ignore
-        }
-
         const params = new URLSearchParams(searchParams);
-        params.delete('token');
-        setSearchParams(params, { replace: true } as any);
+        if (params.has('token')) {
+            params.delete('token');
+            setSearchParams(params, { replace: true } as any);
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [tokenFromUrl]);
+    }, []);
 
     useEffect(() => {
         if (initialDay) return;

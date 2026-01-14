@@ -34,11 +34,18 @@ export const LoginAdmin = () => {
     const onSubmit = (values: LoginFormValues) => {
         mutate(values, {
             onSuccess: (res) => {
-                Cookies.set(TokenName.TOKEN_NAME, res.data.token)
-                if (res.data.user.role == Roles.SUPER_ADMIN) {
+                const token = (res as any)?.data?.token ?? (res as any)?.token ?? (res as any)?.accessToken ?? (res as any)?.data?.accessToken;
+                const user = (res as any)?.data?.user ?? (res as any)?.user;
+                const role = user?.role;
+                if (!token) {
+                    message.error('Token topilmadi (backend response)');
+                    return;
+                }
+                Cookies.set(TokenName.TOKEN_NAME, token)
+                if (role == Roles.SUPER_ADMIN) {
                     navigate('/super-admin/admin/statistics')
                 }
-                else if (res.data.user.role == Roles.ADMIN) {
+                else if (role == Roles.ADMIN) {
                     navigate('/admin/teacher/all')
                 } else {
                     navigate('/admin/login')

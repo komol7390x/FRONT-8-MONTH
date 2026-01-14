@@ -24,36 +24,10 @@ export const TelegramStudentBottomNav: React.FC<TelegramStudentBottomNavProps> =
         return () => window.removeEventListener('telegram-student-id-updated', handler as any);
     }, []);
 
-    const decodeJwtPayload = (token: string): any | null => {
-        try {
-            const parts = token.split('.');
-            if (parts.length < 2) return null;
-            const b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-            const pad = b64.length % 4 === 0 ? '' : '='.repeat(4 - (b64.length % 4));
-            const json = decodeURIComponent(
-                Array.prototype.map
-                    .call(atob(b64 + pad), (c: string) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-                    .join('')
-            );
-            return JSON.parse(json);
-        } catch {
-            return null;
-        }
-    };
-
     const effectiveStudentId = React.useMemo(() => {
         if (typeof studentId === 'number' && studentId > 0) return studentId;
         if (params.studentId && Number(params.studentId) > 0) return Number(params.studentId);
         if (resolvedStudentId > 0) return resolvedStudentId;
-        try {
-            const t = localStorage.getItem('telegram_token') || '';
-            const payload = t ? decodeJwtPayload(t) : null;
-            const id = Number(payload?.id ?? payload?.studentId ?? payload?.userId);
-            return Number.isFinite(id) && id > 0 ? id : 0;
-        } catch {
-            // ignore
-        }
-
         try {
             const idFromStorage = Number(localStorage.getItem('telegram_student_id'));
             return Number.isFinite(idFromStorage) && idFromStorage > 0 ? idFromStorage : 0;

@@ -8,50 +8,30 @@ import { TelegramStudentBottomNav } from './components/telegram-student-bottom-n
 
 export const StudentPaymentsPage: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
+    const [studentIdResolved, setStudentIdResolved] = useState<number>(0);
 
-    const tokenFromUrl = searchParams.get('token') || '';
-
-    const decodeJwtPayload = (token: string): any | null => {
-        try {
-            const parts = token.split('.');
-            if (parts.length < 2) return null;
-            const b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-            const pad = b64.length % 4 === 0 ? '' : '='.repeat(4 - (b64.length % 4));
-            const json = decodeURIComponent(
-                Array.prototype.map
-                    .call(atob(b64 + pad), (c: string) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-                    .join('')
-            );
-            return JSON.parse(json);
-        } catch {
-            return null;
-        }
-    };
+    useEffect(() => {
+        const handler = (e: any) => {
+            const id = Number(e?.detail?.studentId);
+            if (Number.isFinite(id) && id > 0) {
+                setStudentIdResolved(id);
+            }
+        };
+        window.addEventListener('telegram-student-id-updated', handler as any);
+        return () => window.removeEventListener('telegram-student-id-updated', handler as any);
+    }, []);
 
     const studentId = useMemo(() => {
-        let t = tokenFromUrl;
-        if (!t) {
-            try {
-                t = localStorage.getItem('telegram_token') || '';
-            } catch {
-                t = '';
-            }
-        }
-
-        const payload = t ? decodeJwtPayload(t) : null;
-        const idFromToken = Number(payload?.id ?? payload?.studentId ?? payload?.userId);
-        if (Number.isFinite(idFromToken) && idFromToken > 0) return idFromToken;
-
-        const idFromQuery = Number(searchParams.get('userId'));
+        const idFromQuery = Number(searchParams.get('userId') || searchParams.get('studentId'));
         if (Number.isFinite(idFromQuery) && idFromQuery > 0) return idFromQuery;
-
+        if (studentIdResolved > 0) return studentIdResolved;
         try {
             const idFromStorage = Number(localStorage.getItem('telegram_student_id'));
             return Number.isFinite(idFromStorage) && idFromStorage > 0 ? idFromStorage : 0;
         } catch {
             return 0;
         }
-    }, [searchParams, tokenFromUrl]);
+    }, [searchParams, studentIdResolved]);
 
     const initialSearch = searchParams.get('search') || '';
     const initialStatus = searchParams.get('status') || '';
@@ -74,7 +54,6 @@ export const StudentPaymentsPage: React.FC = () => {
 
     useEffect(() => {
         const params: any = {};
-        if (tokenFromUrl) params.token = tokenFromUrl;
         if (studentId) params.userId = String(studentId);
         params.role = 'STUDENT';
         if (status) params.status = status;
@@ -82,7 +61,7 @@ export const StudentPaymentsPage: React.FC = () => {
         if (page > 1) params.page = String(page);
         if (limit !== 10) params.limit = String(limit);
         setSearchParams(params);
-    }, [tokenFromUrl, studentId, status, search, page, limit, setSearchParams]);
+    }, [studentId, status, search, page, limit, setSearchParams]);
 
     const formatStatus = (value: any) => {
         const s = String(value ?? '').trim();

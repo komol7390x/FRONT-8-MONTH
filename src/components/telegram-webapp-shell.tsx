@@ -29,9 +29,45 @@ const getTelegramToken = (): string => {
     }
 
     try {
-        const sp = new URLSearchParams(window.location.search);
-        const t = sp.get('token');
-        if (t) return String(t);
+        const cookieValue = document.cookie
+            .split(';')
+            .map((s) => s.trim())
+            .find((c) => c.startsWith('telegram_token='));
+        if (cookieValue) {
+            const v = cookieValue.split('=')[1];
+            if (v) return decodeURIComponent(String(v));
+        }
+    } catch {
+        // ignore
+    }
+
+    try {
+        const href = window.location.href;
+        const qIndex = href.indexOf('?');
+        const hIndex = href.indexOf('#');
+
+        const queryPart = qIndex >= 0
+            ? href.slice(qIndex + 1, hIndex >= 0 ? hIndex : undefined)
+            : '';
+
+        const hashPart = hIndex >= 0 ? href.slice(hIndex + 1) : '';
+        const hashQuery = hashPart.includes('?') ? hashPart.split('?')[1] : '';
+
+        const qp = new URLSearchParams(queryPart || hashQuery);
+        const t = qp.get('token');
+        if (t) {
+            try {
+                localStorage.setItem('telegram_token', String(t));
+            } catch {
+                // ignore
+            }
+            try {
+                document.cookie = `telegram_token=${encodeURIComponent(String(t))}; path=/; samesite=lax`;
+            } catch {
+                // ignore
+            }
+            return String(t);
+        }
     } catch {
         // ignore
     }

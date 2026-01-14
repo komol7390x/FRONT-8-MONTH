@@ -32,23 +32,6 @@ export const StudentBookConfirmPage: React.FC = () => {
     const [startTimeStr, setStartTimeStr] = useState<string>(initialStart);
     const [endTimeStr, setEndTimeStr] = useState<string>(initialEnd);
 
-    const decodeJwtPayload = (token: string): any | null => {
-        try {
-            const parts = token.split('.');
-            if (parts.length < 2) return null;
-            const b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-            const pad = b64.length % 4 === 0 ? '' : '='.repeat(4 - (b64.length % 4));
-            const json = decodeURIComponent(
-                Array.prototype.map
-                    .call(atob(b64 + pad), (c: string) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-                    .join('')
-            );
-            return JSON.parse(json);
-        } catch {
-            return null;
-        }
-    };
-
     const [studentIdResolved, setStudentIdResolved] = useState<number>(0);
 
     useEffect(() => {
@@ -62,17 +45,6 @@ export const StudentBookConfirmPage: React.FC = () => {
         return () => window.removeEventListener('telegram-student-id-updated', handler as any);
     }, []);
 
-    const studentIdFromToken = useMemo(() => {
-        try {
-            const t = localStorage.getItem('telegram_token') || '';
-            const payload = t ? decodeJwtPayload(t) : null;
-            const id = Number(payload?.id ?? payload?.studentId ?? payload?.userId);
-            return Number.isFinite(id) && id > 0 ? id : 0;
-        } catch {
-            return 0;
-        }
-    }, []);
-
     const studentIdFromStorage = useMemo(() => {
         try {
             const v = localStorage.getItem('telegram_student_id');
@@ -83,7 +55,7 @@ export const StudentBookConfirmPage: React.FC = () => {
         }
     }, []);
 
-    const studentId = studentIdFromQuery || studentIdFromToken || studentIdResolved || studentIdFromStorage;
+    const studentId = studentIdFromQuery || studentIdResolved || studentIdFromStorage;
 
     useEffect(() => {
         setStartTimeStr(initialStart);
