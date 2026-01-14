@@ -43,11 +43,19 @@ jobs:
             export PM2_HOME=/root/.pm2
             cd /root/Komol/front/FRONT-8-MONTH
             
+            # 1. Serverda kodni yangilash
+            git checkout staging
+            git pull origin staging
+            
+            # 2. Yangi buildni arxivdan chiqarish
             rm -rf dist
             unzip -o deploy.zip
             
+            # 3. PM2 jarayonini yangilash
+            # --update-env bayrog'i serverdagi .env o'zgarishlarini o'qishga yordam beradi
             pm2 restart frontend-staging --update-env || pm2 serve dist 5050 --name "frontend-staging" --spa
             
+            # 4. Tozalash va saqlash
             pm2 save
             rm -f deploy.zip
-            echo "✅ Frontend 5050-portda muvaffaqiyatli yangilandi!"
+            echo "✅ Frontend git pull qilindi va 5050-portda yangilandi!"
