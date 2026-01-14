@@ -1,119 +1,76 @@
-import React, { useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import { Info } from 'lucide-react';
+import { Info, User, Phone, Wallet, Calendar, ShieldCheck } from 'lucide-react';
 import { useGetStudentById } from '../admin/super-admin/student/service/useGetStudentById';
 import { PageLoader } from '../../components/page-loader';
-import { message } from 'antd';
 import { TelegramStudentBottomNav } from './components/telegram-student-bottom-nav';
 
 export const StudentProfilePage: React.FC = () => {
-    const { studentId } = useParams<{ studentId: string }>();
-    const id = React.useMemo(() => {
-        const fromParam = Number(studentId);
-        if (Number.isFinite(fromParam) && fromParam > 0) return fromParam;
-        try {
-            const fromStorage = Number(localStorage.getItem('telegram_student_id'));
-            return Number.isFinite(fromStorage) && fromStorage > 0 ? fromStorage : 0;
-        } catch {
-            return 0;
-        }
-    }, [studentId]);
+    const { studentId: paramId } = useParams<{ studentId: string }>();
 
+    // 1. IDni aniqlash: Avval URLdan, bo'lmasa storage'dan olamiz
+    const id = useMemo(() => {
+        return Number(paramId) || Number(localStorage.getItem('telegram_student_id')) || 0;
+    }, [paramId]);
+
+    // 2. Ma'lumotlarni yuklash
     const { data: student, isPending } = useGetStudentById(id);
-
-    useEffect(() => {
-        if (!id) {
-            message.error('Student ID not found');
-        }
-    }, [id]);
 
     const fullname = `${student?.firstName || ''} ${student?.lastName || ''}`.trim();
 
+    if (isPending) return <PageLoader />;
+
+    if (!student && !isPending) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen text-gray-500">
+                <User size={48} className="mb-2 opacity-20" />
+                <p>Talaba ma'lumotlari topilmadi</p>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-gray-50 pb-24">
-            {/* Header */}
-            <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-                <div className="max-w-md mx-auto px-4 py-4">
-                    <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-linear-to-tr from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                            {fullname ? fullname.charAt(0).toUpperCase() : 'S'}
-                        </div>
-                        <div>
-                            <h1 className="text-lg font-bold text-gray-900">{fullname || 'Student'}</h1>
-                            <p className="text-xs text-gray-500">@{student?.tgUsername || 'student'}</p>
-                        </div>
+            {/* Profil Header */}
+            <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+                <div className="max-w-md mx-auto px-6 py-6 text-center">
+                    <div className="w-20 h-20 bg-gradient-to-tr from-blue-500 to-indigo-600 rounded-3xl mx-auto flex items-center justify-center text-white font-bold text-2xl shadow-lg mb-3 rotate-3">
+                        <span className="-rotate-3">{fullname ? fullname.charAt(0).toUpperCase() : 'S'}</span>
                     </div>
+                    <h1 className="text-xl font-extrabold text-gray-900">{fullname || 'Talaba'}</h1>
+                    <p className="text-sm text-blue-500 font-medium">@{student?.tgUsername || 'username'}</p>
                 </div>
             </div>
 
             <div className="max-w-md mx-auto p-4 space-y-4">
-                {isPending && (
-                    <div className="flex justify-center py-10">
-                        <PageLoader />
+                {/* Asosiy ma'lumotlar kartasi */}
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="p-4 border-b border-gray-50 bg-gray-50/50 flex items-center gap-2">
+                        <Info size={18} className="text-blue-600" />
+                        <span className="text-sm font-bold text-gray-700">Shaxsiy ma'lumotlar</span>
                     </div>
-                )}
 
-                {!isPending && !student && (
-                    <div className="text-center py-10 text-gray-600">Student not found</div>
-                )}
-
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4">
-                    <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                        <Info size={20} className="text-blue-600" />
-                        Student Information
-                    </h2>
-
-                    <div className="space-y-3">
-                        <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                            <span className="text-sm font-medium text-gray-600">ID</span>
-                            <span className="text-sm font-semibold text-gray-900">{student?.id ?? '-'}</span>
-                        </div>
-
-                        <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                            <span className="text-sm font-medium text-gray-600">Name</span>
-                            <span className="text-sm font-semibold text-gray-900">{fullname || '-'}</span>
-                        </div>
-
-                        <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                            <span className="text-sm font-medium text-gray-600">Phone</span>
-                            <span className="text-sm font-semibold text-gray-900">{student?.phoneNumber || '-'}</span>
-                        </div>
-
-                        <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                            <span className="text-sm font-medium text-gray-600">Telegram ID</span>
-                            <span className="text-sm font-semibold text-gray-900">{student?.tgId || '-'}</span>
-                        </div>
-
-                        <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                            <span className="text-sm font-medium text-gray-600">Username</span>
-                            <span className="text-sm font-semibold text-gray-900">@{student?.tgUsername || '-'}</span>
-                        </div>
-
-                        <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                            <span className="text-sm font-medium text-gray-600">Balance</span>
-                            <span className="text-sm font-semibold text-green-600">{Number(student?.wallet || 0).toLocaleString()} UZS</span>
-                        </div>
-
-                        <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                            <span className="text-sm font-medium text-gray-600">Status</span>
-                            <span className={`text-sm font-semibold ${student?.isActive ? 'text-green-600' : 'text-red-600'}`}>
-                                {student?.isActive ? 'Active' : 'Blocked'}
-                            </span>
-                        </div>
-
-                        <div className="flex justify-between items-center py-2">
-                            <span className="text-sm font-medium text-gray-600">Created</span>
-                            <span className="text-sm font-semibold text-gray-900">
-                                {student?.createdAt
-                                    ? new Date(student.createdAt).toLocaleDateString('uz-UZ', {
-                                        year: 'numeric',
-                                        month: 'short',
-                                        day: 'numeric'
-                                    })
-                                    : '-'
-                                }
-                            </span>
-                        </div>
+                    <div className="p-4 divide-y divide-gray-50">
+                        <ProfileItem icon={<User size={16} />} label="ID" value={student?.id} />
+                        <ProfileItem icon={<Phone size={16} />} label="Telefon" value={student?.phoneNumber} />
+                        <ProfileItem icon={<ShieldCheck size={16} />} label="Telegram ID" value={student?.tgId} />
+                        <ProfileItem
+                            icon={<Wallet size={16} />}
+                            label="Balans"
+                            value={`${Number(student?.wallet || 0).toLocaleString()} UZS`}
+                            valueClass="text-green-600 font-bold"
+                        />
+                        <ProfileItem
+                            icon={<ShieldCheck size={16} />}
+                            label="Holati"
+                            value={student?.isActive ? 'Faol' : 'Bloklangan'}
+                            valueClass={student?.isActive ? 'text-green-500' : 'text-red-500'}
+                        />
+                        <ProfileItem
+                            icon={<Calendar size={16} />}
+                            label="Ro'yxatdan o'tdi"
+                            value={student?.createdAt ? new Date(student.createdAt).toLocaleDateString('uz-UZ') : '-'}
+                        />
                     </div>
                 </div>
             </div>
@@ -122,3 +79,14 @@ export const StudentProfilePage: React.FC = () => {
         </div>
     );
 };
+
+// Yordamchi komponent kodni qisqartirish uchun
+const ProfileItem = ({ icon, label, value, valueClass = "text-gray-900" }: any) => (
+    <div className="flex justify-between items-center py-3">
+        <div className="flex items-center gap-3 text-gray-500">
+            {icon}
+            <span className="text-sm font-medium">{label}</span>
+        </div>
+        <span className={`text-sm font-semibold ${valueClass}`}>{value ?? '-'}</span>
+    </div>
+);

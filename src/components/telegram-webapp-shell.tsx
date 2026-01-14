@@ -1,294 +1,97 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { request } from '../config/request';
 import { PageLoader } from './page-loader';
 
-const decodeJwtPayload = (token: string): any | null => {
-    try {
-        const parts = token.split('.');
-        if (parts.length < 2) return null;
-        const b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-        const pad = b64.length % 4 === 0 ? '' : '='.repeat(4 - (b64.length % 4));
-        const json = decodeURIComponent(
-            Array.prototype.map
-                .call(atob(b64 + pad), (c: string) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-                .join('')
-        );
-        return JSON.parse(json);
-    } catch {
-        return null;
-    }
-};
-
-const getTelegramToken = (): string => {
-    try {
-        const t = localStorage.getItem('telegram_token');
-        if (t) return String(t);
-    } catch {
-        // ignore
-    }
-
-    try {
-        const cookieValue = document.cookie
-            .split(';')
-            .map((s) => s.trim())
-            .find((c) => c.startsWith('telegram_token='));
-        if (cookieValue) {
-            const v = cookieValue.split('=')[1];
-            if (v) return decodeURIComponent(String(v));
-        }
-    } catch {
-        // ignore
-    }
-
-    try {
-        const href = window.location.href;
-        const qIndex = href.indexOf('?');
-        const hIndex = href.indexOf('#');
-
-        const queryPart = qIndex >= 0
-            ? href.slice(qIndex + 1, hIndex >= 0 ? hIndex : undefined)
-            : '';
-
-        const hashPart = hIndex >= 0 ? href.slice(hIndex + 1) : '';
-        const hashQuery = hashPart.includes('?') ? hashPart.split('?')[1] : '';
-
-        const qp = new URLSearchParams(queryPart || hashQuery);
-        const t = qp.get('token');
-        if (t) {
-            try {
-                localStorage.setItem('telegram_token', String(t));
-            } catch {
-                // ignore
-            }
-            try {
-                document.cookie = `telegram_token=${encodeURIComponent(String(t))}; path=/; samesite=lax`;
-            } catch {
-                // ignore
-            }
-            return String(t);
-        }
-    } catch {
-        // ignore
-    }
-
-    return '';
-};
-
-const getTelegramUserId = (): string => {
-    try {
-        const tgId = (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.id;
-        if (tgId == null) return '';
-        return String(tgId);
-    } catch {
-        return '';
-    }
-};
-
 export const TelegramWebAppShell: React.FC<React.PropsWithChildren> = ({ children }) => {
     const location = useLocation();
+    const navigate = useNavigate();
 
-    const token = useMemo(() => getTelegramToken(), [location.key]);
-    const tokenPayload = useMemo(() => {
-        if (!token) return null;
-        return decodeJwtPayload(token);
-    }, [token]);
+    const [loading, setLoading] = useState(true);
+    const [isBlocked, setIsBlocked] = useState(false);
+    const [_, setStudentId] = useState<number | null>(null);
 
-    const studentIdFromToken = useMemo(() => {
-        const id = Number(tokenPayload?.id ?? tokenPayload?.studentId ?? tokenPayload?.userId);
-        return Number.isFinite(id) && id > 0 ? id : 0;
-    }, [tokenPayload]);
-
-    const studentIdFromStorage = useMemo(() => {
-        try {
-            const v = localStorage.getItem('telegram_student_id');
-            const n = Number(v);
-            return Number.isFinite(n) && n > 0 ? n : 0;
-        } catch {
-            return 0;
-        }
-    }, [location.key]);
-
-    const [studentIdResolved, setStudentIdResolved] = useState<number>(0);
-
-    const studentId = studentIdFromToken || studentIdResolved || studentIdFromStorage;
-
-    const [serverActive, setServerActive] = useState<boolean | null>(null);
-    const [serverCheckPending, setServerCheckPending] = useState<boolean>(false);
-
+    // 1. Tokenni URL dan olish va saqlash
     useEffect(() => {
-        let cancelled = false;
+        const params = new URLSearchParams(window.location.search);
+        const tokenFromUrl = params.get('token');
 
-        const run = async () => {
-            if (!studentId) {
-                setServerActive(null);
+        if (tokenFromUrl) {
+            localStorage.setItem('telegram_token', tokenFromUrl);
+            // URLni tozalash (tokenni olib tashlash)
+            params.delete('token');
+            const newSearch = params.toString();
+            navigate(`${location.pathname}${newSearch ? '?' + newSearch : ''}`, { replace: true });
+        }
+    }, [location.pathname, navigate]);
+
+    // 2. Student ma'lumotlarini aniqlash va tekshirish
+    useEffect(() => {
+        const checkStudentStatus = async () => {
+            const token = localStorage.getItem('telegram_token');
+            if (!token) {
+                setLoading(false);
                 return;
             }
-            setServerCheckPending(true);
+
             try {
-                const res = await request.get(`/student/${studentId}`);
-                const raw: any = res?.data;
-                const active = raw?.data?.isActive;
-                if (!cancelled) {
-                    setServerActive(typeof active === 'boolean' ? active : null);
+                // Token payloadidan IDni olish (ixtiyoriy, lekin serverdan tekshirish ishonchliroq)
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const currentId = payload?.id || payload?.studentId;
+
+                if (currentId) {
+                    setStudentId(currentId);
+                    const res = await request.get(`/student/${currentId}`);
+                    if (res.data?.data?.isActive === false) {
+                        setIsBlocked(true);
+                    }
                 }
-            } catch {
-                if (!cancelled) {
-                    setServerActive(null);
-                }
+            } catch (error) {
+                console.error("Auth check error:", error);
             } finally {
-                if (!cancelled) {
-                    setServerCheckPending(false);
-                }
+                setLoading(false);
             }
         };
 
-        run();
-        return () => {
-            cancelled = true;
-        };
-    }, [studentId, location.pathname]);
+        checkStudentStatus();
+    }, [location.pathname]);
 
-    useEffect(() => {
-        let cancelled = false;
-        const run = async () => {
-            if (studentIdFromToken || studentIdFromStorage) return;
-            const tgId = getTelegramUserId();
-            if (!tgId) return;
-
-            try {
-                const res = await request.get(`/student/telegram/${tgId}`);
-                const raw: any = res?.data;
-                const id = Number(raw?.data?.id ?? raw?.data?.data?.id);
-                if (cancelled) return;
-                if (Number.isFinite(id) && id > 0) {
-                    try {
-                        localStorage.setItem('telegram_student_id', String(id));
-                    } catch {
-                        // ignore
-                    }
-
-                    try {
-                        window.dispatchEvent(new CustomEvent('telegram-student-id-updated', { detail: { studentId: id } }));
-                    } catch {
-                        // ignore
-                    }
-
-                    if (!cancelled) {
-                        setStudentIdResolved(id);
-                    }
-                }
-            } catch {
-                // ignore
-            }
-        };
-
-        run();
-        return () => {
-            cancelled = true;
-        };
-    }, [studentIdFromStorage, studentIdFromToken, location.key]);
-
-    const isBlocked = useMemo(() => {
-        if (studentId) {
-            return serverActive === false;
-        }
-        return tokenPayload?.isActive === false;
-    }, [serverActive, studentId, tokenPayload?.isActive]);
-
+    // 3. Telegram WebApp interfeysini sozlash
     useEffect(() => {
         const tg = (window as any).Telegram?.WebApp;
         if (!tg) return;
 
-        try {
-            tg.ready();
-        } catch {
-            // ignore
-        }
+        tg.ready();
+        tg.expand();
+        tg.setHeaderColor?.('#ffffff');
 
-        try {
-            tg.expand();
-        } catch {
-            // ignore
-        }
-
-        try {
-            tg.disableVerticalSwipes?.();
-        } catch {
-            // ignore
-        }
-
-        try {
-            tg.setHeaderColor?.('#ffffff');
-            tg.setBackgroundColor?.('#f9fafb');
-        } catch {
-            // ignore
-        }
-
-        const setViewportHeight = () => {
-            try {
-                const vh = Number(tg.viewportHeight);
-                if (Number.isFinite(vh) && vh > 0) {
-                    document.documentElement.style.setProperty('--tg-viewport-height', `${vh}px`);
-                }
-            } catch {
-                // ignore
-            }
+        const updateHeight = () => {
+            document.documentElement.style.setProperty('--tg-viewport-height', `${tg.viewportHeight}px`);
         };
+        tg.onEvent('viewportChanged', updateHeight);
+        updateHeight();
 
-        setViewportHeight();
+        return () => tg.offEvent('viewportChanged', updateHeight);
+    }, []);
 
-        try {
-            tg.onEvent?.('viewportChanged', setViewportHeight);
-        } catch {
-            // ignore
-        }
-
-        const prevHtmlOverflow = document.documentElement.style.overflow;
-        const prevBodyOverflow = document.body.style.overflow;
-        const prevBodyHeight = document.body.style.height;
-
-        document.documentElement.style.overflow = 'hidden';
-        document.body.style.overflow = 'hidden';
-        document.body.style.height = '100vh';
-
-        return () => {
-            try {
-                tg.offEvent?.('viewportChanged', setViewportHeight);
-            } catch {
-                // ignore
-            }
-            document.documentElement.style.overflow = prevHtmlOverflow;
-            document.body.style.overflow = prevBodyOverflow;
-            document.body.style.height = prevBodyHeight;
-        };
-    }, [location.pathname]);
+    if (loading) return <PageLoader />;
 
     if (isBlocked) {
         return (
-            <div className="min-h-screen bg-gray-50 px-4" style={{ paddingTop: 'max(16px, env(safe-area-inset-top))', paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}>
-                <div className="max-w-md mx-auto">
-                    <div className="mt-16 bg-white rounded-2xl border border-red-200 shadow-sm p-5">
-                        <div className="text-lg font-bold text-red-700">You are blocked</div>
-                        <div className="mt-2 text-sm text-gray-700">
-                            Please contact support or your admin to unlock your account.
-                        </div>
-                    </div>
+            <div className="flex items-center justify-center min-h-screen bg-gray-50 p-6 text-center">
+                <div className="bg-white p-8 rounded-2xl shadow-sm border border-red-100">
+                    <h2 className="text-xl font-bold text-red-600">Hisob bloklangan</h2>
+                    <p className="text-gray-600 mt-2">Iltimos, administrator bilan bog'laning.</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen" style={{ height: 'var(--tg-viewport-height, 100vh)', overflow: 'hidden' }}>
-            <div style={{ height: '100%', overflowY: 'auto', WebkitOverflowScrolling: 'touch', paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <div className="min-h-screen flex flex-col" style={{ height: 'var(--tg-viewport-height, 100vh)' }}>
+            <div className="flex-1 overflow-y-auto overflow-x-hidden safe-area-bottom">
                 {children}
             </div>
-            {studentId && serverCheckPending && (
-                <div className="fixed inset-0 bg-gray-50/70 z-10 flex items-center justify-center pointer-events-none" style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
-                    <PageLoader />
-                </div>
-            )}
         </div>
     );
 };

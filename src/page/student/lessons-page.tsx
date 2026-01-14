@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Button, Card, Modal, Tag, Select, message } from 'antd';
-import { CalendarDays, Clock, DollarSign, Link2, Pencil } from 'lucide-react';
+import { Button, Card, Modal, Tag, Input } from 'antd';
+import { CalendarDays, Clock, DollarSign, Link2, Pencil, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { useStudentLessons } from './service/useStudentLessons';
 import { PageLoader } from '../../components/page-loader';
@@ -9,392 +9,203 @@ import { useUpdateLessonTemplate } from '../admin/super-admin/teacher/service/us
 
 export const StudentLessonsPage: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
-    const [studentIdResolved, setStudentIdResolved] = useState<number>(0);
 
-    useEffect(() => {
-        const handler = (e: any) => {
-            const id = Number(e?.detail?.studentId);
-            if (Number.isFinite(id) && id > 0) {
-                setStudentIdResolved(id);
-            }
-        };
-        window.addEventListener('telegram-student-id-updated', handler as any);
-        return () => window.removeEventListener('telegram-student-id-updated', handler as any);
-    }, []);
+    // 1. Markazlashgan ID
+    const studentId = Number(localStorage.getItem('telegram_student_id') || 0);
 
-    const studentId = useMemo(() => {
-        const idFromQuery = Number(searchParams.get('userId') || searchParams.get('studentId'));
-        if (Number.isFinite(idFromQuery) && idFromQuery > 0) return idFromQuery;
-        if (studentIdResolved > 0) return studentIdResolved;
-        try {
-            const idFromStorage = Number(localStorage.getItem('telegram_student_id'));
-            return Number.isFinite(idFromStorage) && idFromStorage > 0 ? idFromStorage : 0;
-        } catch {
-            return 0;
-        }
-    }, [searchParams, studentIdResolved]);
+    // 2. Filterlar
+    const [dayFilter, setDayFilter] = useState<string>(searchParams.get('weekday') || '');
+    const [statusFilter] = useState<string>(searchParams.get('status') || '');
+    const [search, setSearch] = useState<string>(searchParams.get('search') || '');
+    const [page, setPage] = useState<number>(Number(searchParams.get('page')) || 1);
+    const limit = 10;
 
-    const initialDay = searchParams.get('weekday') || '';
-    const initialPage = Number(searchParams.get('page')) || 1;
-    const initialLimit = Number(searchParams.get('limit')) || 10;
-    const initialSearch = searchParams.get('search') || '';
-    const initialStatus = searchParams.get('status') || '';
-
-    const [dayFilter, setDayFilter] = useState<string>(initialDay);
-    const [page, setPage] = useState<number>(initialPage);
-    const [statusFilter, setStatusFilter] = useState<string>(initialStatus);
-    const [searchInput, setSearchInput] = useState<string>(initialSearch);
-    const [search, setSearch] = useState<string>(initialSearch);
-
+    // 3. API Ma'lumotlari
     const { data: lessonsData, isPending } = useStudentLessons(studentId || undefined, {
-        status: statusFilter,
+        status: statusFilter || undefined,
         search: search || undefined,
-        page: 1,
+        page: 1, // Client-side pagination ishlatilgani uchun hammasini olamiz
         limit: 1000,
     });
 
     const { mutate: updateLesson, isPending: isUpdating } = useUpdateLessonTemplate();
 
+    // 4. Modal holatlari
     const [editOpen, setEditOpen] = useState(false);
-    const [editLesson, setEditLesson] = useState<any | null>(null);
-    const [editStartStr, setEditStartStr] = useState('');
-    const [editEndStr, setEditEndStr] = useState('');
+    const [selectedLesson, setSelectedLesson] = useState<any>(null);
+    const [timeRange, setTimeRange] = useState({ start: '', end: '' });
 
-    useEffect(() => {
-        const t = setTimeout(() => {
-            setSearch(searchInput);
-            setPage(1);
-        }, 500);
-        return () => clearTimeout(t);
-    }, [searchInput]);
-
-    useEffect(() => {
-        const params: any = {};
-        if (statusFilter) params.status = statusFilter;
-        if (dayFilter) params.weekday = dayFilter;
-        if (page > 1) params.page = String(page);
-        if (initialLimit !== 10) params.limit = String(initialLimit);
-        if (search) params.search = search;
-
-        setSearchParams(params);
-    }, [statusFilter, dayFilter, page, initialLimit, search, setSearchParams]);
-
+    // 5. Haftalik kunlar mantiqi
     const rollingWeek = useMemo(() => {
-        const order = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        const todayIdx = new Date().getDay();
-        const res: Array<{ day: string; dateStr: string }> = [];
-        for (let i = 0; i < 7; i++) {
-            const idx = (todayIdx + i) % 7;
-            const day = order[idx];
-            const d = new Date();
-            d.setDate(d.getDate() + i);
-            res.push({
-                day,
-                dateStr: d.toLocaleDateString('uz-UZ', { day: '2-digit', month: '2-digit' }),
-            });
-        }
-        return res;
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        return Array.from({ length: 7 }, (_, i) => {
+            const date = new Date();
+            date.setDate(date.getDate() + i);
+            const dayName = days[date.getDay()];
+            return { dayName, dateLabel: date.toLocaleDateString('uz-UZ', { day: '2-digit', month: '2-digit' }) };
+        });
     }, []);
 
-    const formatTime = (ms: number | null): string => {
-        if (!ms) return '-';
-        const d = new Date(ms);
-        return d.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
-    };
-
-    const buildMsFromTime = (baseMs: number, hhmm: string): number | null => {
-        if (!baseMs || !hhmm) return null;
-        const [hhRaw, mmRaw] = hhmm.split(':');
-        const hh = Number(hhRaw);
-        const mm = Number(mmRaw);
-        if (!Number.isFinite(hh) || !Number.isFinite(mm)) return null;
-        const d = new Date(baseMs);
-        d.setHours(hh, mm, 0, 0);
-        return d.getTime();
-    };
-
-    const toMs = (value: unknown): number | null => {
-        if (value == null) return null;
-        const n = Number(value);
-        if (Number.isFinite(n)) return n < 1_000_000_000_000 ? n * 1000 : n;
-        const d = new Date(String(value));
-        return Number.isNaN(d.getTime()) ? null : d.getTime();
-    };
-
-    const dayCounts = useMemo(() => {
-        const counts: Record<string, number> = {};
-        if (lessonsData?.data) {
-            lessonsData.data.forEach((item: any) => {
-                const d = item.weekday || item.weekDays || item.day;
-                if (d) counts[d] = (counts[d] || 0) + 1;
-            });
-        }
-        return counts;
-    }, [lessonsData?.data]);
-
+    // 6. Filtrlash va Pagination
     const filteredLessons = useMemo(() => {
         const all = lessonsData?.data || [];
-        return all.filter((lesson: any) => {
-            const d = String(lesson.weekday || lesson.weekDays || lesson.day || '');
-            return !dayFilter || d === dayFilter;
-        });
-    }, [lessonsData?.data, dayFilter]);
+        return all.filter((l: any) => !dayFilter || (l.weekday || l.weekDays) === dayFilter);
+    }, [lessonsData, dayFilter]);
 
-    const totalPages = Math.max(1, Math.ceil(filteredLessons.length / initialLimit));
-    const pageItems = filteredLessons.slice((page - 1) * initialLimit, page * initialLimit);
+    const pageItems = filteredLessons.slice((page - 1) * limit, page * limit);
+    const totalPages = Math.ceil(filteredLessons.length / limit);
+
+    // 7. URL sinxronlash
+    useEffect(() => {
+        const params = new URLSearchParams();
+        if (dayFilter) params.set('weekday', dayFilter);
+        if (statusFilter) params.set('status', statusFilter);
+        if (search) params.set('search', search);
+        if (page > 1) params.set('page', String(page));
+        setSearchParams(params, { replace: true });
+    }, [dayFilter, statusFilter, search, page, setSearchParams]);
+
+    // Yordamchi funksiyalar
+    const formatTime = (val: any) => {
+        if (!val) return '--:--';
+        const date = new Date(Number(val) < 1e12 ? val * 1000 : val);
+        return date.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
+    };
 
     const openEdit = (lesson: any) => {
-        const startMs = toMs(lesson?.startTime);
-        const finishMs = toMs(lesson?.finishTime ?? lesson?.endTime);
-        if (!startMs || !finishMs) {
-            message.error('Lesson time information is missing');
-            return;
-        }
-        const st = new Date(startMs);
-        const ft = new Date(finishMs);
-        const toHHMM = (d: Date) => d.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
-        setEditLesson(lesson);
-        setEditStartStr(toHHMM(st));
-        setEditEndStr(toHHMM(ft));
+        setSelectedLesson(lesson);
+        setTimeRange({
+            start: formatTime(lesson.startTime),
+            end: formatTime(lesson.finishTime || lesson.endTime)
+        });
         setEditOpen(true);
     };
 
-    const handleSaveEdit = () => {
-        if (!editLesson?.id) {
-            message.error('Lesson ID not found');
-            return;
-        }
-        const baseMs = toMs(editLesson?.startTime);
-        if (!baseMs) {
-            message.error('Lesson time information is missing');
-            return;
-        }
-        const startMs = buildMsFromTime(baseMs, editStartStr);
-        const finishMs = buildMsFromTime(baseMs, editEndStr);
-        if (!startMs || !finishMs) {
-            message.error('Please select start and end time');
-            return;
-        }
-        if (finishMs <= startMs) {
-            message.error('End time must be after start time');
-            return;
-        }
-
-        updateLesson(
-            {
-                id: Number(editLesson.id),
-                startTime: Math.floor(startMs / 1000),
-                finishTime: Math.floor(finishMs / 1000),
-            } as any,
-            {
-                onSuccess: () => {
-                    setEditOpen(false);
-                    setEditLesson(null);
-                },
-            } as any,
-        );
-    };
-
     return (
-        <div className="min-h-screen bg-gray-50 p-3 sm:p-4 pb-24">
+        <div className="min-h-screen bg-gray-50 p-3 pb-24">
             <div className="max-w-md mx-auto space-y-4">
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4">
-                    <div className="flex items-center gap-2 mb-4">
+                {/* Qidiruv va Filterlar */}
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-4">
+                    <div className="flex items-center gap-2">
                         <CalendarDays size={20} className="text-blue-600" />
-                        <h1 className="text-lg font-bold text-gray-900">My Lessons</h1>
+                        <h1 className="text-lg font-bold text-gray-900">Dars jadvalim</h1>
                     </div>
 
-                    <div className="mb-4">
-                        <input
-                            type="text"
-                            value={searchInput}
-                            onChange={(e) => setSearchInput(e.target.value)}
-                            placeholder="Search by lesson name"
-                            className="w-full h-11 px-4 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-green-200 text-sm shadow-sm"
-                        />
-                    </div>
+                    <Input
+                        prefix={<Search size={16} className="text-gray-400" />}
+                        placeholder="Dars nomini yozing..."
+                        className="h-11 rounded-xl"
+                        allowClear
+                        onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                    />
 
-                    {/* Status Filter */}
-                    <div className="mb-4">
-                        <Select
-                            placeholder="Filter by Status"
-                            value={statusFilter}
-                            onChange={(value) => {
-                                setStatusFilter(value);
-                                setPage(1);
-                            }}
-                            className="w-full"
-                            options={[
-                                { value: '', label: 'All' },
-                                { value: 'pending', label: 'Pending' },
-                                { value: 'booked', label: 'Booked' },
-                                { value: 'completed', label: 'Completed' },
-                                { value: 'cancelled', label: 'Cancelled' },
-                                { value: 'expired', label: 'Expired' },
-                            ]}
-                        />
-                    </div>
-
-                    {/* Day Filters */}
-                    <div className="grid grid-cols-4 gap-2">
-                        {rollingWeek.map(({ day, dateStr }) => {
-                            const isActive = dayFilter === day;
-                            const count = dayCounts[day] || 0;
-                            const disabled = count === 0;
-
+                    <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+                        {rollingWeek.map((item) => {
+                            const isActive = dayFilter === item.dayName;
                             return (
                                 <button
-                                    key={day}
-                                    onClick={() => {
-                                        if (disabled) return;
-                                        setDayFilter(day);
-                                        setPage(1);
-                                    }}
-                                    disabled={disabled}
-                                    className={`py-2 px-2 rounded-xl text-xs font-bold transition-all flex flex-col items-center justify-center gap-0.5
-                                        ${isActive
-                                            ? 'bg-green-600 text-white shadow-md'
-                                            : disabled
-                                                ? 'bg-gray-100 text-gray-400 border border-gray-200 opacity-60'
-                                                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
-                                        }`}
+                                    key={item.dayName}
+                                    onClick={() => { setDayFilter(isActive ? '' : item.dayName); setPage(1); }}
+                                    className={`flex-shrink-0 min-w-[65px] py-2.5 rounded-2xl border transition-all flex flex-col items-center
+                                        ${isActive ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-100' : 'bg-white border-gray-100 text-gray-500'}`}
                                 >
-                                    <span>{day.slice(0, 3)}</span>
-                                    <span className={`text-[10px] font-normal ${isActive ? 'text-green-100' : 'text-gray-400'}`}>{dateStr}</span>
-                                    {count > 0 && !isActive && (
-                                        <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded-full text-[10px] leading-none">
-                                            {count}
-                                        </span>
-                                    )}
+                                    <span className="text-[10px] font-bold uppercase opacity-70">{item.dayName.slice(0, 3)}</span>
+                                    <span className="text-sm font-black">{item.dateLabel}</span>
                                 </button>
                             );
                         })}
                     </div>
                 </div>
 
-                <div className="space-y-3">
-                    {isPending && (
-                        <div className="flex justify-center py-8">
-                            <PageLoader />
-                        </div>
-                    )}
-
-                    {pageItems.map((lesson: any) => {
-                        const startMs = toMs(lesson.startTime);
-                        const finishMs = toMs(lesson.finishTime || lesson.endTime);
-                        const status = String(lesson.status || '').toLowerCase();
-                        const statusColor = status === 'booked' ? 'blue' : status === 'completed' ? 'green' : status === 'cancelled' ? 'red' : 'default';
-
-                        return (
-                            <Card key={lesson.id} className="rounded-2xl shadow-sm border-gray-200 overflow-hidden" bodyStyle={{ padding: '16px' }}>
-                                <div className="flex justify-between items-start mb-2">
-                                    <div>
-                                        <h3 className="font-bold text-gray-900 text-base">{lesson.lessonName || 'Lesson'}</h3>
-                                        <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
-                                            <Clock size={12} />
-                                            <span>{formatTime(startMs)} - {formatTime(finishMs)}</span>
+                {/* Darslar ro'yxati */}
+                {isPending ? <PageLoader /> : (
+                    <div className="space-y-3">
+                        {pageItems.map((lesson: any) => (
+                            <Card key={lesson.id} className="rounded-2xl border-none shadow-sm overflow-hidden">
+                                <div className="flex justify-between items-start">
+                                    <div className="space-y-1">
+                                        <Tag color="blue" className="rounded-md border-none font-bold text-[10px] uppercase">
+                                            {lesson.weekday || 'Dars'}
+                                        </Tag>
+                                        <h3 className="font-extrabold text-gray-900 text-base leading-tight">{lesson.lessonName}</h3>
+                                        <div className="flex items-center gap-3 text-gray-500 text-xs font-medium">
+                                            <div className="flex items-center gap-1"><Clock size={14} /> {formatTime(lesson.startTime)}</div>
+                                            <div className="flex items-center gap-1 text-green-600"><DollarSign size={14} /> {Number(lesson.price || 0).toLocaleString()}</div>
                                         </div>
                                     </div>
-                                    <Tag color={statusColor as any}>{lesson.status || 'Unknown'}</Tag>
+                                    <Tag color={lesson.status === 'completed' ? 'green' : 'orange'} className="m-0 rounded-full border-none px-3">
+                                        {lesson.status}
+                                    </Tag>
                                 </div>
 
-                                <div className="flex items-center justify-between mt-4">
-                                    <div className="flex items-center gap-1 text-amber-600 font-bold">
-                                        <DollarSign size={16} />
-                                        <span>{Number(lesson.price ?? lesson.lessonPrice ?? 0).toLocaleString()} UZS</span>
-                                    </div>
-
-                                    <div className="flex items-center gap-2">
+                                <div className="flex gap-2 mt-4 pt-4 border-t border-gray-50">
+                                    <Button
+                                        block
+                                        icon={<Pencil size={14} />}
+                                        onClick={() => openEdit(lesson)}
+                                        className="rounded-xl border-gray-200 text-gray-600 h-10 font-bold text-xs"
+                                    >
+                                        Vaqtni o'zgartirish
+                                    </Button>
+                                    {lesson.meetLink && (
                                         <Button
-                                            size="small"
-                                            onClick={() => openEdit(lesson)}
-                                            className="h-8"
-                                            icon={<Pencil size={14} />}
+                                            block
+                                            type="primary"
+                                            icon={<Link2 size={16} />}
+                                            href={lesson.meetLink}
+                                            target="_blank"
+                                            className="rounded-xl bg-blue-600 h-10 font-bold text-xs"
                                         >
-                                            Edit time
+                                            Darsga kirish
                                         </Button>
-
-                                        {lesson.meetLink && (
-                                            <a
-                                                href={lesson.meetLink}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition-colors"
-                                            >
-                                                <Link2 size={14} />
-                                                Join Meeting
-                                            </a>
-                                        )}
-                                    </div>
+                                    )}
                                 </div>
                             </Card>
-                        );
-                    })}
+                        ))}
+                        {!isPending && pageItems.length === 0 && (
+                            <div className="text-center py-10 bg-white rounded-3xl border border-dashed border-gray-200 text-gray-400">
+                                Darslar topilmadi
+                            </div>
+                        )}
+                    </div>
+                )}
 
-                    {!isPending && pageItems.length === 0 && (
-                        <div className="text-center py-10 text-gray-500">
-                            No lessons found for this filter.
-                        </div>
-                    )}
-                </div>
-
+                {/* Pagination */}
                 {totalPages > 1 && (
-                    <div className="flex justify-center pb-6 gap-2">
-                        <button
-                            onClick={() => setPage(Math.max(1, page - 1))}
-                            disabled={page === 1}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            Previous
-                        </button>
-                        <span className="px-4 py-2 text-gray-700">
-                            Page {page} of {totalPages}
-                        </span>
-                        <button
-                            onClick={() => setPage(Math.min(totalPages, page + 1))}
-                            disabled={page >= totalPages}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            Next
-                        </button>
+                    <div className="flex justify-between items-center px-2">
+                        <Button disabled={page === 1} onClick={() => setPage(p => p - 1)} icon={<ChevronLeft size={18} />} className="rounded-xl border-none shadow-sm" />
+                        <span className="text-xs font-bold text-gray-400">{page} / {totalPages}</span>
+                        <Button disabled={page >= totalPages} onClick={() => setPage(p => p + 1)} icon={<ChevronRight size={18} />} className="rounded-xl border-none shadow-sm" />
                     </div>
                 )}
             </div>
 
             <TelegramStudentBottomNav studentId={studentId} />
 
+            {/* Edit Modal */}
             <Modal
                 open={editOpen}
-                title="Edit lesson time"
-                onCancel={() => {
-                    setEditOpen(false);
-                    setEditLesson(null);
+                title="Vaqtni tahrirlash"
+                onCancel={() => setEditOpen(false)}
+                onOk={() => {
+                    updateLesson({
+                        id: Number(selectedLesson.id),
+                        startTime: Math.floor(new Date().setHours(Number(timeRange.start.split(':')[0]), Number(timeRange.start.split(':')[1])) / 1000),
+                        finishTime: Math.floor(new Date().setHours(Number(timeRange.end.split(':')[0]), Number(timeRange.end.split(':')[1])) / 1000),
+                    } as any, { onSuccess: () => setEditOpen(false) });
                 }}
-                onOk={handleSaveEdit}
-                okText="Save"
-                confirmLoading={isUpdating}
+                okText="Saqlash"
+                cancelText="Bekor qilish"
+                okButtonProps={{ className: 'bg-blue-600 rounded-lg', loading: isUpdating }}
             >
-                <div className="space-y-3">
-                    <div className="text-sm font-semibold text-gray-900">{String(editLesson?.lessonName ?? 'Lesson')}</div>
-                    <div className="grid grid-cols-2 gap-2">
-                        <div>
-                            <div className="text-xs text-gray-500 mb-1">Start time</div>
-                            <input
-                                type="time"
-                                value={editStartStr}
-                                onChange={(e) => setEditStartStr(e.target.value)}
-                                className="w-full h-11 px-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-green-200 text-sm shadow-sm"
-                            />
-                        </div>
-                        <div>
-                            <div className="text-xs text-gray-500 mb-1">End time</div>
-                            <input
-                                type="time"
-                                value={editEndStr}
-                                onChange={(e) => setEditEndStr(e.target.value)}
-                                className="w-full h-11 px-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-green-200 text-sm shadow-sm"
-                            />
-                        </div>
+                <div className="grid grid-cols-2 gap-4 py-4">
+                    <div>
+                        <label className="text-[10px] uppercase font-bold text-gray-400 mb-1 block">Boshlanish</label>
+                        <Input type="time" value={timeRange.start} onChange={e => setTimeRange({ ...timeRange, start: e.target.value })} className="rounded-xl h-11" />
+                    </div>
+                    <div>
+                        <label className="text-[10px] uppercase font-bold text-gray-400 mb-1 block">Tugash</label>
+                        <Input type="time" value={timeRange.end} onChange={e => setTimeRange({ ...timeRange, end: e.target.value })} className="rounded-xl h-11" />
                     </div>
                 </div>
             </Modal>

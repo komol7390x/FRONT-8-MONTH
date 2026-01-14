@@ -7,46 +7,11 @@ import { StudentPaymentsPage } from '../page/student/payments-page';
 import { StudentProfilePage } from '../page/student/profile-page';
 
 export const telegramRoutes = (
-    <>
-        <Route
-            path="/telegram/schedule"
-            element={(
-                <TelegramWebAppShell>
-                    <StudentSchedulePage />
-                </TelegramWebAppShell>
-            )}
-        />
-        <Route
-            path="/telegram/student-lessons"
-            element={(
-                <TelegramWebAppShell>
-                    <StudentLessonsPage />
-                </TelegramWebAppShell>
-            )}
-        />
-        <Route
-            path="/telegram/student-book-confirm"
-            element={(
-                <TelegramWebAppShell>
-                    <StudentBookConfirmPage />
-                </TelegramWebAppShell>
-            )}
-        />
-        <Route
-            path="/telegram/student-payments"
-            element={(
-                <TelegramWebAppShell>
-                    <StudentPaymentsPage />
-                </TelegramWebAppShell>
-            )}
-        />
-        <Route
-            path="/telegram/student/:studentId"
-            element={(
-                <TelegramWebAppShell>
-                    <StudentProfilePage />
-                </TelegramWebAppShell>
-            )}
-        />
-    </>
+    <Route element={<TelegramWebAppShell />}>
+        <Route path="/telegram/schedule" element={<StudentSchedulePage />} />
+        <Route path="/telegram/student-lessons" element={<StudentLessonsPage />} />
+        <Route path="/telegram/student-book-confirm" element={<StudentBookConfirmPage />} />
+        <Route path="/telegram/student-payments" element={<StudentPaymentsPage />} />
+        <Route path="/telegram/student/:studentId" element={<StudentProfilePage />} />
+    </Route>
 );
