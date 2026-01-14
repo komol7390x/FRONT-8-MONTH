@@ -27,6 +27,7 @@ export const items: MenuItem[] = [
             {
                 key: 'teacher-all',
                 label: <Link to={'/admin/teacher/all'} className="font-medium">List</Link>,
+                icon: <Users size={16} />
             },
             {
                 key: 'teacher-blocked',
@@ -50,6 +51,7 @@ export const items: MenuItem[] = [
             {
                 key: 'student-all',
                 label: <Link to={'/admin/student/all'} className="font-medium">List</Link>,
+                icon: <Users size={16} />
             },
             {
                 key: 'student-blocked',
