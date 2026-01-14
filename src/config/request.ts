@@ -11,7 +11,17 @@ request.interceptors.request.use((config) => {
     let isTelegramContext = false;
     try {
         const p = window.location.pathname || '';
-        isTelegramContext = p === '/tgb' || p.startsWith('/telegram');
+
+        let hashPath = '';
+        try {
+            const h = window.location.hash || '';
+            hashPath = h.startsWith('#') ? h.slice(1) : h;
+            hashPath = hashPath.startsWith('/') ? hashPath : `/${hashPath}`;
+        } catch {
+            hashPath = '';
+        }
+
+        isTelegramContext = p === '/tgb' || p.startsWith('/telegram') || hashPath === '/tgb' || hashPath.startsWith('/telegram');
     } catch {
         isTelegramContext = false;
     }
@@ -54,7 +64,7 @@ request.interceptors.request.use((config) => {
         }
     }
 
-    if (telegramToken && !isTelegramContext) {
+    if (telegramToken) {
         try {
             localStorage.setItem('telegram_token', telegramToken);
         } catch {
@@ -67,7 +77,7 @@ request.interceptors.request.use((config) => {
         }
     }
 
-    if (telegramToken && !isTelegramContext) {
+    if (telegramToken) {
         const headers: any = (config.headers ?? {}) as any;
         if (!headers.Authorization) {
             headers.Authorization = `Bearer ${telegramToken}`;
@@ -75,7 +85,7 @@ request.interceptors.request.use((config) => {
         }
     }
 
-    if (telegramToken && !isTelegramContext) {
+    if (telegramToken) {
         const params: any = (config.params ?? {}) as any;
         if (!params.token) {
             config.params = { ...params, token: telegramToken };

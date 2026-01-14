@@ -1,4 +1,4 @@
-const isDevelopment = import.meta.env.DEV;
+const isDevelopment = import.meta.env.VITE_NODE_ENV === 'development' ? false : true;
 
 export const config = {
     BACKEND_URL: isDevelopment

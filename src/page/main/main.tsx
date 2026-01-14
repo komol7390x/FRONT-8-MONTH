@@ -1,9 +1,14 @@
 import logos from '../../assets/img/logo.png'
 import img from '../../assets/img/insurance.png'
 import { Link } from 'react-router-dom'
-import { Button } from 'antd'
+import { Button, Modal } from 'antd'
 import { config } from '../../config/config'
+import { useState } from 'react'
+
+
 export const MainPage = () => {
+    const date = new Date().toLocaleString('uz-UZ')
+    const [infoOpen, setInfoOpen] = useState(false)
     return (
         <div>
             <div className="min-h-screen shadow-2xl flex justify-center items-center p-4 sm:p-6 md:p-8">
@@ -92,10 +97,34 @@ export const MainPage = () => {
 
                     </div>
                     <p className="text-xs sm:text-sm text-gray-600 mt-2 px-2">Bot orqali darslarni ko'rishingiz, band qilishingiz va boshqarishingiz mumkin</p>
-                    <div className='flex'>
-                        <p className='text-xs sm:text-sm text-gray-600'>{config.BACKEND_URL}{'T'}</p>
-                        <p className='text-xs sm:text-sm text-gray-600'> {config.FRONTEND_URL}</p>
-                    </div>
+                    <Button type="link" onClick={() => setInfoOpen(true)}>
+                        Info
+                    </Button>
+
+                    <Modal
+                        open={infoOpen}
+                        onCancel={() => setInfoOpen(false)}
+                        footer={null}
+                        title="Info (Tekshiruv / Sozlash uchun)"
+                    >
+                        <p className="text-sm text-gray-600 mb-3">
+                            Quyidagi qiymatlar deploy/telegram WebApp ochilishi va backend bilan ulanishni tekshirish uchun kerak.
+                        </p>
+                        <div className="space-y-2">
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="text-sm font-medium text-gray-800">BACKEND_URL</div>
+                                <div className="text-sm text-blue-600 break-all text-right">{config.BACKEND_URL}</div>
+                            </div>
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="text-sm font-medium text-gray-800">FRONTEND_URL</div>
+                                <div className="text-sm text-blue-600 break-all text-right">{config.FRONTEND_URL}</div>
+                            </div>
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="text-sm font-medium text-gray-800">Client Time</div>
+                                <div className="text-sm text-blue-600 break-all text-right">{date}</div>
+                            </div>
+                        </div>
+                    </Modal>
                     <div className="pt-4 border-t border-gray-200 w-full mt-4 sm:mt-5"></div>
                     <div className='flex gap-2 sm:gap-3 items-center justify-center'>
                         <div className='w-4 sm:w-5'>
