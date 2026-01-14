@@ -21,7 +21,7 @@ request.interceptors.request.use((config) => {
             hashPath = '';
         }
 
-        isTelegramContext = p === '/tgb' || p.startsWith('/telegram') || hashPath === '/tgb' || hashPath.startsWith('/telegram');
+        isTelegramContext = p === '/telegram/schedule' || p.startsWith('/telegram') || hashPath === '/telegram/schedule' || hashPath.startsWith('/telegram');
     } catch {
         isTelegramContext = false;
     }

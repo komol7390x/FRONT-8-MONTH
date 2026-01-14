@@ -166,10 +166,10 @@ export const StudentBookConfirmPage: React.FC = () => {
                                 </div>
                             ),
                             okText: 'Back now',
-                            onOk: () => navigate('/tgb'),
+                            onOk: () => navigate('/telegram/schedule'),
                         });
                         setTimeout(() => {
-                            navigate('/tgb');
+                            navigate('/telegram/schedule');
                         }, 5000);
                         return;
                     }

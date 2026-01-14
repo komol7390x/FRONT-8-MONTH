@@ -10,7 +10,6 @@ export const StudentSchedulePage: React.FC = () => {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
 
-    // Read initial params from URL
     const initialDay = searchParams.get('day') || '';
     const initialPage = Number(searchParams.get('page')) || 1;
     const initialLimit = Number(searchParams.get('limit')) || 10;

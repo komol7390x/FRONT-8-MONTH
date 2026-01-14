@@ -41,7 +41,7 @@ export const TelegramStudentBottomNav: React.FC<TelegramStudentBottomNavProps> =
             key: 'schedule',
             label: 'Schedule',
             icon: CalendarDays,
-            to: '/tgb',
+            to: '/telegram/schedule',
         },
         {
             key: 'lessons',
