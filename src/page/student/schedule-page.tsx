@@ -73,6 +73,16 @@ export const StudentSchedulePage: React.FC = () => {
         return counts;
     }, [allLessons]);
 
+    const toMs = (value: any): number | null => {
+        if (value == null || value === '') return null;
+        const n = Number(value);
+        if (Number.isFinite(n)) {
+            return n < 1_000_000_000_000 ? n * 1000 : n;
+        }
+        const d = new Date(String(value));
+        return Number.isNaN(d.getTime()) ? null : d.getTime();
+    };
+
     // 7. Darslarni saralash
     const filteredLessons = useMemo(() => {
         return (scheduleData?.data || [])
@@ -82,16 +92,15 @@ export const StudentSchedulePage: React.FC = () => {
                 }
                 return true;
             })
-            .sort((a: any, b: any) => Number(a.startTime) - Number(b.startTime));
+            .sort((a: any, b: any) => (toMs(a?.startTime) ?? 0) - (toMs(b?.startTime) ?? 0));
     }, [scheduleData?.data, selectedLessonNames]);
 
     // Xavfsiz vaqt formatlash
     const formatTime = (time: any) => {
         if (!time) return '--:--';
-        const t = Number(time);
-        // Agar vaqt sekundda bo'lsa (10 xonali), millisekundga o'tkazamiz
-        const date = new Date(t < 1e11 ? t * 1000 : t);
-        return date.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
+        const ms = toMs(time);
+        if (!ms) return '--:--';
+        return new Date(ms).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
     };
 
     const handleBook = (lesson: any) => {
@@ -116,7 +125,7 @@ export const StudentSchedulePage: React.FC = () => {
                 <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-5">
                     <div className="flex items-center gap-2 mb-5">
                         <CalendarDays size={22} className="text-green-600" />
-                        <h1 className="text-xl font-black text-gray-900">Darslar jadvali</h1>
+                        <h1 className="text-xl font-bold text-gray-900">Darslar jadvali</h1>
                     </div>
 
                     <Select
@@ -168,11 +177,11 @@ export const StudentSchedulePage: React.FC = () => {
                             >
                                 <div className="flex justify-between items-start">
                                     <div className="space-y-1">
-                                        <div className="text-base font-bold text-gray-900">{l.lessonName}</div>
-                                        <div className="text-[11px] text-gray-400 font-medium">O'qituvchi ID: {l.teacherId}</div>
+                                        <div className="text-base font-semibold text-gray-900">{l.lessonName}</div>
+                                        <div className="text-[11px] text-gray-400 font-normal">O'qituvchi ID: {l.teacherId}</div>
                                     </div>
                                     <div className="text-right">
-                                        <div className="text-sm font-black text-gray-900">
+                                        <div className="text-sm font-semibold text-green-600">
                                             {formatTime(l.startTime)} - {formatTime(l.finishTime || l.endTime)}
                                         </div>
                                         <div className="text-xs text-green-600 font-bold mt-1">

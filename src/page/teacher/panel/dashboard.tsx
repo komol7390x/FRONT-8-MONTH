@@ -21,6 +21,24 @@ export const TeacherDashboard: React.FC = () => {
     const [showFooter, setShowFooter] = useState(false);
     const details = useTeacherDetails();
 
+    useEffect(() => {
+        const contentElement = contentRef.current;
+        if (!contentElement) return;
+
+        const handleScroll = () => {
+            const { scrollTop, scrollHeight, clientHeight } = contentElement;
+            const isAtBottom = scrollHeight - scrollTop - clientHeight < 50; // 50px threshold
+            setShowFooter(isAtBottom);
+        };
+
+        contentElement.addEventListener('scroll', handleScroll);
+        handleScroll(); // Check initial state
+
+        return () => {
+            contentElement.removeEventListener('scroll', handleScroll);
+        };
+    }, []);
+
     if (!token) {
         return <Navigate to="/teacher/login" replace />;
     }
@@ -59,24 +77,6 @@ export const TeacherDashboard: React.FC = () => {
         Cookies.remove(TokenName.TOKEN_NAME);
         navigate('/teacher/login', { replace: true });
     };
-
-    useEffect(() => {
-        const contentElement = contentRef.current;
-        if (!contentElement) return;
-
-        const handleScroll = () => {
-            const { scrollTop, scrollHeight, clientHeight } = contentElement;
-            const isAtBottom = scrollHeight - scrollTop - clientHeight < 50; // 50px threshold
-            setShowFooter(isAtBottom);
-        };
-
-        contentElement.addEventListener('scroll', handleScroll);
-        handleScroll(); // Check initial state
-
-        return () => {
-            contentElement.removeEventListener('scroll', handleScroll);
-        };
-    }, []);
 
     return (
         <Layout style={{ minHeight: '100vh' }} hasSider>

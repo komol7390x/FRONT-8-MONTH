@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
 import { PageLoader } from './page-loader';
 
@@ -58,6 +59,11 @@ export const TelegramWebAppShell: React.FC<React.PropsWithChildren> = ({ childre
                     finalToken = String(finalToken).trim();
                     try {
                         localStorage.setItem('telegram_token', finalToken);
+                    } catch {
+                        // ignore
+                    }
+                    try {
+                        Cookies.set('telegram_token', finalToken, { sameSite: 'Lax' });
                     } catch {
                         // ignore
                     }
