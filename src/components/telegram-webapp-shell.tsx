@@ -22,42 +22,82 @@ export const TelegramWebAppShell: React.FC<React.PropsWithChildren> = ({ childre
         const extractAndVerifyToken = () => {
             try {
                 let finalToken = '';
-                const fullUrl = window.location.href;
 
-                // 1. URL dan tokenni split orqali yechib olish
-                if (fullUrl.includes('token=')) {
-                    const afterToken = fullUrl.split('token=')[1];
-                    finalToken = afterToken;
+                // 1) Query'dan tokenni olish: /telegram/schedule?token=...
+                try {
+                    const qp = new URLSearchParams(window.location.search);
+                    const t = qp.get('token');
+                    if (t) finalToken = t;
+                } catch {
+                    // ignore
+                }
+
+                // 2) Hash ichidagi query bo'lsa ham ushlash: /#/telegram/schedule?token=...
+                if (!finalToken) {
+                    try {
+                        const hash = window.location.hash || '';
+                        const hashQuery = hash.includes('?') ? hash.split('?')[1] : '';
+                        const qp = new URLSearchParams(hashQuery);
+                        const t = qp.get('token');
+                        if (t) finalToken = t;
+                    } catch {
+                        // ignore
+                    }
+                }
+
+                // 3) Token bo'lmasa, avval saqlanganini ishlatamiz
+                if (!finalToken) {
+                    try {
+                        finalToken = localStorage.getItem('telegram_token') || '';
+                    } catch {
+                        finalToken = '';
+                    }
                 }
 
                 if (finalToken) {
-                    finalToken = finalToken.trim();
-                    localStorage.setItem('telegram_token', finalToken);
+                    finalToken = String(finalToken).trim();
+                    try {
+                        localStorage.setItem('telegram_token', finalToken);
+                    } catch {
+                        // ignore
+                    }
 
-                    console.log('telegram', finalToken);
-                    // 3. Parse va ID ni saqlash
+                    // 4) Parse va ID ni saqlash
                     const decoded = jwtDecode<TokenPayload>(finalToken);
-                    localStorage.setItem('telegram_student_id', String(decoded.id));
+                    if (decoded?.id != null) {
+                        try {
+                            localStorage.setItem('telegram_student_id', String(decoded.id));
+                        } catch {
+                            // ignore
+                        }
+                    }
 
-                    // 4. Blokirovkani tekshirish
-                    if (decoded.isActive === false) {
+                    // 5) Blokirovkani tekshirish
+                    if (decoded?.isActive === false) {
                         setIsBlocked(true);
                     }
 
-                    // 5. URL ni tozalash
-                    if (fullUrl.includes('token=')) {
-                        navigate(location.pathname, { replace: true });
+                    // 6) URL ni tozalash: faqat token paramni olib tashlash
+                    try {
+                        const qp = new URLSearchParams(window.location.search);
+                        if (qp.has('token')) {
+                            qp.delete('token');
+                            const rest = qp.toString();
+                            navigate(`${location.pathname}${rest ? `?${rest}` : ''}`, { replace: true });
+                        }
+                    } catch {
+                        // ignore
                     }
                 }
             } catch (error) {
-                console.error("Token error:", error);
+                console.error('Token error:', error);
             } finally {
                 setLoading(false);
             }
         };
 
         extractAndVerifyToken();
-    }, [location.pathname, navigate]);
+    }, [location.key, location.pathname, navigate]);
 
     useEffect(() => {
         const tg = (window as any).Telegram?.WebApp;
