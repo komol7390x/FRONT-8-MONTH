@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
 import { request } from '../config/request';
-import { PageLoader } from './page-loader';
 
 interface TokenPayload {
     id: number;
@@ -19,6 +18,7 @@ export const TelegramWebAppShell: React.FC<React.PropsWithChildren> = ({ childre
 
     const [loading, setLoading] = useState(true);
     const [isBlocked, setIsBlocked] = useState(false);
+    const [role, setRole] = useState<string>('');
 
     useEffect(() => {
         const extractAndVerifyToken = () => {
@@ -71,6 +71,15 @@ export const TelegramWebAppShell: React.FC<React.PropsWithChildren> = ({ childre
 
                     // 4) Parse va ID ni saqlash
                     const decoded = jwtDecode<TokenPayload>(finalToken);
+                    if (decoded?.role != null) {
+                        const r = String(decoded.role);
+                        setRole(r);
+                        try {
+                            localStorage.setItem('telegram_role', r);
+                        } catch {
+                            // ignore
+                        }
+                    }
                     if (decoded?.id != null) {
                         try {
                             localStorage.setItem('telegram_student_id', String(decoded.id));
@@ -131,6 +140,17 @@ export const TelegramWebAppShell: React.FC<React.PropsWithChildren> = ({ childre
                     // 5) Blokirovkani tekshirish
                     if (decoded?.isActive === false) {
                         setIsBlocked(true);
+                        try {
+                            localStorage.setItem('telegram_is_blocked', '1');
+                        } catch {
+                            // ignore
+                        }
+                    } else {
+                        try {
+                            localStorage.removeItem('telegram_is_blocked');
+                        } catch {
+                            // ignore
+                        }
                     }
 
                     // 6) URL ni tozalash: faqat token paramni olib tashlash
@@ -156,6 +176,24 @@ export const TelegramWebAppShell: React.FC<React.PropsWithChildren> = ({ childre
     }, [location.key, location.pathname, navigate]);
 
     useEffect(() => {
+        if (!isBlocked) return;
+
+        const normalizedRole = String(role || '').toLowerCase();
+        if (normalizedRole !== 'student') return;
+
+        const isOnProfile = location.pathname.startsWith('/telegram/student/');
+        if (isOnProfile) return;
+
+        let id = 0;
+        try {
+            id = Number(localStorage.getItem('telegram_student_internal_id') || localStorage.getItem('telegram_student_id') || 0);
+        } catch {
+            id = 0;
+        }
+        navigate(`/telegram/student/${id || 0}`, { replace: true });
+    }, [isBlocked, location.pathname, navigate, role]);
+
+    useEffect(() => {
         const tg = (window as any).Telegram?.WebApp;
         if (tg) {
             tg.ready();
@@ -166,19 +204,20 @@ export const TelegramWebAppShell: React.FC<React.PropsWithChildren> = ({ childre
         }
     }, []);
 
-    if (loading) return <PageLoader />;
-
-    if (isBlocked) {
-        return (
-            <div className="flex items-center justify-center min-h-screen bg-white p-6 text-center">
-                <div className="space-y-4">
-                    <div className="text-red-500 text-5xl">⚠️</div>
-                    <h2 className="text-xl font-bold text-gray-900">Hisobingiz faol emas</h2>
-                    <p className="text-gray-500 text-sm">Administrator bilan bog'laning.</p>
+    return (
+        <>
+            {children}
+            {loading && (
+                <div className="fixed left-0 right-0 bottom-24 z-50 flex justify-center px-4">
+                    <button
+                        type="button"
+                        disabled
+                        className="max-w-md w-full bg-white border border-gray-200 rounded-2xl shadow-lg py-3 text-sm font-bold text-gray-600"
+                    >
+                        Loading...
+                    </button>
                 </div>
-            </div>
-        );
-    }
-
-    return <>{children}</>;
+            )}
+        </>
+    );
 };
