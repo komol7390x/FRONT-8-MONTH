@@ -60,7 +60,7 @@ export const TeacherMoreSchedule: React.FC<TeacherMoreScheduleProps> = ({ teache
             const d = new Date(base);
             d.setDate(d.getDate() + i);
             const weekday = order[d.getDay()] || '';
-            const dateStr = d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' });
+            const dateStr = d.toLocaleDateString('uz-UZ', { day: '2-digit', month: '2-digit' });
             return { weekday, dateStr };
         });
     }, []);
@@ -73,7 +73,7 @@ export const TeacherMoreSchedule: React.FC<TeacherMoreScheduleProps> = ({ teache
         if (!isoString) return '';
         const date = new Date(isoString);
         if (isNaN(date.getTime())) return isoString;
-        return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+        return date.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit', hour12: false });
     };
 
     const handleLimitChange = (newLimit: string | number) => {

@@ -30,7 +30,7 @@ export const SchedulePage: React.FC = () => {
             d.setDate(d.getDate() + i);
             res.push({
                 day,
-                dateStr: d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' }),
+                dateStr: d.toLocaleDateString('uz-UZ', { day: '2-digit', month: '2-digit' }),
             });
         }
         return res;
@@ -163,7 +163,7 @@ export const SchedulePage: React.FC = () => {
         if (!isoString) return '';
         const date = new Date(isoString);
         if (isNaN(date.getTime())) return isoString;
-        return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+        return date.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit', hour12: false });
     };
 
     const columns: ColumnsType<any> = [

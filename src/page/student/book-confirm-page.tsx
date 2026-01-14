@@ -20,13 +20,13 @@ export const StudentBookConfirmPage: React.FC = () => {
     const initialStart = useMemo(() => {
         if (!startMs) return '';
         const d = new Date(startMs);
-        return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        return d.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
     }, [startMs]);
 
     const initialEnd = useMemo(() => {
         if (!endMs) return '';
         const d = new Date(endMs);
-        return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        return d.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
     }, [endMs]);
 
     const [startTimeStr, setStartTimeStr] = useState<string>(initialStart);
@@ -80,13 +80,13 @@ export const StudentBookConfirmPage: React.FC = () => {
     const minTime = useMemo(() => {
         if (!startMs) return '';
         const d = new Date(startMs);
-        return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        return d.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
     }, [startMs]);
 
     const maxTime = useMemo(() => {
         if (!endMs) return '';
         const d = new Date(endMs);
-        return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        return d.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
     }, [endMs]);
 
     const buildMsFromTime = (baseMs: number, hhmm: string): number | null => {

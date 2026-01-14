@@ -43,13 +43,13 @@ export const StudentLessonsContent: React.FC = () => {
         const targetDate = new Date(now);
         targetDate.setDate(now.getDate() + diff);
 
-        return targetDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' });
+        return targetDate.toLocaleDateString('uz-UZ', { day: '2-digit', month: '2-digit' });
     };
 
     const formatTime = (ms: number | null): string => {
         if (!ms) return '-';
         const d = new Date(ms);
-        return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+        return d.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit', hour12: false });
     };
 
     const toMs = (value: unknown): number | null => {

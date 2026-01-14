@@ -26,7 +26,7 @@ export const TeacherSchedulePage: React.FC = () => {
 
             return {
                 dayName,
-                dateStr: targetDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' })
+                dateStr: targetDate.toLocaleDateString('uz-UZ', { day: '2-digit', month: '2-digit' })
             };
         });
     }, []);
@@ -73,13 +73,13 @@ export const TeacherSchedulePage: React.FC = () => {
     const formatTime = (ms: number | null): string => {
         if (!ms) return '-';
         const d = new Date(ms);
-        return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+        return d.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit', hour12: false });
     };
 
     const formatDayHeader = (ms: number): string => {
         const d = new Date(ms);
-        const weekday = d.toLocaleDateString('en-GB', { weekday: 'long' });
-        const date = d.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: '2-digit' });
+        const weekday = d.toLocaleDateString('uz-UZ', { weekday: 'long' });
+        const date = d.toLocaleDateString('uz-UZ', { year: 'numeric', month: 'long', day: '2-digit' });
         return `${weekday} • ${date}`;
     };
 

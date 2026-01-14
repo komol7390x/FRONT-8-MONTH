@@ -112,7 +112,7 @@ export const StudentSchedulePage: React.FC = () => {
             d.setDate(d.getDate() + i);
             res.push({
                 day,
-                dateStr: d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' }),
+                dateStr: d.toLocaleDateString('uz-UZ', { day: '2-digit', month: '2-digit' }),
             });
         }
         return res;

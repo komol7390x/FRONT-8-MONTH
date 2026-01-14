@@ -50,7 +50,7 @@ export const LessonPage: React.FC = () => {
             d.setDate(d.getDate() + i);
             res.push({
                 day,
-                dateStr: d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' }),
+                dateStr: d.toLocaleDateString('uz-UZ', { day: '2-digit', month: '2-digit' }),
             });
         }
         return res;
@@ -245,9 +245,9 @@ export const LessonPage: React.FC = () => {
         if (!v) return '-';
         const d = new Date(v);
         if (Number.isNaN(d.getTime())) return String(v);
-        const day = d.toLocaleDateString('en-GB', { weekday: 'short' });
-        const date = d.toLocaleDateString('en-GB', { year: 'numeric', month: '2-digit', day: '2-digit' });
-        const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+        const day = d.toLocaleDateString('uz-UZ', { weekday: 'short' });
+        const date = d.toLocaleDateString('uz-UZ', { year: 'numeric', month: '2-digit', day: '2-digit' });
+        const time = d.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit', hour12: false });
         return (
             <div className="leading-tight">
                 <div className="text-xs font-semibold text-gray-800">{day} {date}</div>

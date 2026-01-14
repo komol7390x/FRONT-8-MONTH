@@ -86,7 +86,7 @@ export const TeacherCreateLessonPage: React.FC = () => {
 
     const formatHHmmFromMs = (ms: number): string => {
         const d = new Date(ms);
-        return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+        return d.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit', hour12: false });
     };
 
     const dateSlots = useMemo(() => {
