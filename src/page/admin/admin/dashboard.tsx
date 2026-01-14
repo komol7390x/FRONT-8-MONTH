@@ -1,8 +1,8 @@
 import type React from 'react';
-import { Badge, Layout } from 'antd';
+import { Badge, Drawer, Layout } from 'antd';
 import { Navigate, Outlet, useNavigate } from 'react-router-dom';
 import { Sidebar } from './components/sidebar';
-import { ArrowLeft, Bell, LogOut, User } from 'lucide-react';
+import { ArrowLeft, Bell, LogOut, Menu as MenuIcon, User } from 'lucide-react';
 import Cookies from 'js-cookie';
 import { TokenName } from '../../../config/enum';
 import { jwtDecode } from 'jwt-decode';
@@ -16,6 +16,7 @@ export const AdminDashboard: React.FC = () => {
   const token = Cookies.get(TokenName.TOKEN_NAME);
   const contentRef = useRef<HTMLDivElement>(null);
   const [showFooter, setShowFooter] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   if (!token) {
     return <Navigate to="/admin/login" replace />;
@@ -58,11 +59,31 @@ export const AdminDashboard: React.FC = () => {
         <Sidebar />
       </div>
 
+      <Drawer
+        placement="left"
+        open={mobileSidebarOpen}
+        onClose={() => setMobileSidebarOpen(false)}
+        width={288}
+        styles={{ body: { padding: 0 } }}
+        className="md:hidden"
+      >
+        <div onClickCapture={() => setMobileSidebarOpen(false)}>
+          <Sidebar />
+        </div>
+      </Drawer>
+
       <Layout className="bg-linear-to-b from-[#1b1035] via-[#2a1a4d] to-[#1b1035] flex flex-col min-h-screen md:h-screen overflow-hidden">
 
         {/* 1. HEADER SECTION */}
         <Header className="bg-[#0a0e27]/50 backdrop-blur-md border-b border-white/10 px-3 sm:px-4 md:px-6 flex items-center justify-between h-14 md:h-16 shrink-0">
           <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={() => setMobileSidebarOpen(true)}
+              className="md:hidden h-8 w-8 rounded-lg border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 transition-colors flex items-center justify-center"
+            >
+              <MenuIcon size={18} />
+            </button>
             <button
               type="button"
               onClick={() => navigate(-1)}
@@ -98,7 +119,7 @@ export const AdminDashboard: React.FC = () => {
 
         {/* 2. MAIN CONTENT (Outlet) */}
         <Content className="flex-1 overflow-hidden flex flex-col">
-          <div 
+          <div
             ref={contentRef}
             className="flex-1 overflow-y-auto custom-scrollbar p-3 sm:p-4 md:p-6"
           >
