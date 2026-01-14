@@ -9,7 +9,7 @@ import { StudentProfilePage } from '../page/student/profile-page';
 export const telegramRoutes = (
     <>
         <Route
-            path="/tgb"
+            path="/telegram/schedule"
             element={(
                 <TelegramWebAppShell>
                     <StudentSchedulePage />
