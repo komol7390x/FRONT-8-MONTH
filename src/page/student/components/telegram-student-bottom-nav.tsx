@@ -29,7 +29,7 @@ export const TelegramStudentBottomNav: React.FC<TelegramStudentBottomNavProps> =
         if (params.studentId && Number(params.studentId) > 0) return Number(params.studentId);
         if (resolvedStudentId > 0) return resolvedStudentId;
         try {
-            const idFromStorage = Number(localStorage.getItem('telegram_student_id'));
+            const idFromStorage = Number(localStorage.getItem('telegram_student_internal_id') || localStorage.getItem('telegram_student_id'));
             return Number.isFinite(idFromStorage) && idFromStorage > 0 ? idFromStorage : 0;
         } catch {
             return 0;

@@ -10,12 +10,24 @@ export const StudentBookConfirmPage: React.FC = () => {
     const [searchParams] = useSearchParams();
 
     // 1. Ma'lumotlarni markazlashgan holda olish
-    const studentId = Number(searchParams.get('studentId')) || Number(localStorage.getItem('telegram_student_id')) || 0;
+    const studentId =
+        Number(searchParams.get('studentId')) ||
+        Number(localStorage.getItem('telegram_student_internal_id') || localStorage.getItem('telegram_student_id')) ||
+        0;
     const lessonId = Number(searchParams.get('lessonId')) || 0;
     const lessonName = searchParams.get('lessonName') || 'Dars';
     const teacherId = searchParams.get('teacherId') || '';
-    const startMs = Number(searchParams.get('startTime')) || 0;
-    const endMs = Number(searchParams.get('endTime')) || 0;
+    const toMs = (value: any): number => {
+        if (value == null || value === '') return 0;
+        const n = Number(value);
+        if (Number.isFinite(n)) {
+            return n < 1_000_000_000_000 ? n * 1000 : n;
+        }
+        const d = new Date(String(value));
+        return Number.isNaN(d.getTime()) ? 0 : d.getTime();
+    };
+    const startMs = toMs(searchParams.get('startTime'));
+    const endMs = toMs(searchParams.get('endTime'));
 
     const toHHMM = (ms: number) => {
         if (!ms) return '';

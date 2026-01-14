@@ -11,7 +11,7 @@ export const StudentLessonsPage: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
 
     // 1. Markazlashgan ID
-    const studentId = Number(localStorage.getItem('telegram_student_id') || 0);
+    const studentId = Number(localStorage.getItem('telegram_student_internal_id') || localStorage.getItem('telegram_student_id') || 0);
 
     // 2. Filterlar
     const [dayFilter, setDayFilter] = useState<string>(searchParams.get('weekday') || '');

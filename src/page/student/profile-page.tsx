@@ -10,7 +10,8 @@ export const StudentProfilePage: React.FC = () => {
 
     // 1. IDni aniqlash: Shell tomonidan saqlangan IDni birinchi ko'ramiz
     const studentId = useMemo(() => {
-        return Number(paramId) || Number(localStorage.getItem('telegram_student_id')) || 0;
+        const fromStorage = Number(localStorage.getItem('telegram_student_internal_id') || localStorage.getItem('telegram_student_id')) || 0;
+        return Number(paramId) || fromStorage || 0;
     }, [paramId]);
 
     // 2. Ma'lumotlarni yuklash

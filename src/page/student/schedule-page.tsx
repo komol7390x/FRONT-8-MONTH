@@ -11,7 +11,7 @@ export const StudentSchedulePage: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
 
     // 1. Shell tomonidan saqlangan Student ID ni olish
-    const studentId = Number(localStorage.getItem('telegram_student_id') || 0);
+    const studentId = Number(localStorage.getItem('telegram_student_internal_id') || localStorage.getItem('telegram_student_id') || 0);
 
     // 2. Filterlar holati
     const [dayFilter, setDayFilter] = useState<string>(searchParams.get('day') || '');

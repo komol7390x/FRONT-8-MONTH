@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
+import { request } from '../config/request';
 import { PageLoader } from './page-loader';
 
 interface TokenPayload {
@@ -76,6 +77,55 @@ export const TelegramWebAppShell: React.FC<React.PropsWithChildren> = ({ childre
                         } catch {
                             // ignore
                         }
+
+                        // Telegram token ichidagi id internal bo'lishi ham, tgId bo'lishi ham mumkin.
+                        // Booking/Profile uchun backend internal student id kerak.
+                        (async () => {
+                            try {
+                                const res = await request.get(`/student/${decoded.id}`);
+                                const internalId = Number((res as any)?.data?.data?.id);
+                                if (Number.isFinite(internalId) && internalId > 0) {
+                                    try {
+                                        localStorage.setItem('telegram_student_internal_id', String(internalId));
+                                    } catch {
+                                        // ignore
+                                    }
+                                    try {
+                                        window.dispatchEvent(new CustomEvent('telegram-student-id-updated', { detail: { studentId: internalId } }));
+                                    } catch {
+                                        // ignore
+                                    }
+                                }
+                            } catch {
+                                try {
+                                    const res = await request.get('/student', {
+                                        params: {
+                                            search: String(decoded.id),
+                                            page: 1,
+                                            limit: 10,
+                                        },
+                                    });
+                                    const raw: any = (res as any)?.data;
+                                    const items: any[] = Array.isArray(raw?.data) ? raw.data : [];
+                                    const found = items.find((s: any) => String(s?.tgId ?? '') === String(decoded.id));
+                                    const internalId = Number(found?.id);
+                                    if (Number.isFinite(internalId) && internalId > 0) {
+                                        try {
+                                            localStorage.setItem('telegram_student_internal_id', String(internalId));
+                                        } catch {
+                                            // ignore
+                                        }
+                                        try {
+                                            window.dispatchEvent(new CustomEvent('telegram-student-id-updated', { detail: { studentId: internalId } }));
+                                        } catch {
+                                            // ignore
+                                        }
+                                    }
+                                } catch {
+                                    // ignore
+                                }
+                            }
+                        })();
                     }
 
                     // 5) Blokirovkani tekshirish
