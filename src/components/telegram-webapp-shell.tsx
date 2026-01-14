@@ -6,12 +6,12 @@ import { PageLoader } from './page-loader';
 export const TelegramWebAppShell: React.FC<React.PropsWithChildren> = ({ children }) => {
     const location = useLocation();
     const navigate = useNavigate();
-
+    console.log('Telegram wep');
+    
     const [loading, setLoading] = useState(true);
     const [isBlocked, setIsBlocked] = useState(false);
     const [_, setStudentId] = useState<number | null>(null);
 
-    // 1. Tokenni URL dan olish va saqlash
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const tokenFromUrl = params.get('token');

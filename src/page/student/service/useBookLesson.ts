@@ -16,8 +16,7 @@ export const useBookLesson = () => {
     const client = useQueryClient();
     return useMutation({
         mutationFn: async ({ studentId, lessonId, startTime, finishTime }: BookLessonParams) => {
-            // Based on user input: /lesson-template/booked-by-student/21?lessonId=21212
-            // POST body: { startTime, finishTime }
+
             const res = await request.post(`/lesson-template/booked-by-student/${studentId}`, {
                 startTime,
                 finishTime
