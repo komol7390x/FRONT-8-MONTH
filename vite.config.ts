@@ -15,5 +15,8 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
     }
+  },
+  define: {
+    'import.meta.env.VITE_BUILD_TIME': JSON.stringify(new Date().toLocaleString('uz-UZ')),
   }
 })

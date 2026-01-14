@@ -5,9 +5,8 @@ import { Button, Modal } from 'antd'
 import { config } from '../../config/config'
 import { useState } from 'react'
 
-
 export const MainPage = () => {
-    const date = new Date().toLocaleString('uz-UZ')
+    const buildDate = import.meta.env.VITE_BUILD_TIME || "Hozircha ma'lumot yo'q";
     const [infoOpen, setInfoOpen] = useState(false)
     return (
         <div>
@@ -120,8 +119,8 @@ export const MainPage = () => {
                                 <div className="text-sm text-blue-600 break-all text-right">{config.FRONTEND_URL}</div>
                             </div>
                             <div className="flex items-start justify-between gap-3">
-                                <div className="text-sm font-medium text-gray-800">Client Time</div>
-                                <div className="text-sm text-blue-600 break-all text-right">{date}</div>
+                                <div className="text-sm font-medium text-gray-800">Server Update Time</div>
+                                <div className="text-sm text-blue-600 break-all text-right">{buildDate}</div>
                             </div>
                         </div>
                     </Modal>
@@ -138,3 +137,4 @@ export const MainPage = () => {
         </div>
     )
 }
+
