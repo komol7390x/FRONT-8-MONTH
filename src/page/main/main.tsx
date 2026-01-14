@@ -2,6 +2,7 @@ import logos from '../../assets/img/logo.png'
 import img from '../../assets/img/insurance.png'
 import { Link } from 'react-router-dom'
 import { Button } from 'antd'
+import { config } from '../../config/config'
 export const MainPage = () => {
     return (
         <div>
@@ -49,7 +50,7 @@ export const MainPage = () => {
                                     border: 'none',
                                     fontWeight: 600,
                                     boxShadow: '0 4px 6px rgba(0,0,0,0.2)',
-                                    transition: 'all 0.3s ease', 
+                                    transition: 'all 0.3s ease',
                                 }}
                                 className="sm:w-auto"
                                 onMouseEnter={(e) =>
@@ -75,7 +76,7 @@ export const MainPage = () => {
                                     border: 'none',
                                     fontWeight: 600,
                                     boxShadow: '0 4px 6px rgba(0,0,0,0.2)',
-                                    transition: 'all 0.3s ease', 
+                                    transition: 'all 0.3s ease',
                                 }}
                                 className="sm:w-auto"
                                 onMouseEnter={(e) =>
@@ -91,6 +92,10 @@ export const MainPage = () => {
 
                     </div>
                     <p className="text-xs sm:text-sm text-gray-600 mt-2 px-2">Bot orqali darslarni ko'rishingiz, band qilishingiz va boshqarishingiz mumkin</p>
+                    <div className='flex'>
+                        <p className='text-xs sm:text-sm text-gray-600'>{config.BACKEND_URL}{'T'}</p>
+                        <p className='text-xs sm:text-sm text-gray-600'> {config.FRONTEND_URL}</p>
+                    </div>
                     <div className="pt-4 border-t border-gray-200 w-full mt-4 sm:mt-5"></div>
                     <div className='flex gap-2 sm:gap-3 items-center justify-center'>
                         <div className='w-4 sm:w-5'>
