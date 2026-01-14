@@ -37,6 +37,8 @@ export interface Teacher {
     phoneNumber: string;
     expirence?: number;
     rating?: number;
+    googleAccessToken?: string;
+    googleRefreshToken?: string;
     isActive?: boolean;
     isDeleted?: boolean;
     createdAt?: string;

@@ -1,5 +1,5 @@
 import type React from 'react';
-import { BriefcaseBusiness, CalendarClock, Copy, CreditCard, Hash, Link2, Mail, Phone, ShieldCheck, Star, User, Wallet } from 'lucide-react';
+import { BriefcaseBusiness, CalendarClock, Copy, CreditCard, Hash,  Mail, MailCheck, Phone,  Star, User, Wallet } from 'lucide-react';
 import type { Teacher } from '../service/useGetTeachers';
 import { copyToClipboard, formatDateTime, formatNumber, toDisplay } from './teacher-utils';
 
@@ -45,14 +45,13 @@ export const TeacherMoreInfo: React.FC<TeacherMoreInfoProps> = ({ teacher }) => 
                     { label: 'Fullname', value: teacher.fullname, icon: <User size={14} className="text-emerald-700" /> },
                     { label: 'Email', value: teacher.email, copy: true, icon: <Mail size={14} className="text-violet-700" /> },
                     { label: 'Phone', value: teacher.phoneNumber, copy: true, icon: <Phone size={14} className="text-amber-700" /> },
-                    { label: 'Role', value: (teacher as any).role, icon: <ShieldCheck size={14} className="text-rose-700" /> },
+                    { label: 'Access Token', value: teacher.googleAccessToken, copy: true, icon: <MailCheck size={14} className="text-amber-700" /> },
+                    { label: 'Refresh Token', value: teacher.googleRefreshToken, copy: true, icon: <MailCheck size={14} className="text-amber-700" /> },
                     { label: 'Rating', value: formatNumber((teacher as any).rating ?? 0), icon: <Star size={14} className="text-yellow-700" /> },
                     { label: 'Experience', value: formatNumber((teacher as any).expirence ?? 0), icon: <BriefcaseBusiness size={14} className="text-sky-700" /> },
                     { label: 'Wallet', value: formatNumber((teacher as any).wallet ?? ''), icon: <Wallet size={14} className="text-emerald-700" /> },
                     { label: 'Card Number', value: (teacher as any).cardNumber, copy: true, icon: <CreditCard size={14} className="text-violet-700" /> },
-                    { label: 'Portfolio', value: (teacher as any).portfolioLink, copy: true, icon: <Link2 size={14} className="text-amber-700" /> },
                     { label: 'Created At', value: formatDateTime((teacher as any).createdAt), icon: <CalendarClock size={14} className="text-rose-700" /> },
-                    { label: 'Updated At', value: formatDateTime((teacher as any).updatedAt), icon: <CalendarClock size={14} className="text-rose-700" /> },
                 ] as Array<{ label: string; value: unknown; copy?: boolean; icon?: React.ReactNode }>
             ).map((item) => {
                 const displayValue = toDisplay(item.value);
