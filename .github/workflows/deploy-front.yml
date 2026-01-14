@@ -6,41 +6,48 @@ on:
       - staging
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy via SSH
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install and Build
+        run: |
+          npm install
+          npm run build
+          zip -r deploy.zip dist
+
+      - name: Copy zip to server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "deploy.zip"
+          target: "/root/Komol/front/FRONT-8-MONTH"
+
+      - name: Finalize Deployment on Server
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            # 1. Xatolik yuz bersa skriptni to'xtatish
-            set -e
-
-            # 2. Loyiha papkasiga kirish
-            cd ~/Komol/front/FRONT-8-MONTH
+            export PM2_HOME=/root/.pm2
+            cd /root/Komol/front/FRONT-8-MONTH
             
-            # 3. Kodni yangilash
-            echo "Kodni yangilash boshlandi..."
-            git checkout staging
-            git pull origin staging
+            rm -rf dist
+            unzip -o deploy.zip
             
-            # 4. Kutubxonalarni o'rnatish
-            echo "Kutubxonalar o'rnatilmoqda..."
-            npm install
+            pm2 restart frontend-staging --update-env || pm2 serve dist 5050 --name "frontend-staging" --spa
             
-            # 5. Build jarayoni (RAM limitini 2048 ga oshirish)
-            echo "Build boshlandi (2048MB limit bilan)..."
-            export NODE_OPTIONS="--max-old-space-size=2048"
-            npx vite build
-            
-            # 6. PM2 orqali restart (Frontend ID: 8)
-            echo "PM2 jarayoni yangilanmoqda..."
-            pm2 restart 8 --update-env
-            
-            # 7. Holatni saqlash
             pm2 save
-            
-            echo "Deploy muvaffaqiyatli yakunlandi!"
+            rm -f deploy.zip
+            echo "✅ Frontend 5050-portda muvaffaqiyatli yangilandi!"
