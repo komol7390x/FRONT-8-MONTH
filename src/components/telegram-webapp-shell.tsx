@@ -34,6 +34,7 @@ export const TelegramWebAppShell: React.FC<React.PropsWithChildren> = ({ childre
                     finalToken = finalToken.trim();
                     localStorage.setItem('telegram_token', finalToken);
 
+                    console.log('telegram', finalToken);
                     // 3. Parse va ID ni saqlash
                     const decoded = jwtDecode<TokenPayload>(finalToken);
                     localStorage.setItem('telegram_student_id', String(decoded.id));
