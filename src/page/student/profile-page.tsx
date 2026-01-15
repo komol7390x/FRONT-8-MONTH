@@ -3,7 +3,6 @@ import { useParams } from 'react-router-dom';
 import { Info, User, Phone, Wallet, Calendar, ShieldCheck, Globe } from 'lucide-react';
 import { useGetStudentById } from '../admin/super-admin/student/service/useGetStudentById';
 import { PageLoader } from '../../components/page-loader';
-import { TelegramStudentBottomNav } from './components/telegram-student-bottom-nav';
 
 export const StudentProfilePage: React.FC = () => {
     const { studentId: paramId } = useParams<{ studentId: string }>();
@@ -123,8 +122,6 @@ export const StudentProfilePage: React.FC = () => {
                     </div>
                 </div>
             </div>
-
-            <TelegramStudentBottomNav studentId={studentId} />
         </div>
     );
 };

@@ -4,7 +4,6 @@ import { CalendarDays } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useStudentSchedule } from './service/useStudentSchedule';
 import { PageLoader } from '../../components/page-loader';
-import { TelegramStudentBottomNav } from './components/telegram-student-bottom-nav';
 
 export const StudentSchedulePage: React.FC = () => {
     const navigate = useNavigate();
@@ -218,8 +217,6 @@ export const StudentSchedulePage: React.FC = () => {
                     </div>
                 </div>
             )}
-
-            <TelegramStudentBottomNav studentId={studentId} />
         </div>
     );
 };

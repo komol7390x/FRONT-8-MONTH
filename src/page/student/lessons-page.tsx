@@ -4,7 +4,6 @@ import { CalendarDays, DollarSign, Pencil, Search, ChevronLeft, ChevronRight, Vi
 import { useSearchParams } from 'react-router-dom';
 import { useStudentLessons } from './service/useStudentLessons';
 import { PageLoader } from '../../components/page-loader';
-import { TelegramStudentBottomNav } from './components/telegram-student-bottom-nav';
 import { useUpdateLessonTemplate } from '../admin/super-admin/teacher/service/useUpdateLessonTemplate';
 
 export const StudentLessonsPage: React.FC = () => {
@@ -226,8 +225,6 @@ export const StudentLessonsPage: React.FC = () => {
                     </div>
                 )}
             </div>
-
-            <TelegramStudentBottomNav studentId={studentId} />
 
             {/* Modern Edit Modal */}
             <Modal

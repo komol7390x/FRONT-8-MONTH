@@ -3,7 +3,6 @@ import { Button, Modal, message } from 'antd';
 import { CalendarDays, Clock, ArrowLeft, CheckCircle2, User, Info, ShieldCheck } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useBookLesson } from './service/useBookLesson';
-import { TelegramStudentBottomNav } from './components/telegram-student-bottom-nav';
 
 export const StudentBookConfirmPage: React.FC = () => {
     const navigate = useNavigate();
@@ -192,8 +191,6 @@ export const StudentBookConfirmPage: React.FC = () => {
                     </button>
                 </div>
             </div>
-
-            <TelegramStudentBottomNav studentId={studentId || undefined} />
         </div>
     );
 };

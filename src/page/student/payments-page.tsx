@@ -4,13 +4,12 @@ import { Receipt, Search, ChevronLeft, ChevronRight, CreditCard } from 'lucide-r
 import { useSearchParams } from 'react-router-dom';
 import { PageLoader } from '../../components/page-loader';
 import { usePayments } from '../admin/super-admin/payment/service/usePayments';
-import { TelegramStudentBottomNav } from './components/telegram-student-bottom-nav';
 
 export const StudentPaymentsPage: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
 
     // 1. Shell orqali saqlangan Student ID
-    const studentId = Number(localStorage.getItem('telegram_student_id') || 0);
+    const studentId = Number(localStorage.getItem('telegram_student_internal_id') || localStorage.getItem('telegram_student_id') || 0);
 
     // 2. Filterlar holati
     const [status, setStatus] = useState<string>(searchParams.get('status') || '');
@@ -167,8 +166,6 @@ export const StudentPaymentsPage: React.FC = () => {
                     </div>
                 )}
             </div>
-
-            <TelegramStudentBottomNav studentId={studentId} />
         </div>
     );
 };

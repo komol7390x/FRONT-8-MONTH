@@ -13,16 +13,6 @@ export const TelegramStudentBottomNav: React.FC<TelegramStudentBottomNavProps> =
 
     const [resolvedStudentId, setResolvedStudentId] = React.useState<number>(0);
 
-    const isBlockedStudent = React.useMemo(() => {
-        try {
-            const blocked = localStorage.getItem('telegram_is_blocked') === '1';
-            const role = String(localStorage.getItem('telegram_role') || '').toLowerCase();
-            return blocked && role === 'student';
-        } catch {
-            return false;
-        }
-    }, []);
-
     React.useEffect(() => {
         const handler = (e: any) => {
             const id = Number(e?.detail?.studentId);
@@ -80,20 +70,17 @@ export const TelegramStudentBottomNav: React.FC<TelegramStudentBottomNavProps> =
                     {items.map((item) => {
                         const Icon = item.icon;
                         const isActive = location.pathname === item.to || location.pathname.startsWith(`${item.to}/`);
-                        const isDisabled = isBlockedStudent && item.key !== 'profile';
 
                         return (
                             <button
                                 key={item.key}
-                                disabled={isDisabled}
                                 onClick={() => {
-                                    if (isDisabled) return;
                                     navigate(item.to);
                                 }}
-                                className={`flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-lg transition-colors ${isDisabled ? 'text-gray-300' : (isActive ? 'text-green-600' : 'text-gray-600')}`}
+                                className={`flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-lg transition-colors ${isActive ? 'text-green-600' : 'text-gray-600'}`}
                             >
-                                <Icon size={24} className={isDisabled ? 'text-gray-300' : (isActive ? 'text-green-600' : 'text-gray-600')} />
-                                <span className={`text-xs font-medium ${isDisabled ? 'text-gray-300' : ''}`}>{item.label}</span>
+                                <Icon size={24} className={isActive ? 'text-green-600' : 'text-gray-600'} />
+                                <span className="text-xs font-medium">{item.label}</span>
                             </button>
                         );
                     })}
