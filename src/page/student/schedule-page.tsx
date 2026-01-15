@@ -45,8 +45,12 @@ export const StudentSchedulePage: React.FC = () => {
         const params = new URLSearchParams();
         if (dayFilter) params.set('day', dayFilter);
         if (selectedLessonNames.length) params.set('lessonNames', selectedLessonNames.join(','));
-        setSearchParams(params, { replace: true });
-    }, [dayFilter, selectedLessonNames]);
+        const next = params.toString();
+        const current = searchParams.toString();
+        if (next !== current) {
+            setSearchParams(params, { replace: true });
+        }
+    }, [dayFilter, searchParams, selectedLessonNames, setSearchParams]);
 
     // 6. Haftalik kunlar va darslar sonini hisoblash
     const rollingWeek = useMemo(() => {

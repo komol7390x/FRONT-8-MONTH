@@ -33,8 +33,12 @@ export const StudentPaymentsPage: React.FC = () => {
         if (status) params.set('status', status);
         if (search) params.set('search', search);
         if (page > 1) params.set('page', String(page));
-        setSearchParams(params, { replace: true });
-    }, [status, search, page, setSearchParams]);
+        const next = params.toString();
+        const current = searchParams.toString();
+        if (next !== current) {
+            setSearchParams(params, { replace: true });
+        }
+    }, [page, search, searchParams, setSearchParams, status]);
 
     // 5. Ma'lumotlarni formatlash
     const rows = useMemo(() => data?.data || [], [data]);

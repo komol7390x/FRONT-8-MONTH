@@ -76,8 +76,12 @@ export const StudentLessonsPage: React.FC = () => {
         if (dayFilter) params.set('weekday', dayFilter);
         if (search) params.set('search', search);
         if (page > 1) params.set('page', String(page));
-        setSearchParams(params, { replace: true });
-    }, [dayFilter, search, page, setSearchParams]);
+        const next = params.toString();
+        const current = searchParams.toString();
+        if (next !== current) {
+            setSearchParams(params, { replace: true });
+        }
+    }, [dayFilter, page, search, searchParams, setSearchParams]);
 
     const formatTime = (val: any) => {
         if (!val) return '--:--';
