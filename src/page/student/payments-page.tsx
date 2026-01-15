@@ -61,7 +61,7 @@ export const StudentPaymentsPage: React.FC = () => {
                 {/* Header Section */}
                 <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-6">
                     <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2.5 bg-blue-50 text-blue-600 rounded-2xl">
+                        <div className="p-2.5 bg-green-50 text-green-600 rounded-2xl">
                             <Receipt size={24} />
                         </div>
                         <div>
