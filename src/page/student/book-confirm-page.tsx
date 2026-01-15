@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Button, Modal, message } from 'antd';
 import { CalendarDays, Clock, ArrowLeft, CheckCircle2, User, Info, ShieldCheck } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -9,13 +9,42 @@ export const StudentBookConfirmPage: React.FC = () => {
     const [searchParams] = useSearchParams();
 
     // 1. Ma'lumotlarni markazlashgan holda olish
-    const studentId =
-        Number(searchParams.get('studentId')) ||
-        Number(localStorage.getItem('telegram_student_internal_id') || localStorage.getItem('telegram_student_id')) ||
-        0;
+    const readFromStorage = () => {
+        try {
+            return Number(localStorage.getItem('telegram_student_internal_id') || localStorage.getItem('telegram_student_id')) || 0;
+        } catch {
+            return 0;
+        }
+    };
+
+    const [studentId, setStudentId] = useState<number>(() => {
+        return Number(searchParams.get('studentId')) || readFromStorage() || 0;
+    });
+
+    useEffect(() => {
+        const fromQuery = Number(searchParams.get('studentId')) || 0;
+        const next = fromQuery || readFromStorage() || 0;
+        if (next && next !== studentId) {
+            setStudentId(next);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchParams]);
+
+    useEffect(() => {
+        const handler = (e: any) => {
+            const id = Number(e?.detail?.studentId);
+            if (Number.isFinite(id) && id > 0) {
+                setStudentId(prev => (prev === id ? prev : id));
+            }
+        };
+        window.addEventListener('telegram-student-id-updated', handler as any);
+        return () => window.removeEventListener('telegram-student-id-updated', handler as any);
+    }, []);
+
     const lessonId = Number(searchParams.get('lessonId')) || 0;
     const lessonName = searchParams.get('lessonName') || 'Dars';
     const teacherId = searchParams.get('teacherId') || '';
+
     const toMs = (value: any): number => {
         if (value == null || value === '') return 0;
         const n = Number(value);

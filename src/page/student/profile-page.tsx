@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Info, User, Phone, Wallet, Calendar, ShieldCheck, Globe } from 'lucide-react';
 import { useGetStudentById } from '../admin/super-admin/student/service/useGetStudentById';
@@ -8,10 +8,38 @@ export const StudentProfilePage: React.FC = () => {
     const { studentId: paramId } = useParams<{ studentId: string }>();
 
     // 1. IDni aniqlash: Shell tomonidan saqlangan IDni birinchi ko'ramiz
-    const studentId = useMemo(() => {
-        const fromStorage = Number(localStorage.getItem('telegram_student_internal_id') || localStorage.getItem('telegram_student_id')) || 0;
-        return Number(paramId) || fromStorage || 0;
+    const readFromStorage = () => {
+        try {
+            return Number(localStorage.getItem('telegram_student_internal_id') || localStorage.getItem('telegram_student_id')) || 0;
+        } catch {
+            return 0;
+        }
+    };
+
+    const [studentId, setStudentId] = useState<number>(() => {
+        const fromParam = Number(paramId) || 0;
+        return fromParam || readFromStorage() || 0;
+    });
+
+    useEffect(() => {
+        const fromParam = Number(paramId) || 0;
+        const next = fromParam || readFromStorage() || 0;
+        if (next && next !== studentId) {
+            setStudentId(next);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [paramId]);
+
+    useEffect(() => {
+        const handler = (e: any) => {
+            const id = Number(e?.detail?.studentId);
+            if (Number.isFinite(id) && id > 0) {
+                setStudentId(prev => (prev === id ? prev : id));
+            }
+        };
+        window.addEventListener('telegram-student-id-updated', handler as any);
+        return () => window.removeEventListener('telegram-student-id-updated', handler as any);
+    }, []);
 
     // 2. Ma'lumotlarni yuklash
     const { data: student, isPending } = useGetStudentById(studentId);

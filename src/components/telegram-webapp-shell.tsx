@@ -59,8 +59,8 @@ export const TelegramWebAppShell: React.FC<React.PropsWithChildren> = ({ childre
         const student = qp.get('student');
         if (student) {
             const sid = Number(student);
-            if (Number.isFinite(sid) && sid > 0) {
-                (async () => {
+            (async () => {
+                if (Number.isFinite(sid) && sid > 0) {
                     let internalId = 0;
                     try {
                         const res = await request.get(`/student/${sid}`);
@@ -101,16 +101,19 @@ export const TelegramWebAppShell: React.FC<React.PropsWithChildren> = ({ childre
                     } catch {
                         // ignore
                     }
-                })();
-            }
+                }
 
-            try {
-                qp.delete('student');
-                const rest = qp.toString();
-                navigate(`${location.pathname}${rest ? `?${rest}` : ''}`, { replace: true });
-            } catch {
-                // ignore
-            }
+                try {
+                    qp.delete('student');
+                    const rest = qp.toString();
+                    navigate(`${location.pathname}${rest ? `?${rest}` : ''}`, { replace: true });
+                } catch {
+                    // ignore
+                }
+
+                setLoading(false);
+            })();
+            return;
         }
 
         const t = window.setTimeout(() => setLoading(false), 250);
