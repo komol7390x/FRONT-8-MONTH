@@ -106,6 +106,16 @@ export const StudentSchedulePage: React.FC = () => {
         return new Date(ms).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
     };
 
+    const getTeacherName = (l: any) => {
+        const t = l?.teacher || l?.Teacher;
+        const fn = String(t?.firstName || t?.firstname || '').trim();
+        const ln = String(t?.lastName || t?.lastname || '').trim();
+        const full = String(l?.teacherName || l?.teacherFullName || `${fn} ${ln}` || '').trim();
+        if (full) return full;
+        if (l?.teacherId) return `Teacher #${l.teacherId}`;
+        return 'Teacher';
+    };
+
     const handleBook = (lesson: any) => {
         if (!studentId) {
             return message.error('Student ID topilmadi. Iltimos, qaytadan kiring.');
@@ -180,8 +190,12 @@ export const StudentSchedulePage: React.FC = () => {
                             >
                                 <div className="flex justify-between items-start">
                                     <div className="space-y-1">
+                                        <div className="flex items-center gap-2">
+                                            <span className="px-2 py-0.5 bg-green-50 text-green-600 text-[10px] font-black uppercase rounded-lg">#{l.id}</span>
+                                            <span className="text-[11px] text-gray-500 font-medium">{l?.weekDays || l?.weekday || l?.day || dayFilter || ''}</span>
+                                        </div>
                                         <div className="text-base font-semibold text-gray-900">{l.lessonName}</div>
-                                        <div className="text-[11px] text-gray-400 font-normal">O'qituvchi ID: {l.teacherId}</div>
+                                        <div className="text-[11px] text-gray-400 font-normal">{getTeacherName(l)}</div>
                                     </div>
                                     <div className="text-right">
                                         <div className="text-sm font-semibold text-green-600">
