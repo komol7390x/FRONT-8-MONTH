@@ -23,7 +23,6 @@ export const Sidebar = () => {
     }, [location.pathname]);
 
     useEffect(() => {
-        // keep hook stable on route changes
     }, [selectedKeys]);
 
     if (isPending) {

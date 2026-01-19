@@ -3,8 +3,8 @@ import { Plus, Search } from 'lucide-react';
 
 interface HeaderProps {
     setPage: (page: number) => void;
-    onSearch: (value: string) => void; // Parentdagi search state'ni yangilash uchun
-    openCreateModal: () => void; // Create modalini ochish uchun
+    onSearch: (value: string) => void;
+    openCreateModal: () => void; 
     showAddAdmin?: boolean;
     onClearExtras?: () => void;
 }
@@ -15,7 +15,7 @@ export const Header: React.FC<HeaderProps> = ({ setPage, onSearch, openCreateMod
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            onSearch(localSearch); // Debounce tugagach parentdagi searchni yangilaymiz
+            onSearch(localSearch); 
         }, 500);
 
         return () => clearTimeout(timer);

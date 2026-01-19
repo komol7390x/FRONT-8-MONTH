@@ -76,7 +76,6 @@ export const ScheduleCreateModal: React.FC<ScheduleCreateModalProps> = ({
 
         return Array.from({ length: 7 }).map((_, i) => {
             const d = new Date(base);
-            // bugungi kundan boshlanadi
             d.setDate(d.getDate() + i);
             const dd = String(d.getDate()).padStart(2, '0');
             const label = days[d.getDay()];
@@ -87,8 +86,6 @@ export const ScheduleCreateModal: React.FC<ScheduleCreateModalProps> = ({
 
     const disabledOffsets = useMemo(() => {
         const disabled = new Set<number>();
-        // Note: existingSchedule logic might need refinement based on exact data structure
-        // For now, we won't disable days aggressively unless we have precise day-level blocking logic
         return disabled;
     }, [dateSlots, existingSchedule]);
 
@@ -232,7 +229,6 @@ export const ScheduleCreateModal: React.FC<ScheduleCreateModalProps> = ({
             const startMs = start.getTime();
             const finishMs = finish.getTime();
 
-            // overlap check against existing schedule
             for (const l of existingSchedule || []) {
                 const es = toMs((l as any)?.startTime);
                 const ef = toMs((l as any)?.finishTime ?? (l as any)?.endTime);

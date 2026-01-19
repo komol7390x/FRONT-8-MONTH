@@ -115,7 +115,7 @@ export const Sidebar = () => {
                         <Menu
                             mode="inline"
                             inlineCollapsed={collapsed}
-                            items={items} // Bu yerda menyu itemlaringiz bo'lishi kerak
+                            items={items}
                             className="bg-transparent border-none"
                             selectedKeys={selectedKeys}
                             openKeys={openKeys}

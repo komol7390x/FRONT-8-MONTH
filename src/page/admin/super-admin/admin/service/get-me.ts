@@ -15,10 +15,10 @@ export const useGetMe = () => {
         queryFn: () => request.get('/admin/details').then(res => res.data),
         select: (response) => response.data as UserData,
 
-        staleTime: Infinity, // Ma'lumot hech qachon "eski" bo'lmaydi (faqat refreshda yangilanadi)
-        gcTime: 1000 * 60, // Keshda 1 soat davomida saqlanadi
-        refetchOnWindowFocus: false, // Brauzer oynasiga qaytganda qayta so'rov yubormaydi
-        refetchOnMount: false, // Komponent qayta render bo'lganda so'rov yubormaydi
+        staleTime: Infinity,
+        gcTime: 1000 * 60,
+        refetchOnWindowFocus: false, 
+        refetchOnMount: false, 
         retry: 1,
     });
 };

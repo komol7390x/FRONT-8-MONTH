@@ -31,14 +31,13 @@ export const GoogleRegisterTeacherStep2: React.FC = () => {
             if (!raw) return;
             const parsed = JSON.parse(raw);
             if (parsed?.email) {
-                // keep in state object only for display; not in local state
+                state.email = String(parsed.email);
             }
             if (parsed?.phoneNumber && !phoneNumber) setPhoneNumber(String(parsed.phoneNumber));
             if (parsed?.password && !password) setPassword(String(parsed.password));
         } catch {
-            // ignore
+
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {

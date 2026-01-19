@@ -44,7 +44,6 @@ export const useBookLesson = () => {
                         }, meetLink)
                     ),
                     onOk: () => {
-                        // Close window if in Telegram Web App
                         if ((window as any).Telegram?.WebApp) {
                             (window as any).Telegram.WebApp.close();
                         }

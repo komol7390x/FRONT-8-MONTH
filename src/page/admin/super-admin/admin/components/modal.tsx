@@ -29,7 +29,6 @@ interface AdminModalsProps {
     getInitials: (name: string) => string;
     handleBlock: (id: number, currentActive: boolean) => void;
     isBlocking: boolean;
-    // OTP props only needed for create modal
     otpSent?: boolean;
     otpVerified?: boolean;
     receivedOtp?: string;
@@ -150,7 +149,6 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
             return;
         }
 
-        // Verify OTP locally by comparing with received OTP
         if (otp === receivedOtp) {
             setOtpVerified?.(true);
             alert('OTP verified successfully!');
@@ -273,7 +271,7 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
                                             value={editForm.phoneNumber}
                                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditForm({ ...editForm, phoneNumber: e.target.value })}
                                             disabled={otpVerified}
-                                            className="flex-1 px-3.5 py-2.5 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-300 focus:border-transparent transition-all duration-200 disabled:bg-gray-100"
+                                            className="flex-1 px-3.5 py-2.5 bg-linear-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-300 focus:border-transparent transition-all duration-200 disabled:bg-gray-100"
                                             placeholder="+998901234567"
                                         />
                                         <button
@@ -300,7 +298,7 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
                                                 value={otp}
                                                 onChange={(e) => setOtp?.(e.target.value)}
                                                 placeholder="Enter OTP"
-                                                className="flex-1 px-3.5 py-2.5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all duration-200"
+                                                className="flex-1 px-3.5 py-2.5 bg-linear-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all duration-200"
                                             />
                                             <button
                                                 onClick={handleVerifyOtp}
@@ -328,7 +326,7 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
                                             value={editForm.username}
                                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditForm({ ...editForm, username: e.target.value })}
                                             disabled={!otpVerified}
-                                            className="w-full px-3.5 py-2.5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all duration-200 disabled:bg-gray-100"
+                                            className="w-full px-3.5 py-2.5 bg-linear-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all duration-200 disabled:bg-gray-100"
                                             placeholder="Enter username"
                                         />
                                     </div>
@@ -343,7 +341,7 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
                                             value={editForm.fullname}
                                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditForm({ ...editForm, fullname: e.target.value })}
                                             disabled={!otpVerified}
-                                            className="w-full px-3.5 py-2.5 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent transition-all duration-200 disabled:bg-gray-100"
+                                            className="w-full px-3.5 py-2.5 bg-linear-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent transition-all duration-200 disabled:bg-gray-100"
                                             placeholder="Enter full name"
                                         />
                                     </div>
@@ -358,7 +356,7 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
                                             value={editForm.password}
                                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditForm({ ...editForm, password: e.target.value })}
                                             disabled={!otpVerified}
-                                            className="w-full px-3.5 py-2.5 bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-transparent transition-all duration-200 disabled:bg-gray-100"
+                                            className="w-full px-3.5 py-2.5 bg-linear-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-transparent transition-all duration-200 disabled:bg-gray-100"
                                             placeholder="Enter password"
                                         />
                                         <input
@@ -366,7 +364,7 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
                                             value={editForm.password}
                                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditForm({ ...editForm, password: e.target.value })}
                                             disabled={!otpVerified}
-                                            className="w-full px-3.5 py-2.5 bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-transparent transition-all duration-200 disabled:bg-gray-100 mt-2"
+                                            className="w-full px-3.5 py-2.5 bg-linear-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-transparent transition-all duration-200 disabled:bg-gray-100 mt-2"
                                             placeholder="Confirm password"
                                         />
                                     </div>
@@ -383,7 +381,7 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
                                     <button
                                         onClick={handleCreate}
                                         disabled={isUpdating || !otpVerified}
-                                        className="flex-1 px-4 py-2.5 bg-gradient-to-r from-gray-800 to-gray-900 text-white rounded-lg text-sm font-semibold hover:from-gray-900 hover:to-black disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
+                                        className="flex-1 px-4 py-2.5 bg-linear-to-r from-gray-800 to-gray-900 text-white rounded-lg text-sm font-semibold hover:from-gray-900 hover:to-black disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
                                     >
                                         {isUpdating ? 'Creating...' : 'Create Admin'}
                                     </button>
@@ -402,7 +400,6 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
                                             value={editForm.phoneNumber}
                                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                                 setEditForm({ ...editForm, phoneNumber: e.target.value });
-                                                // Reset OTP verification if phone number changes
                                                 if (selectedAdmin && e.target.value !== selectedAdmin.phoneNumber) {
                                                     setOtpSent?.(false);
                                                     setOtpVerified?.(false);
@@ -410,7 +407,7 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
                                                     setOtp?.('');
                                                 }
                                             }}
-                                            className={`flex-1 px-3.5 py-2.5 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-300 focus:border-transparent transition-all duration-200 ${selectedAdmin && editForm.phoneNumber !== selectedAdmin.phoneNumber ? 'ring-2 ring-orange-300' : ''}`}
+                                            className={`flex-1 px-3.5 py-2.5 bg-linear-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-300 focus:border-transparent transition-all duration-200 ${selectedAdmin && editForm.phoneNumber !== selectedAdmin.phoneNumber ? 'ring-2 ring-orange-300' : ''}`}
                                             placeholder="+998901234567"
                                         />
                                         {selectedAdmin && editForm.phoneNumber !== selectedAdmin.phoneNumber && (
@@ -442,7 +439,7 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
                                                 value={otp}
                                                 onChange={(e) => setOtp?.(e.target.value)}
                                                 placeholder="Enter OTP"
-                                                className="flex-1 px-3.5 py-2.5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all duration-200"
+                                                className="flex-1 px-3.5 py-2.5 bg-linear-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all duration-200"
                                             />
                                             <button
                                                 onClick={handleVerifyOtp}
@@ -469,7 +466,7 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
                                             type="text"
                                             value={editForm.username}
                                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditForm({ ...editForm, username: e.target.value })}
-                                            className="w-full px-3.5 py-2.5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all duration-200"
+                                            className="w-full px-3.5 py-2.5 bg-linear-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all duration-200"
                                             placeholder="Enter username"
                                         />
                                     </div>
@@ -483,7 +480,7 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
                                             type="text"
                                             value={editForm.fullname}
                                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditForm({ ...editForm, fullname: e.target.value })}
-                                            className="w-full px-3.5 py-2.5 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent transition-all duration-200"
+                                            className="w-full px-3.5 py-2.5 bg-linear-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent transition-all duration-200"
                                             placeholder="Enter full name"
                                         />
                                     </div>
@@ -498,14 +495,14 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
                                             value={editForm.password}
                                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditForm({ ...editForm, password: e.target.value })}
                                             placeholder="Leave empty to keep current password"
-                                            className="w-full px-3.5 py-2.5 bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-transparent transition-all duration-200"
+                                            className="w-full px-3.5 py-2.5 bg-linear-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-transparent transition-all duration-200"
                                         />
                                         <input
                                             type="password"
                                             value={editForm.password}
                                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditForm({ ...editForm, password: e.target.value })}
                                             placeholder="Confirm password"
-                                            className="w-full px-3.5 py-2.5 bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-transparent transition-all duration-200 mt-2"
+                                            className="w-full px-3.5 py-2.5 bg-linear-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-transparent transition-all duration-200 mt-2"
                                         />
                                     </div>
                                 </div>
@@ -521,7 +518,7 @@ export const AdminModals: React.FC<AdminModalsProps> = ({
                                     <button
                                         onClick={handleEdit}
                                         disabled={isUpdating || (selectedAdmin && editForm.phoneNumber !== selectedAdmin.phoneNumber && !otpVerified ? true : false)}
-                                        className="flex-1 px-4 py-2.5 bg-gradient-to-r from-gray-800 to-gray-900 text-white rounded-lg text-sm font-semibold hover:from-gray-900 hover:to-black disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
+                                        className="flex-1 px-4 py-2.5 bg-linear-to-r from-gray-800 to-gray-900 text-white rounded-lg text-sm font-semibold hover:from-gray-900 hover:to-black disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
                                     >
                                         {isUpdating ? 'Saving...' : 'Save Changes'}
                                     </button>

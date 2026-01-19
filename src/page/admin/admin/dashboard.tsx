@@ -40,12 +40,12 @@ export const AdminDashboard: React.FC = () => {
 
     const handleScroll = () => {
       const { scrollTop, scrollHeight, clientHeight } = contentElement;
-      const isAtBottom = scrollHeight - scrollTop - clientHeight < 50; // 50px threshold
+      const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
       setShowFooter(isAtBottom);
     };
 
     contentElement.addEventListener('scroll', handleScroll);
-    handleScroll(); // Check initial state
+    handleScroll();
 
     return () => {
       contentElement.removeEventListener('scroll', handleScroll);
@@ -54,6 +54,7 @@ export const AdminDashboard: React.FC = () => {
 
   return (
     <Layout style={{ minHeight: '100vh' }} hasSider>
+
       {/* --- SIDEBAR QISMI --- */}
       <div className="hidden md:block">
         <Sidebar />
@@ -98,6 +99,7 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </div>
           <div className="flex items-center gap-4 sm:gap-6 md:gap-10">
+            
             {/* Headerga kerakli elementlarni (masalan, qidiruv yoki til tanlash) shu yerga qo'ying */}
             <div className='flex gap-3 items-center justify-center'>
               <User size={25} className="text-cyan-200" />

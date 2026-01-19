@@ -8,16 +8,13 @@ import { usePayments } from '../admin/super-admin/payment/service/usePayments';
 export const StudentPaymentsPage: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
 
-    // 1. Shell orqali saqlangan Student ID
     const studentId = Number(localStorage.getItem('telegram_student_internal_id') || localStorage.getItem('telegram_student_id') || 0);
 
-    // 2. Filterlar holati
     const [status, setStatus] = useState<string>(searchParams.get('status') || '');
     const [search, setSearch] = useState<string>(searchParams.get('search') || '');
     const [page, setPage] = useState<number>(Number(searchParams.get('page')) || 1);
     const limit = 10;
 
-    // 3. API so'rovi
     const { data, isPending } = usePayments({
         status: status || undefined,
         role: 'STUDENT',
@@ -27,7 +24,6 @@ export const StudentPaymentsPage: React.FC = () => {
         limit,
     });
 
-    // 4. URLni sinxronlash
     useEffect(() => {
         const params = new URLSearchParams();
         if (status) params.set('status', status);
@@ -40,7 +36,6 @@ export const StudentPaymentsPage: React.FC = () => {
         }
     }, [page, search, searchParams, setSearchParams, status]);
 
-    // 5. Ma'lumotlarni formatlash
     const rows = useMemo(() => data?.data || [], [data]);
     const totalPages = data?.meta?.totalPages || 1;
 
@@ -58,8 +53,7 @@ export const StudentPaymentsPage: React.FC = () => {
         <div className="min-h-screen bg-gray-50 p-4 pb-28 font-sans">
             <div className="max-w-md mx-auto space-y-5">
 
-                {/* Header Section */}
-                <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-6">
+                <div className="bg-white rounded-4xlshadow-sm border border-gray-100 p-6">
                     <div className="flex items-center gap-3 mb-6">
                         <div className="p-2.5 bg-green-50 text-green-600 rounded-2xl">
                             <Receipt size={24} />
@@ -94,12 +88,11 @@ export const StudentPaymentsPage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Payments List */}
                 <div className="space-y-3">
                     {isPending ? (
                         <div className="py-10"><PageLoader /></div>
                     ) : rows.length === 0 ? (
-                        <div className="text-center py-16 bg-white rounded-[2rem] border border-dashed border-gray-200">
+                        <div className="text-center py-16 bg-white rounded-4xl border border-dashed border-gray-200">
                             <CreditCard size={40} className="mx-auto text-gray-200 mb-3" />
                             <p className="text-gray-400 font-medium">To'lovlar mavjud emas</p>
                         </div>
@@ -107,7 +100,7 @@ export const StudentPaymentsPage: React.FC = () => {
                         rows.map((p: any) => {
                             const stInfo = getStatusInfo(p?.status);
                             return (
-                                <div key={p.id} className="bg-white rounded-[2rem] p-5 shadow-sm border border-gray-50 active:scale-[0.98] transition-transform">
+                                <div key={p.id} className="bg-white rounded-4xl p-5 shadow-sm border border-gray-50 active:scale-[0.98] transition-transform">
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="space-y-1">
                                             <div className="text-[10px] font-black text-gray-300 uppercase tracking-widest">
@@ -135,7 +128,7 @@ export const StudentPaymentsPage: React.FC = () => {
                                                 <span className="text-xs font-medium text-gray-400 ml-1">UZS</span>
                                             </div>
                                         </div>
-                                        <div className="text-[11px] text-gray-400 font-medium max-w-[120px] text-right leading-tight italic">
+                                        <div className="text-[11px] text-gray-400 font-medium max-w-30 text-right leading-tight italic">
                                             {p.comment || 'Xizmatlar uchun'}
                                         </div>
                                     </div>
@@ -145,7 +138,6 @@ export const StudentPaymentsPage: React.FC = () => {
                     )}
                 </div>
 
-                {/* Pagination Modern */}
                 {totalPages > 1 && (
                     <div className="flex items-center justify-between px-2 py-4">
                         <button

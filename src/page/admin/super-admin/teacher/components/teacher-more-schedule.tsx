@@ -18,10 +18,9 @@ export const TeacherMoreSchedule: React.FC<TeacherMoreScheduleProps> = ({ teache
 
     const [isCreateOpen, setIsCreateOpen] = useState(false);
 
-    // Fetch stats (all items to count days)
     const statsQuery = useTeacherSchedule({
         teacherId: teacher.id,
-        limit: 1000, // Fetch enough to count
+        limit: 1000,
         active: true
     });
 
@@ -40,7 +39,6 @@ export const TeacherMoreSchedule: React.FC<TeacherMoreScheduleProps> = ({ teache
     const totalPages = meta?.totalPages || 1;
     const totalCount = meta?.totalItems || 0;
 
-    // Calculate day counts
     const dayCounts = useMemo(() => {
         const counts: Record<string, number> = {};
         if (statsQuery.data?.data) {
@@ -53,7 +51,7 @@ export const TeacherMoreSchedule: React.FC<TeacherMoreScheduleProps> = ({ teache
     }, [statsQuery.data]);
 
     const rollingDays = useMemo(() => {
-        const order = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const order = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         const base = new Date();
         base.setHours(0, 0, 0, 0);
         return Array.from({ length: 7 }).map((_, i) => {
@@ -133,7 +131,7 @@ export const TeacherMoreSchedule: React.FC<TeacherMoreScheduleProps> = ({ teache
                                     setPage(1);
                                 }}
                                 disabled={!isActiveDay}
-                                className={`px-2 py-2 rounded-xl text-xs font-bold border transition-all flex flex-col items-center justify-center min-h-[3.25rem]
+                                className={`px-2 py-2 rounded-xl text-xs font-bold border transition-all flex flex-col items-center justify-center min-h-13
                                     ${isSelected
                                         ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
                                         : isActiveDay

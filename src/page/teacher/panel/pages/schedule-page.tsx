@@ -31,16 +31,14 @@ export const TeacherSchedulePage: React.FC = () => {
         });
     }, []);
 
-    // Fetch stats to calculate counts
     const statsQuery = useScheduleLesson({ page: 1, limit: 1000 });
 
-    // Fetch filtered data
     const lessonsQuery = useScheduleLesson({
         page,
         limit,
         day: dayFilter || undefined,
         active: true,
-        teacherId: undefined // Will fetch current teacher's schedules
+        teacherId: undefined
     });
 
     const qc = useQueryClient();
@@ -336,7 +334,7 @@ export const TeacherSchedulePage: React.FC = () => {
                         setDeleteConfirmOpen(false);
                         setDeleteId(0);
                     } catch {
-                        // handled in mutation
+                        // ignore   
                     }
                 }}
             />

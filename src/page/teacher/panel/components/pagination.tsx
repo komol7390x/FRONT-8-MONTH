@@ -82,7 +82,7 @@ export const Pagination: React.FC<PaginationProps> = ({
     return (
         <div>
             {totalPages > 0 && (
-                <div className="bg-gradient-to-r from-white to-gray-50 rounded-xl shadow-lg border border-gray-100 p-6 mt-6">
+                <div className="bg-linear-to-r from-white to-gray-50 rounded-xl shadow-lg border border-gray-100 p-6 mt-6">
                     <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
                         <div className="flex flex-col sm:flex-row items-center gap-4">
                             <div className="text-sm">
@@ -100,7 +100,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                                 <select
                                     value={limit}
                                     onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleLimitChange(e.target.value)}
-                                    className="px-3 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all duration-200"
+                                    className="px-3 py-2 bg-linear-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all duration-200"
                                 >
                                     {[5, 10, 20, 50, 100].map((v) => (
                                         <option key={v} value={v}>
@@ -118,7 +118,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                                     window.scrollTo({ top: 0, behavior: 'smooth' });
                                 }}
                                 disabled={page === 1}
-                                className="p-2 bg-gradient-to-r from-gray-100 to-gray-200 border border-gray-300 rounded-lg text-gray-700 hover:from-gray-200 hover:to-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-1"
+                                className="p-2 bg-linear-to-r from-gray-100 to-gray-200 border border-gray-300 rounded-lg text-gray-700 hover:from-gray-200 hover:to-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-1"
                             >
                                 <ChevronLeft size={16} />
                                 <span className="text-sm font-medium">Previous</span>
@@ -130,7 +130,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                                     window.scrollTo({ top: 0, behavior: 'smooth' });
                                 }}
                                 disabled={page === totalPages || totalPages === 0}
-                                className="p-2 bg-gradient-to-r from-gray-100 to-gray-200 border border-gray-300 rounded-lg text-gray-700 hover:from-gray-200 hover:to-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-1"
+                                className="p-2 bg-linear-to-r from-gray-100 to-gray-200 border border-gray-300 rounded-lg text-gray-700 hover:from-gray-200 hover:to-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-1"
                             >
                                 <span className="text-sm font-medium">Next</span>
                                 <ChevronRight size={16} />
@@ -146,7 +146,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                                     onChange={handlePageInputChange}
                                     onKeyDown={handleKeyPress}
                                     onBlur={handlePageInputSubmit}
-                                    className="w-16 px-2 py-2 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg text-sm font-medium text-center text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent transition-all duration-200"
+                                    className="w-16 px-2 py-2 bg-linear-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg text-sm font-medium text-center text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent transition-all duration-200"
                                     placeholder="1"
                                 />
                                 <span className="text-sm text-gray-500 font-medium">

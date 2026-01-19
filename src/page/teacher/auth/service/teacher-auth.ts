@@ -10,7 +10,6 @@ export interface TeacherLoginPayload {
 export const useTeacherLogin = () => {
     return useMutation({
         mutationFn: async (payload: TeacherLoginPayload) => {
-            // Backend endpoint name is not explicitly provided; this follows common pattern.
             const res = await request.post('/teacher/signin', payload, {
                 withCredentials: true,
             });

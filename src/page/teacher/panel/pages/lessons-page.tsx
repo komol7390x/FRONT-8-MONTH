@@ -369,7 +369,7 @@ export const TeacherLessonsPage: React.FC = () => {
                         </div>
 
                         <div className="overflow-x-auto">
-                            <div className="min-w-[1100px]">
+                            <div className="min-w-275">
 
                                 {dataSource.length === 0 ? (
                                     <div className="p-12 text-center text-gray-500">No lessons found</div>
@@ -533,7 +533,6 @@ export const TeacherLessonsPage: React.FC = () => {
                             setDeleteConfirmOpen(false);
                             setDeleteId(0);
                         } catch {
-                            // handled in mutation
                         }
                     }}
                 />

@@ -28,12 +28,12 @@ export const TeacherDashboard: React.FC = () => {
 
         const handleScroll = () => {
             const { scrollTop, scrollHeight, clientHeight } = contentElement;
-            const isAtBottom = scrollHeight - scrollTop - clientHeight < 50; // 50px threshold
+            const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
             setShowFooter(isAtBottom);
         };
 
         contentElement.addEventListener('scroll', handleScroll);
-        handleScroll(); // Check initial state
+        handleScroll(); 
 
         return () => {
             contentElement.removeEventListener('scroll', handleScroll);

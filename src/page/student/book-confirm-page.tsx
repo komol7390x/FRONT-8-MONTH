@@ -8,7 +8,6 @@ export const StudentBookConfirmPage: React.FC = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
 
-    // 1. Ma'lumotlarni markazlashgan holda olish
     const readFromStorage = () => {
         try {
             return Number(localStorage.getItem('telegram_student_internal_id') || localStorage.getItem('telegram_student_id')) || 0;
@@ -27,7 +26,6 @@ export const StudentBookConfirmPage: React.FC = () => {
         if (next && next !== studentId) {
             setStudentId(next);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams]);
 
     useEffect(() => {

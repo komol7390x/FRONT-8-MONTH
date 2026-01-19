@@ -70,7 +70,6 @@ export const ListAdmin: React.FC = () => {
   const { mutate: createAdmin, isPending: isCreating } = useCreateAdmin();
   const { mutate: deleteAdmin, isPending: isDeleting } = useDeleteAdmin();
 
-  // Backend strukturasiga moslash (res.data ichida yana data massivi kelyapti)
   const admins: Admin[] = data?.data || [];
   const totalCount: number = data?.meta?.totalItems || 0;
   const totalPages: number = data?.meta?.totalPages || 0;
@@ -118,7 +117,6 @@ export const ListAdmin: React.FC = () => {
       phoneNumber: '',
       password: ''
     });
-    // Reset OTP states
     setOtpSent(false);
     setOtpVerified(false);
     setReceivedOtp('');
@@ -136,7 +134,6 @@ export const ListAdmin: React.FC = () => {
         phoneNumber: admin.phoneNumber,
         password: ''
       });
-      // Reset OTP states when opening edit modal
       setOtpSent(false);
       setOtpVerified(false);
       setReceivedOtp('');
@@ -163,7 +160,6 @@ export const ListAdmin: React.FC = () => {
     setPendingBlock(null);
     setPendingDelete(null);
     setEditForm({ username: '', fullname: '', phoneNumber: '', password: '' });
-    // Reset OTP states
     setOtpSent(false);
     setOtpVerified(false);
     setReceivedOtp('');
@@ -190,7 +186,6 @@ export const ListAdmin: React.FC = () => {
   const handleEdit = async (): Promise<void> => {
     try {
       if (selectedAdmin) {
-        // Check if phone number was changed and OTP verification is required
         if (editForm.phoneNumber !== selectedAdmin.phoneNumber && !otpVerified) {
           alert('Phone number changed. Please verify the new phone number with OTP before saving.');
           return;

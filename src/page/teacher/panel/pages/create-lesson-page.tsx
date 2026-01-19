@@ -43,7 +43,6 @@ export const TeacherCreateLessonPage: React.FC = () => {
             startTime: '',
             finishTime: '',
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lessonNameOptions.join('|')]);
 
     const [form] = Form.useForm();
@@ -162,7 +161,6 @@ export const TeacherCreateLessonPage: React.FC = () => {
         }
         out.sort((a, b) => a.start.localeCompare(b.start));
         return out;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [existingLessons, form]);
 
     useEffect(() => {
@@ -187,7 +185,6 @@ export const TeacherCreateLessonPage: React.FC = () => {
                 form.setFieldsValue({ lessonPrice: p });
             }
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lessonNameOptions.join('|')]);
 
     const onFinish = async (values: any) => {
@@ -554,7 +551,7 @@ export const TeacherCreateLessonPage: React.FC = () => {
                         setDeleteConfirmOpen(false);
                         setDeleteLessonId(0);
                     } catch {
-                        // handled in mutation
+                        // ignore
                     }
                 }}
             />
