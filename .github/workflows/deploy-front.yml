@@ -26,7 +26,8 @@ jobs:
         run: |
           npm install
           npm run build
-          zip -r deploy.zip dist
+          # dist papkasini ichidagilarni arxivlaymiz (dist papkasining o'zini emas)
+          cd dist && zip -r ../deploy.zip . && cd ..
 
       - name: Copy zip to server
         uses: appleboy/scp-action@master
@@ -35,7 +36,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           source: "deploy.zip"
-          target: "/root/Komol/front/FRONT-8-MONTH"
+          target: "/root/course/front/FRONT-8-MONTH"
 
       - name: Finalize Deployment on Server
         uses: appleboy/ssh-action@master
@@ -44,17 +45,38 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
+            # PM2 home muhitini sozlash
             export PM2_HOME=/root/.pm2
-            cd /root/Komol/front/FRONT-8-MONTH
             
-            git checkout staging
-            git pull origin staging
+            # 1. Papka borligini tekshirish, bo'lmasa yaratish
+            mkdir -p /root/course/front/FRONT-8-MONTH/dist
+            cd /root/course/front/FRONT-8-MONTH
+
+            # 2. PM2 o'rnatilganini tekshirish, bo'lmasa o'rnatish
+            if ! command -v pm2 &> /dev/null
+            then
+                echo "PM2 topilmadi, o'rnatilmoqda..."
+                npm install -g pm2
+            fi
+
+            # 3. Arxivni ochish va tozalash
+            # Eski dist ichini tozalab, yangisini ochamiz
+            rm -rf dist/*
+            unzip -o deploy.zip -d dist/
             
-            rm -rf dist
-            unzip -o deploy.zip
+            # 4. PM2 orqali servislarni yurgizish
+            # Agar frontend-staging mavjud bo'lsa restart qiladi, bo'lmasa yangi yaratadi
+            pm2 describe frontend-staging > /dev/null
+            if [ $? -eq 0 ]; then
+              echo "Restarting existing process..."
+              pm2 restart frontend-staging --update-env
+            else
+              echo "Starting new process..."
+              pm2 serve dist 5050 --name "frontend-staging" --spa
+            fi
             
-            pm2 restart frontend-staging --update-env || pm2 serve dist 5050 --name "frontend-staging" --spa
-            
+            # 5. Sozlamalarni saqlash va vaqtinchalik faylni o'chirish
             pm2 save
             rm -f deploy.zip
-            echo "✅ Frontend GitHub Secrets orqali build bo'ldi va yangilandi!"
+            
+            echo "✅ Frontend muvaffaqiyatli build bo'ldi va deploy qilindi!"
