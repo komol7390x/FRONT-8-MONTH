@@ -58,6 +58,7 @@ jobs:
                 echo "PM2 topilmadi, o'rnatilmoqda..."
                 npm install -g pm2
             fi
+            
 
             # 3. Arxivni ochish va tozalash
             # Eski dist ichini tozalab, yangisini ochamiz
