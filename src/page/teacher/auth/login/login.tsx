@@ -26,8 +26,8 @@ export const LoginTeacher = () => {
     const { control, handleSubmit, formState: { errors } } = useForm<LoginFormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            emailOrPhone: '',
-            password: '',
+            emailOrPhone: 'www.komol8689@gmail.com',
+            password: '@Komol7390x',
         },
     });
 
