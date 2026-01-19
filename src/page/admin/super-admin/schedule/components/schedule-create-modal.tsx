@@ -69,7 +69,7 @@ export const ScheduleCreateModal: React.FC<ScheduleCreateModalProps> = ({
 
     const dateSlots = useMemo(() => {
         const months = ['YAN', 'FEV', 'MAR', 'APR', 'MAY', 'IYN', 'IYL', 'AVG', 'SEN', 'OKT', 'NOY', 'DEK'];
-        const days = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"];
+        const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
         const base = new Date();
         base.setHours(0, 0, 0, 0);
