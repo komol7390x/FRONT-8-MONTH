@@ -1,223 +1,145 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import Cookies from 'js-cookie';
-import { jwtDecode } from 'jwt-decode';
+import { TelegramStudentBottomNav } from '../page/student/components/telegram-student-bottom-nav';
 import { request } from '../config/request';
-
-interface TokenPayload {
-    id: number;
-    role: string;
-    isActive: boolean;
-    iat: number;
-    exp: number;
-}
 
 export const TelegramWebAppShell: React.FC<React.PropsWithChildren> = ({ children }) => {
     const location = useLocation();
     const navigate = useNavigate();
 
     const [loading, setLoading] = useState(true);
-    const [isBlocked, setIsBlocked] = useState(false);
-    const [role, setRole] = useState<string>('');
+
+    const readCachedStudentId = (): number => {
+        try {
+            const raw = localStorage.getItem('telegram_student_internal_id_cache');
+            if (!raw) return 0;
+            const parsed = JSON.parse(raw);
+            const value = Number(parsed?.value);
+            const expiresAt = Number(parsed?.expiresAt);
+            if (!Number.isFinite(value) || value <= 0) return 0;
+            if (!Number.isFinite(expiresAt) || Date.now() > expiresAt) return 0;
+            return value;
+        } catch {
+            return 0;
+        }
+    };
+
+    const writeCachedStudentId = (id: number) => {
+        try {
+            const ttlMs = 24 * 60 * 60 * 1000;
+            localStorage.setItem('telegram_student_internal_id_cache', JSON.stringify({ value: id, expiresAt: Date.now() + ttlMs }));
+        } catch {
+            // ignore
+        }
+    };
+
+    const [resolvedStudentId, setResolvedStudentId] = useState<number>(() => {
+        try {
+            const cached = readCachedStudentId();
+            if (cached > 0) return cached;
+        } catch {
+            // ignore
+        }
+        try {
+            const v = Number(localStorage.getItem('telegram_student_internal_id') || localStorage.getItem('telegram_student_id') || 0);
+            return Number.isFinite(v) && v > 0 ? v : 0;
+        } catch {
+            return 0;
+        }
+    });
+
+    const studentId = useMemo(() => {
+        return resolvedStudentId;
+    }, [resolvedStudentId]);
 
     useEffect(() => {
-        const extractAndVerifyToken = () => {
-            try {
-                let finalToken = '';
+        setLoading(true);
 
-                // 1) Query'dan tokenni olish: /telegram/schedule?token=...
+        const qp = new URLSearchParams(window.location.search);
+        const student = qp.get('student');
+        if (student) {
+            const sid = Number(student);
+            (async () => {
+                if (Number.isFinite(sid) && sid > 0) {
+                    let internalId = 0;
+                    try {
+                        const res = await request.get(`/student/${sid}`);
+                        internalId = Number((res as any)?.data?.data?.id ?? (res as any)?.data?.id ?? sid);
+                    } catch {
+                        internalId = 0;
+                    }
+
+                    if (!internalId) {
+                        try {
+                            const res = await request.get('/student', {
+                                params: {
+                                    search: String(sid),
+                                    page: 1,
+                                    limit: 50,
+                                },
+                            });
+                            const raw: any = (res as any)?.data;
+                            const items: any[] = Array.isArray(raw?.data) ? raw.data : [];
+                            const found = items.find((s: any) => String(s?.tgId ?? '') === String(sid) || String(s?.id ?? '') === String(sid));
+                            internalId = Number(found?.id || 0);
+                        } catch {
+                            internalId = 0;
+                        }
+                    }
+
+                    const finalId = Number.isFinite(internalId) && internalId > 0 ? internalId : sid;
+                    try {
+                        localStorage.setItem('telegram_student_internal_id', String(finalId));
+                        localStorage.setItem('telegram_student_id', String(finalId));
+                    } catch {
+                        // ignore
+                    }
+                    writeCachedStudentId(finalId);
+                    setResolvedStudentId(finalId);
+                    try {
+                        window.dispatchEvent(new CustomEvent('telegram-student-id-updated', { detail: { studentId: finalId } }));
+                    } catch {
+                        // ignore
+                    }
+                }
+
                 try {
-                    const qp = new URLSearchParams(window.location.search);
-                    const t = qp.get('token');
-                    if (t) finalToken = t;
+                    qp.delete('student');
+                    const rest = qp.toString();
+                    navigate(`${location.pathname}${rest ? `?${rest}` : ''}`, { replace: true });
                 } catch {
                     // ignore
                 }
 
-                // 2) Hash ichidagi query bo'lsa ham ushlash: /#/telegram/schedule?token=...
-                if (!finalToken) {
-                    try {
-                        const hash = window.location.hash || '';
-                        const hashQuery = hash.includes('?') ? hash.split('?')[1] : '';
-                        const qp = new URLSearchParams(hashQuery);
-                        const t = qp.get('token');
-                        if (t) finalToken = t;
-                    } catch {
-                        // ignore
-                    }
-                }
-
-                // 3) Token bo'lmasa, avval saqlanganini ishlatamiz
-                if (!finalToken) {
-                    try {
-                        finalToken = localStorage.getItem('telegram_token') || '';
-                    } catch {
-                        finalToken = '';
-                    }
-                }
-
-                if (finalToken) {
-                    finalToken = String(finalToken).trim();
-                    try {
-                        localStorage.setItem('telegram_token', finalToken);
-                    } catch {
-                        // ignore
-                    }
-                    try {
-                        Cookies.set('telegram_token', finalToken, { sameSite: 'Lax' });
-                    } catch {
-                        // ignore
-                    }
-
-                    // 4) Parse va ID ni saqlash
-                    const decoded = jwtDecode<TokenPayload>(finalToken);
-                    if (decoded?.role != null) {
-                        const r = String(decoded.role);
-                        setRole(r);
-                        try {
-                            localStorage.setItem('telegram_role', r);
-                        } catch {
-                            // ignore
-                        }
-                    }
-                    if (decoded?.id != null) {
-                        try {
-                            localStorage.setItem('telegram_student_id', String(decoded.id));
-                        } catch {
-                            // ignore
-                        }
-
-                        // Telegram token ichidagi id internal bo'lishi ham, tgId bo'lishi ham mumkin.
-                        // Booking/Profile uchun backend internal student id kerak.
-                        (async () => {
-                            try {
-                                const res = await request.get(`/student/${decoded.id}`);
-                                const internalId = Number((res as any)?.data?.data?.id);
-                                if (Number.isFinite(internalId) && internalId > 0) {
-                                    try {
-                                        localStorage.setItem('telegram_student_internal_id', String(internalId));
-                                    } catch {
-                                        // ignore
-                                    }
-                                    try {
-                                        window.dispatchEvent(new CustomEvent('telegram-student-id-updated', { detail: { studentId: internalId } }));
-                                    } catch {
-                                        // ignore
-                                    }
-                                }
-                            } catch {
-                                try {
-                                    const res = await request.get('/student', {
-                                        params: {
-                                            search: String(decoded.id),
-                                            page: 1,
-                                            limit: 10,
-                                        },
-                                    });
-                                    const raw: any = (res as any)?.data;
-                                    const items: any[] = Array.isArray(raw?.data) ? raw.data : [];
-                                    const found = items.find((s: any) => String(s?.tgId ?? '') === String(decoded.id));
-                                    const internalId = Number(found?.id);
-                                    if (Number.isFinite(internalId) && internalId > 0) {
-                                        try {
-                                            localStorage.setItem('telegram_student_internal_id', String(internalId));
-                                        } catch {
-                                            // ignore
-                                        }
-                                        try {
-                                            window.dispatchEvent(new CustomEvent('telegram-student-id-updated', { detail: { studentId: internalId } }));
-                                        } catch {
-                                            // ignore
-                                        }
-                                    }
-                                } catch {
-                                    // ignore
-                                }
-                            }
-                        })();
-                    }
-
-                    // 5) Blokirovkani tekshirish
-                    if (decoded?.isActive === false) {
-                        setIsBlocked(true);
-                        try {
-                            localStorage.setItem('telegram_is_blocked', '1');
-                        } catch {
-                            // ignore
-                        }
-                    } else {
-                        try {
-                            localStorage.removeItem('telegram_is_blocked');
-                        } catch {
-                            // ignore
-                        }
-                    }
-
-                    // 6) URL ni tozalash: faqat token paramni olib tashlash
-                    try {
-                        const qp = new URLSearchParams(window.location.search);
-                        if (qp.has('token')) {
-                            qp.delete('token');
-                            const rest = qp.toString();
-                            navigate(`${location.pathname}${rest ? `?${rest}` : ''}`, { replace: true });
-                        }
-                    } catch {
-                        // ignore
-                    }
-                }
-            } catch (error) {
-                console.error('Token error:', error);
-            } finally {
                 setLoading(false);
-            }
-        };
+            })();
+            return;
+        }
 
-        extractAndVerifyToken();
+        const t = window.setTimeout(() => setLoading(false), 250);
+        return () => window.clearTimeout(t);
     }, [location.key, location.pathname, navigate]);
 
-    useEffect(() => {
-        if (!isBlocked) return;
-
-        const normalizedRole = String(role || '').toLowerCase();
-        if (normalizedRole !== 'student') return;
-
-        const isOnProfile = location.pathname.startsWith('/telegram/student/');
-        if (isOnProfile) return;
-
-        let id = 0;
-        try {
-            id = Number(localStorage.getItem('telegram_student_internal_id') || localStorage.getItem('telegram_student_id') || 0);
-        } catch {
-            id = 0;
-        }
-        navigate(`/telegram/student/${id || 0}`, { replace: true });
-    }, [isBlocked, location.pathname, navigate, role]);
-
-    useEffect(() => {
-        const tg = (window as any).Telegram?.WebApp;
-        if (tg) {
-            tg.ready();
-            tg.expand();
-            if (tg.isVersionAtLeast?.('6.1')) {
-                tg.setHeaderColor?.('#ffffff');
-            }
-        }
-    }, []);
-
     return (
-        <>
-            {children}
-            {loading && (
-                <div className="fixed left-0 right-0 bottom-24 z-50 flex justify-center px-4">
-                    <button
-                        type="button"
-                        disabled
-                        className="max-w-md w-full bg-white border border-gray-200 rounded-2xl shadow-lg py-3 text-sm font-bold text-gray-600"
-                    >
-                        Loading...
-                    </button>
+        <div className="telegram-webapp min-h-screen bg-gray-50 font-sans">
+            <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-100">
+                <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+                    <div className="text-[14px] font-normal text-gray-900">Online School</div>
+                    <div className="text-[12px] font-normal text-gray-500">Telegram</div>
                 </div>
-            )}
-        </>
+            </div>
+
+            <div className="max-w-md mx-auto px-4 pt-4 pb-24">
+                {loading ? (
+                    <div className="py-16 flex items-center justify-center">
+                        <div className="text-[14px] font-normal text-gray-500">Loading...</div>
+                    </div>
+                ) : (
+                    children
+                )}
+            </div>
+
+            <TelegramStudentBottomNav studentId={studentId || undefined} />
+        </div>
     );
 };

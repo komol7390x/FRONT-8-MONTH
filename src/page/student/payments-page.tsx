@@ -4,13 +4,12 @@ import { Receipt, Search, ChevronLeft, ChevronRight, CreditCard } from 'lucide-r
 import { useSearchParams } from 'react-router-dom';
 import { PageLoader } from '../../components/page-loader';
 import { usePayments } from '../admin/super-admin/payment/service/usePayments';
-import { TelegramStudentBottomNav } from './components/telegram-student-bottom-nav';
 
 export const StudentPaymentsPage: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
 
     // 1. Shell orqali saqlangan Student ID
-    const studentId = Number(localStorage.getItem('telegram_student_id') || 0);
+    const studentId = Number(localStorage.getItem('telegram_student_internal_id') || localStorage.getItem('telegram_student_id') || 0);
 
     // 2. Filterlar holati
     const [status, setStatus] = useState<string>(searchParams.get('status') || '');
@@ -34,8 +33,12 @@ export const StudentPaymentsPage: React.FC = () => {
         if (status) params.set('status', status);
         if (search) params.set('search', search);
         if (page > 1) params.set('page', String(page));
-        setSearchParams(params, { replace: true });
-    }, [status, search, page, setSearchParams]);
+        const next = params.toString();
+        const current = searchParams.toString();
+        if (next !== current) {
+            setSearchParams(params, { replace: true });
+        }
+    }, [page, search, searchParams, setSearchParams, status]);
 
     // 5. Ma'lumotlarni formatlash
     const rows = useMemo(() => data?.data || [], [data]);
@@ -58,7 +61,7 @@ export const StudentPaymentsPage: React.FC = () => {
                 {/* Header Section */}
                 <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-6">
                     <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2.5 bg-blue-50 text-blue-600 rounded-2xl">
+                        <div className="p-2.5 bg-green-50 text-green-600 rounded-2xl">
                             <Receipt size={24} />
                         </div>
                         <div>
@@ -167,8 +170,6 @@ export const StudentPaymentsPage: React.FC = () => {
                     </div>
                 )}
             </div>
-
-            <TelegramStudentBottomNav studentId={studentId} />
         </div>
     );
 };

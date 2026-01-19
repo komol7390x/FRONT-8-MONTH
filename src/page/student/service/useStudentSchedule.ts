@@ -28,7 +28,15 @@ export interface StudentScheduleResponse {
 
 export const useStudentSchedule = (params: StudentScheduleParams = {}) => {
     return useQuery<StudentScheduleResponse>({
-        queryKey: ['student-schedule', params],
+        queryKey: [
+            'student-schedule',
+            params.teacherId ?? null,
+            params.active ?? null,
+            params.search ?? '',
+            params.page ?? null,
+            params.limit ?? null,
+            params.day ?? '',
+        ],
         queryFn: async () => {
             const res = await request.get('/schedule', {
                 params: {

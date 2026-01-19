@@ -4,7 +4,6 @@ import { CalendarDays, DollarSign, Pencil, Search, ChevronLeft, ChevronRight, Vi
 import { useSearchParams } from 'react-router-dom';
 import { useStudentLessons } from './service/useStudentLessons';
 import { PageLoader } from '../../components/page-loader';
-import { TelegramStudentBottomNav } from './components/telegram-student-bottom-nav';
 import { useUpdateLessonTemplate } from '../admin/super-admin/teacher/service/useUpdateLessonTemplate';
 
 export const StudentLessonsPage: React.FC = () => {
@@ -34,25 +33,17 @@ export const StudentLessonsPage: React.FC = () => {
 
     // 5. Haftalik kunlar mantiqi
     const rollingWeek = useMemo(() => {
-        const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-        const today = new Date();
-
-        const dayOfWeek = today.getDay();
-        const diffToMonday = today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1);
-
-        const monday = new Date(today.setDate(diffToMonday));
-
+        const order = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const todayIdx = new Date().getDay();
         return Array.from({ length: 7 }, (_, i) => {
-            const date = new Date(monday);
-            date.setDate(monday.getDate() + i);
-
-            const dayName = days[date.getDay()];
-            const dateLabel = date.toLocaleDateString('uz-UZ', {
-                day: '2-digit',
-                month: '2-digit'
-            });
-
-            return { dayName, dateLabel, isToday: new Date().toDateString() === date.toDateString() };
+            const idx = (todayIdx + i) % 7;
+            const d = new Date();
+            d.setDate(d.getDate() + i);
+            return {
+                dayName: order[idx],
+                dateLabel: d.toLocaleDateString('uz-UZ', { day: '2-digit', month: '2-digit' }),
+                isToday: i === 0,
+            };
         });
     }, []);
 
@@ -77,8 +68,12 @@ export const StudentLessonsPage: React.FC = () => {
         if (dayFilter) params.set('weekday', dayFilter);
         if (search) params.set('search', search);
         if (page > 1) params.set('page', String(page));
-        setSearchParams(params, { replace: true });
-    }, [dayFilter, search, page, setSearchParams]);
+        const next = params.toString();
+        const current = searchParams.toString();
+        if (next !== current) {
+            setSearchParams(params, { replace: true });
+        }
+    }, [dayFilter, page, search, searchParams, setSearchParams]);
 
     const formatTime = (val: any) => {
         if (!val) return '--:--';
@@ -103,7 +98,7 @@ export const StudentLessonsPage: React.FC = () => {
                 {/* Header Section */}
                 <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-6">
                     <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-2xl">
+                        <div className="p-2.5 bg-green-50 text-green-600 rounded-2xl">
                             <CalendarDays size={24} />
                         </div>
                         <div>
@@ -128,7 +123,7 @@ export const StudentLessonsPage: React.FC = () => {
                                     key={item.dayName}
                                     onClick={() => { setDayFilter(isActive ? '' : item.dayName); setPage(1); }}
                                     className={`flex-shrink-0 min-w-[70px] py-3 rounded-2xl border transition-all flex flex-col items-center
-                                        ${isActive ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-white border-gray-100 text-gray-500'}`}
+                                        ${isActive ? 'bg-green-600 border-green-600 text-white shadow-lg shadow-green-100' : 'bg-white border-gray-100 text-gray-500'}`}
                                 >
                                     <span className="text-[10px] font-bold uppercase tracking-tighter opacity-70 mb-1">{item.dayName.slice(0, 3)}</span>
                                     <span className="text-sm font-black tracking-tight">{item.dateLabel}</span>
@@ -146,7 +141,7 @@ export const StudentLessonsPage: React.FC = () => {
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="space-y-1">
                                         <div className="flex items-center gap-2">
-                                            <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase rounded-lg">
+                                            <span className="px-2 py-0.5 bg-green-50 text-green-600 text-[10px] font-black uppercase rounded-lg">
                                                 {lesson.weekday || 'Dars'}
                                             </span>
                                             {lesson.status === 'active' && (
@@ -185,7 +180,7 @@ export const StudentLessonsPage: React.FC = () => {
                                             type="primary"
                                             href={lesson.meetLink}
                                             target="_blank"
-                                            className="h-12 rounded-2xl bg-indigo-600 shadow-lg shadow-indigo-100 font-bold text-xs flex items-center justify-center gap-2"
+                                            className="h-12 rounded-2xl bg-green-600 shadow-lg shadow-green-100 font-bold text-xs flex items-center justify-center gap-2"
                                         >
                                             <Video size={16} /> Kirish
                                         </Button>
@@ -227,8 +222,6 @@ export const StudentLessonsPage: React.FC = () => {
                 )}
             </div>
 
-            <TelegramStudentBottomNav studentId={studentId} />
-
             {/* Modern Edit Modal */}
             <Modal
                 open={editOpen}
@@ -240,7 +233,7 @@ export const StudentLessonsPage: React.FC = () => {
                         key="submit"
                         type="primary"
                         loading={isUpdating}
-                        className="rounded-xl font-bold bg-indigo-600 h-11 px-8"
+                        className="rounded-xl font-bold bg-green-600 h-11 px-8"
                         onClick={() => {
                             updateLesson({
                                 id: Number(selectedLesson.id),

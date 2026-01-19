@@ -36,7 +36,15 @@ export interface StudentLessonsResponse {
 
 export const useStudentLessons = (studentId: number | undefined, params: StudentLessonsParams = {}) => {
     return useQuery<StudentLessonsResponse>({
-        queryKey: ['student-lessons', studentId, params],
+        queryKey: [
+            'student-lessons',
+            studentId ?? null,
+            params.status ?? '',
+            params.weekday ?? '',
+            params.search ?? '',
+            params.page ?? null,
+            params.limit ?? null,
+        ],
         enabled: typeof studentId === 'number' && studentId > 0,
         queryFn: async () => {
             const res = await request.get<StudentLessonsResponse>(`/lesson-template/student/${studentId}`, {
@@ -60,6 +68,6 @@ export const useStudentLessons = (studentId: number | undefined, params: Student
         },
         staleTime: 0,
         refetchOnWindowFocus: false,
-        refetchOnMount: 'always',
+        refetchOnMount: true,
     });
 };

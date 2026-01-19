@@ -17,6 +17,8 @@ export default defineConfig({
     }
   },
   define: {
-    'import.meta.env.VITE_BUILD_TIME': JSON.stringify(new Date().toLocaleString('uz-UZ')),
+    'import.meta.env.VITE_BUILD_TIME': JSON.stringify(new Date().toLocaleString('uz-UZ', {
+      timeZone: 'Asia/Tashkent'
+    })),
   }
 })

@@ -10,11 +10,15 @@
   <script>
     (function () {
       const url = window.location.href;
-      if (url.includes('tgWebAppData')) {
+      const hash = window.location.hash || '';
+      if (hash.startsWith('#/telegram/')) {
+        const target = hash.slice(1);
+        window.location.replace(target);
+        return;
+      }
+      if (url.includes('tgWebAppData') && window.location.pathname === '/') {
         const search = window.location.search;
-        window.location.replace('/#/telegram/schedule' + search);
-      } else if (!window.location.hash && window.location.pathname !== '/') {
-        window.location.replace('/#' + window.location.pathname + window.location.search);
+        window.location.replace('/telegram/schedule' + search);
       }
     })();
   </script>

@@ -7,6 +7,20 @@ body {
     font-weight: 300;
 }
 
+.telegram-webapp,
+.telegram-webapp * {
+    font-size: 14px !important;
+    font-weight: 400 !important;
+}
+
+.telegram-webapp .font-bold,
+.telegram-webapp .font-black,
+.telegram-webapp .font-semibold,
+.telegram-webapp .font-extrabold,
+.telegram-webapp .font-medium {
+    font-weight: 400 !important;
+}
+
 .container {
     max-width: 1440px;
     margin-left: auto;

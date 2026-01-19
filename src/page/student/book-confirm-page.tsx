@@ -1,22 +1,50 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Button, Modal, message } from 'antd';
 import { CalendarDays, Clock, ArrowLeft, CheckCircle2, User, Info, ShieldCheck } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useBookLesson } from './service/useBookLesson';
-import { TelegramStudentBottomNav } from './components/telegram-student-bottom-nav';
 
 export const StudentBookConfirmPage: React.FC = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
 
     // 1. Ma'lumotlarni markazlashgan holda olish
-    const studentId =
-        Number(searchParams.get('studentId')) ||
-        Number(localStorage.getItem('telegram_student_internal_id') || localStorage.getItem('telegram_student_id')) ||
-        0;
+    const readFromStorage = () => {
+        try {
+            return Number(localStorage.getItem('telegram_student_internal_id') || localStorage.getItem('telegram_student_id')) || 0;
+        } catch {
+            return 0;
+        }
+    };
+
+    const [studentId, setStudentId] = useState<number>(() => {
+        return Number(searchParams.get('studentId')) || readFromStorage() || 0;
+    });
+
+    useEffect(() => {
+        const fromQuery = Number(searchParams.get('studentId')) || 0;
+        const next = fromQuery || readFromStorage() || 0;
+        if (next && next !== studentId) {
+            setStudentId(next);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchParams]);
+
+    useEffect(() => {
+        const handler = (e: any) => {
+            const id = Number(e?.detail?.studentId);
+            if (Number.isFinite(id) && id > 0) {
+                setStudentId(prev => (prev === id ? prev : id));
+            }
+        };
+        window.addEventListener('telegram-student-id-updated', handler as any);
+        return () => window.removeEventListener('telegram-student-id-updated', handler as any);
+    }, []);
+
     const lessonId = Number(searchParams.get('lessonId')) || 0;
     const lessonName = searchParams.get('lessonName') || 'Dars';
     const teacherId = searchParams.get('teacherId') || '';
+
     const toMs = (value: any): number => {
         if (value == null || value === '') return 0;
         const n = Number(value);
@@ -79,9 +107,9 @@ export const StudentBookConfirmPage: React.FC = () => {
                         <div className="mt-4 space-y-4">
                             <p className="text-gray-600 font-medium">Darsingiz jadvalga muvaffaqiyatli qo'shildi.</p>
                             {meetLink && (
-                                <div className="p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
-                                    <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest block mb-1">Dars havolasi:</span>
-                                    <a href={meetLink} target="_blank" rel="noreferrer" className="block text-indigo-600 truncate text-sm font-bold">
+                                <div className="p-4 bg-green-50 rounded-2xl border border-green-100">
+                                    <span className="text-[10px] font-black text-green-600 uppercase tracking-widest block mb-1">Dars havolasi:</span>
+                                    <a href={meetLink} target="_blank" rel="noreferrer" className="block text-green-600 truncate text-sm font-bold">
                                         {meetLink}
                                     </a>
                                 </div>
@@ -89,7 +117,7 @@ export const StudentBookConfirmPage: React.FC = () => {
                         </div>
                     ),
                     okText: "Darslarimga o'tish",
-                    okButtonProps: { className: 'bg-indigo-600 rounded-xl h-11 font-bold' },
+                    okButtonProps: { className: 'bg-green-600 rounded-xl h-11 font-bold' },
                     onOk: () => navigate('/telegram/student-lessons')
                 });
             }
@@ -112,7 +140,7 @@ export const StudentBookConfirmPage: React.FC = () => {
             <div className="max-w-md mx-auto p-5 space-y-6">
                 {/* Visual Ticket Card */}
                 <div className="bg-white rounded-[2.5rem] shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
-                    <div className="bg-indigo-600 p-8 text-white relative">
+                    <div className="bg-green-600 p-8 text-white relative">
                         {/* Decorative Circle */}
                         <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl" />
 
@@ -126,9 +154,10 @@ export const StudentBookConfirmPage: React.FC = () => {
                     <div className="p-8 space-y-8 relative">
                         {/* Teacher Info */}
                         <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+                            <div className="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center text-green-600">
                                 <User size={24} strokeWidth={2.5} />
                             </div>
+
                             <div>
                                 <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-0.5">O'qituvchi</p>
                                 <p className="text-base font-black text-gray-800">ID: {teacherId || 'Tayinlangan'}</p>
@@ -145,10 +174,11 @@ export const StudentBookConfirmPage: React.FC = () => {
                                         type="time"
                                         value={startTimeStr}
                                         onChange={(e) => setStartTimeStr(e.target.value)}
-                                        className="w-full h-14 pl-11 pr-3 border-2 border-gray-50 rounded-2xl bg-gray-50 focus:bg-white focus:border-indigo-600 transition-all outline-none text-base font-black tabular-nums"
+                                        className="w-full h-14 pl-11 pr-3 border-2 border-gray-50 rounded-2xl bg-gray-50 focus:bg-white focus:border-green-600 transition-all outline-none text-base font-black tabular-nums"
                                     />
                                 </div>
                             </div>
+
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-gray-300 uppercase tracking-widest ml-1 block">Tugashi</label>
                                 <div className="relative">
@@ -157,7 +187,7 @@ export const StudentBookConfirmPage: React.FC = () => {
                                         type="time"
                                         value={endTimeStr}
                                         onChange={(e) => setEndTimeStr(e.target.value)}
-                                        className="w-full h-14 pl-11 pr-3 border-2 border-gray-50 rounded-2xl bg-gray-50 focus:bg-white focus:border-indigo-600 transition-all outline-none text-base font-black tabular-nums"
+                                        className="w-full h-14 pl-11 pr-3 border-2 border-gray-50 rounded-2xl bg-gray-50 focus:bg-white focus:border-green-600 transition-all outline-none text-base font-black tabular-nums"
                                     />
                                 </div>
                             </div>
@@ -179,11 +209,12 @@ export const StudentBookConfirmPage: React.FC = () => {
                         type="primary"
                         loading={isPending}
                         onClick={handleConfirm}
-                        className="h-16 rounded-3xl bg-indigo-600 hover:bg-indigo-700 border-none text-base font-black shadow-xl shadow-indigo-100 flex items-center justify-center gap-3"
+                        className="h-16 rounded-3xl bg-green-600 hover:bg-green-700 border-none text-base font-black shadow-xl shadow-green-100 flex items-center justify-center gap-3"
                     >
                         <ShieldCheck size={20} />
                         Band qilishni tasdiqlash
                     </Button>
+
                     <button
                         onClick={() => navigate(-1)}
                         className="h-14 rounded-3xl text-gray-400 font-black text-sm uppercase tracking-widest active:scale-95 transition-all"
@@ -192,8 +223,6 @@ export const StudentBookConfirmPage: React.FC = () => {
                     </button>
                 </div>
             </div>
-
-            <TelegramStudentBottomNav studentId={studentId || undefined} />
         </div>
     );
 };

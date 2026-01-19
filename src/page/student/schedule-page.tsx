@@ -4,7 +4,6 @@ import { CalendarDays } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useStudentSchedule } from './service/useStudentSchedule';
 import { PageLoader } from '../../components/page-loader';
-import { TelegramStudentBottomNav } from './components/telegram-student-bottom-nav';
 
 export const StudentSchedulePage: React.FC = () => {
     const navigate = useNavigate();
@@ -46,8 +45,12 @@ export const StudentSchedulePage: React.FC = () => {
         const params = new URLSearchParams();
         if (dayFilter) params.set('day', dayFilter);
         if (selectedLessonNames.length) params.set('lessonNames', selectedLessonNames.join(','));
-        setSearchParams(params, { replace: true });
-    }, [dayFilter, selectedLessonNames]);
+        const next = params.toString();
+        const current = searchParams.toString();
+        if (next !== current) {
+            setSearchParams(params, { replace: true });
+        }
+    }, [dayFilter, searchParams, selectedLessonNames, setSearchParams]);
 
     // 6. Haftalik kunlar va darslar sonini hisoblash
     const rollingWeek = useMemo(() => {
@@ -101,6 +104,16 @@ export const StudentSchedulePage: React.FC = () => {
         const ms = toMs(time);
         if (!ms) return '--:--';
         return new Date(ms).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
+    };
+
+    const getTeacherName = (l: any) => {
+        const t = l?.teacher || l?.Teacher;
+        const fn = String(t?.firstName || t?.firstname || '').trim();
+        const ln = String(t?.lastName || t?.lastname || '').trim();
+        const full = String(l?.teacherName || l?.teacherFullName || `${fn} ${ln}` || '').trim();
+        if (full) return full;
+        if (l?.teacherId) return `Teacher #${l.teacherId}`;
+        return 'Teacher';
     };
 
     const handleBook = (lesson: any) => {
@@ -177,8 +190,12 @@ export const StudentSchedulePage: React.FC = () => {
                             >
                                 <div className="flex justify-between items-start">
                                     <div className="space-y-1">
+                                        <div className="flex items-center gap-2">
+                                            <span className="px-2 py-0.5 bg-green-50 text-green-600 text-[10px] font-black uppercase rounded-lg">#{l.id}</span>
+                                            <span className="text-[11px] text-gray-500 font-medium">{l?.weekDays || l?.weekday || l?.day || dayFilter || ''}</span>
+                                        </div>
                                         <div className="text-base font-semibold text-gray-900">{l.lessonName}</div>
-                                        <div className="text-[11px] text-gray-400 font-normal">O'qituvchi ID: {l.teacherId}</div>
+                                        <div className="text-[11px] text-gray-400 font-normal">{getTeacherName(l)}</div>
                                     </div>
                                     <div className="text-right">
                                         <div className="text-sm font-semibold text-green-600">
@@ -218,8 +235,6 @@ export const StudentSchedulePage: React.FC = () => {
                     </div>
                 </div>
             )}
-
-            <TelegramStudentBottomNav studentId={studentId} />
         </div>
     );
 };
