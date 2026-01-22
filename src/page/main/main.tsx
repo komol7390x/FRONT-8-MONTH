@@ -122,6 +122,10 @@ export const MainPage = () => {
                                 <div className="text-sm font-medium text-gray-800">Server Update Time</div>
                                 <div className="text-sm text-blue-600 break-all text-right">{buildDate}</div>
                             </div>
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="text-sm font-medium text-gray-800">Telegram</div>
+                                <div className="text-sm text-blue-600 break-all text-right">{config.TELEGRAM_URL}</div>
+                            </div>
                         </div>
                     </Modal>
                     <div className="pt-4 border-t border-gray-200 w-full mt-4 sm:mt-5"></div>
