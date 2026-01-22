@@ -7,7 +7,6 @@ import { PageLoader } from '../../components/page-loader';
 export const StudentProfilePage: React.FC = () => {
     const { studentId: paramId } = useParams<{ studentId: string }>();
 
-    // 1. IDni aniqlash: Shell tomonidan saqlangan IDni birinchi ko'ramiz
     const readFromStorage = () => {
         try {
             return Number(localStorage.getItem('telegram_student_internal_id') || localStorage.getItem('telegram_student_id')) || 0;
@@ -27,7 +26,6 @@ export const StudentProfilePage: React.FC = () => {
         if (next && next !== studentId) {
             setStudentId(next);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [paramId]);
 
     useEffect(() => {
@@ -41,7 +39,6 @@ export const StudentProfilePage: React.FC = () => {
         return () => window.removeEventListener('telegram-student-id-updated', handler as any);
     }, []);
 
-    // 2. Ma'lumotlarni yuklash
     const { data: student, isPending } = useGetStudentById(studentId);
 
     const fullname = `${student?.firstName || ''} ${student?.lastName || ''}`.trim();
@@ -62,11 +59,10 @@ export const StudentProfilePage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 pb-24 font-sans">
-            {/* Profil Header - Modern Gradient */}
             <div className="bg-white border-b border-gray-100">
                 <div className="max-w-md mx-auto px-6 py-10 text-center">
                     <div className="relative inline-block">
-                        <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-green-600 rounded-[2.5rem] mx-auto flex items-center justify-center text-white font-bold text-3xl shadow-xl shadow-green-100 rotate-6">
+                        <div className="w-24 h-24 bg-linear-to-br from-green-400 to-green-600 rounded-[2.5rem] mx-auto flex items-center justify-center text-white font-bold text-3xl shadow-xl shadow-green-100 rotate-6">
                             <span className="-rotate-6">{fullname ? fullname.charAt(0).toUpperCase() : 'S'}</span>
                         </div>
                         {student?.isActive && (
@@ -86,8 +82,7 @@ export const StudentProfilePage: React.FC = () => {
             </div>
 
             <div className="max-w-md mx-auto p-4 space-y-4">
-                {/* Balans Kartasi */}
-                <div className="bg-gray-900 rounded-[2rem] p-6 text-white shadow-xl shadow-gray-200 relative overflow-hidden">
+                <div className="bg-gray-900 rounded-4xl p-6 text-white shadow-xl shadow-gray-200 relative overflow-hidden">
                     <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/5 rounded-full blur-3xl"></div>
                     <div className="relative z-10">
                         <div className="flex items-center gap-2 opacity-60 mb-1">
@@ -100,8 +95,7 @@ export const StudentProfilePage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Shaxsiy ma'lumotlar ro'yxati */}
-                <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-2">
+                <div className="bg-white rounded-4xl shadow-sm border border-gray-100 p-2">
                     <div className="p-4 flex items-center gap-2 border-b border-gray-50">
                         <Info size={18} className="text-green-600" />
                         <span className="text-sm font-black text-gray-900 uppercase tracking-tight">Profil ma'lumotlari</span>
@@ -137,7 +131,6 @@ export const StudentProfilePage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Yordam bo'limi */}
                 <div className="bg-blue-50 rounded-2xl p-4 flex items-start gap-4">
                     <div className="p-2 bg-blue-100 text-blue-600 rounded-xl">
                         <Info size={20} />
@@ -154,7 +147,6 @@ export const StudentProfilePage: React.FC = () => {
     );
 };
 
-// Yordamchi komponent
 const ProfileItem = ({ icon, label, value, valueClass = "text-gray-900" }: any) => (
     <div className="flex justify-between items-center py-4 px-3 hover:bg-gray-50 rounded-2xl transition-colors">
         <div className="flex items-center gap-4">

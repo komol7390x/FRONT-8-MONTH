@@ -50,12 +50,10 @@ export const SchedulePage: React.FC = () => {
         if (today) setDayFilter(today);
     }, [dayFilter, rollingWeek]);
 
-    // Fetch stats for all schedule items
     const statsQuery = useTeacherSchedule({
         limit: 1000,
     });
 
-    // Schedule Data
     const { data, isPending, isError, error, refetch } = useTeacherSchedule({
         page,
         limit,
@@ -69,7 +67,6 @@ export const SchedulePage: React.FC = () => {
     const totalPages = meta?.totalPages || 1;
     const totalCount = meta?.totalItems || scheduleList.length;
 
-    // Calculate day counts
     const dayCounts = useMemo(() => {
         const counts: Record<string, number> = {};
         if (statsQuery.data?.data) {
@@ -81,7 +78,6 @@ export const SchedulePage: React.FC = () => {
         return counts;
     }, [statsQuery.data]);
 
-    // Create Schedule State
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [createTeacherId, setCreateTeacherId] = useState<number>(0);
 
@@ -90,11 +86,9 @@ export const SchedulePage: React.FC = () => {
         limit: 1000,
     });
 
-    // Teacher Data for creation (certificates)
     const createTeacherQuery = useGetTeacherById(createTeacherId || undefined);
     const createTeacherCertificates = (createTeacherQuery.data as any)?.certificates || [];
 
-    // View Teacher Details State
     const [viewTeacher, setViewTeacher] = useState<any | null>(null);
     const [teacherModalOpen, setTeacherModalOpen] = useState(false);
 
@@ -186,7 +180,6 @@ export const SchedulePage: React.FC = () => {
                             : record.teacher.imageUrl;
                         avatarSrc = parsed?.value || parsed || record.teacher.imageUrl;
                     } catch {
-                        // If not valid JSON, use as is
                         avatarSrc = record.teacher.imageUrl;
                     }
                 }
@@ -531,7 +524,7 @@ export const SchedulePage: React.FC = () => {
                         setConfirmActionValue(null);
                         setConfirmNote(undefined);
                     } catch {
-                        // errors handled in mutations
+                        // ignore
                     }
                 }}
             />

@@ -238,7 +238,6 @@ export const LessonPage: React.FC = () => {
             lessonName: first,
             lessonPrice: getHourPriceByName(first) || p.lessonPrice,
         }));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [createTeacherByIdQuery.isPending, isCreateOpen, lessonNameOptions]);
 
     const formatStartEnd = (v: any) => {
@@ -749,7 +748,7 @@ export const LessonPage: React.FC = () => {
                             setConfirmActionValue(null);
                             setConfirmNote(undefined);
                         } catch {
-                            // handled in mutations
+                            // ignore
                         }
                     }}
                 />

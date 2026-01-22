@@ -39,11 +39,6 @@ export const useCertificates = (
 
             const res = await request.get<any>('/certificate', { params: queryParams });
             const raw = res.data;
-
-            // Normalize common backend shapes:
-            // 1) []
-            // 2) { data: [], meta: {} }
-            // 3) { data: { data: [], meta: {} } }
             const nested = raw?.data?.data ? raw.data : undefined;
             const dataArray = Array.isArray(raw)
                 ? raw

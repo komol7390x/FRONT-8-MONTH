@@ -68,7 +68,6 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
         return Number.isFinite(price) ? price : 0;
     };
 
-    // Lesson ID ni topish uchun yordamchi funksiya
     const getLessonIdByName = (name: string) => {
         const found = (certificates || []).find((c: any) => String(c?.specificationName || '').trim() === name);
         return found?.id || found?.lessonId;
@@ -261,7 +260,6 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
             return;
         }
 
-        // Get the schedule ID from the selected lesson for the selected date
         const selectedLesson = lessonsForSelectedDate.find((l: any) =>
             String(l?.lessonName || '').trim() === form.lessonName.trim()
         );
@@ -520,7 +518,6 @@ export const LessonTemplateCreateModal: React.FC<LessonTemplateCreateModalProps>
                                         const ftStr = ft ? new Date(ft).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }) : '-';
                                         const price = Number(l?.price ?? l?.lessonPrice ?? 0);
 
-                                        // Tanlangan dars nomi bilan mos kelsa, yashil fon berish
                                         const isCurrentLesson = String(l?.lessonName || '').trim() === form.lessonName.trim();
 
                                         return (

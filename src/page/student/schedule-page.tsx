@@ -9,17 +9,14 @@ export const StudentSchedulePage: React.FC = () => {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
 
-    // 1. Shell tomonidan saqlangan Student ID ni olish
     const studentId = Number(localStorage.getItem('telegram_student_internal_id') || localStorage.getItem('telegram_student_id') || 0);
 
-    // 2. Filterlar holati
     const [dayFilter, setDayFilter] = useState<string>(searchParams.get('day') || '');
     const [selectedLesson, setSelectedLesson] = useState<any | null>(null);
     const [selectedLessonNames, setSelectedLessonNames] = useState<string[]>(
         searchParams.get('lessonNames')?.split(',').filter(Boolean) || []
     );
 
-    // 3. API so'rovi (Hozirgi kun uchun)
     const { data: scheduleData, isPending } = useStudentSchedule({
         active: true,
         day: dayFilter || undefined,
@@ -27,11 +24,9 @@ export const StudentSchedulePage: React.FC = () => {
         limit: 1000,
     });
 
-    // Barcha darslar (Select filtri uchun dars nomlarini olish)
     const { data: allData } = useStudentSchedule({ active: true, page: 1, limit: 1000 });
     const allLessons = allData?.data || [];
 
-    // 4. Bugungi kunni avtomatik tanlash (Faqat bir marta boshida)
     useEffect(() => {
         if (!dayFilter && !searchParams.get('day')) {
             const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -40,7 +35,6 @@ export const StudentSchedulePage: React.FC = () => {
         }
     }, [dayFilter, searchParams]);
 
-    // 5. URLni yangilash
     useEffect(() => {
         const params = new URLSearchParams();
         if (dayFilter) params.set('day', dayFilter);
@@ -52,7 +46,6 @@ export const StudentSchedulePage: React.FC = () => {
         }
     }, [dayFilter, searchParams, selectedLessonNames, setSearchParams]);
 
-    // 6. Haftalik kunlar va darslar sonini hisoblash
     const rollingWeek = useMemo(() => {
         const order = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         const todayIdx = new Date().getDay();
@@ -86,7 +79,6 @@ export const StudentSchedulePage: React.FC = () => {
         return Number.isNaN(d.getTime()) ? null : d.getTime();
     };
 
-    // 7. Darslarni saralash
     const filteredLessons = useMemo(() => {
         return (scheduleData?.data || [])
             .filter((l: any) => {
@@ -98,7 +90,6 @@ export const StudentSchedulePage: React.FC = () => {
             .sort((a: any, b: any) => (toMs(a?.startTime) ?? 0) - (toMs(b?.startTime) ?? 0));
     }, [scheduleData?.data, selectedLessonNames]);
 
-    // Xavfsiz vaqt formatlash
     const formatTime = (time: any) => {
         if (!time) return '--:--';
         const ms = toMs(time);
@@ -216,13 +207,12 @@ export const StudentSchedulePage: React.FC = () => {
                 </div>
             </div>
 
-            {/* Floating Booking Action */}
             {selectedLesson && (
                 <div className="fixed bottom-24 left-4 right-4 animate-in fade-in slide-in-from-bottom-5">
                     <div className="max-w-md mx-auto bg-gray-900 text-white p-4 rounded-3xl shadow-2xl flex justify-between items-center border border-white/10 backdrop-blur-md">
                         <div className="pl-2">
                             <div className="text-xs text-gray-400 font-medium">Tanlangan dars:</div>
-                            <div className="text-sm font-bold truncate max-w-[150px]">{selectedLesson.lessonName}</div>
+                            <div className="text-sm font-bold truncate max-w-37.5">{selectedLesson.lessonName}</div>
                         </div>
                         <Button
                             type="primary"

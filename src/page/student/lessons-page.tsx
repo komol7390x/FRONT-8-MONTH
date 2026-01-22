@@ -9,16 +9,13 @@ import { useUpdateLessonTemplate } from '../admin/super-admin/teacher/service/us
 export const StudentLessonsPage: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
 
-    // 1. Markazlashgan ID
     const studentId = Number(localStorage.getItem('telegram_student_internal_id') || localStorage.getItem('telegram_student_id') || 0);
 
-    // 2. Filterlar
     const [dayFilter, setDayFilter] = useState<string>(searchParams.get('weekday') || '');
     const [search, setSearch] = useState<string>(searchParams.get('search') || '');
     const [page, setPage] = useState<number>(Number(searchParams.get('page')) || 1);
     const limit = 10;
 
-    // 3. API Ma'lumotlari
     const { data: lessonsData, isPending } = useStudentLessons(studentId || undefined, {
         page: 1,
         limit: 1000,
@@ -26,14 +23,12 @@ export const StudentLessonsPage: React.FC = () => {
 
     const { mutate: updateLesson, isPending: isUpdating } = useUpdateLessonTemplate();
 
-    // 4. Modal holatlari
     const [editOpen, setEditOpen] = useState(false);
     const [selectedLesson, setSelectedLesson] = useState<any>(null);
     const [timeRange, setTimeRange] = useState({ start: '', end: '' });
 
-    // 5. Haftalik kunlar mantiqi
     const rollingWeek = useMemo(() => {
-        const order = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const order = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         const todayIdx = new Date().getDay();
         return Array.from({ length: 7 }, (_, i) => {
             const idx = (todayIdx + i) % 7;
@@ -47,7 +42,6 @@ export const StudentLessonsPage: React.FC = () => {
         });
     }, []);
 
-    // 6. Filtrlash (Client-side)
     const filteredLessons = useMemo(() => {
         let all = lessonsData?.data || [];
         if (dayFilter) {
@@ -62,7 +56,6 @@ export const StudentLessonsPage: React.FC = () => {
     const pageItems = filteredLessons.slice((page - 1) * limit, page * limit);
     const totalPages = Math.ceil(filteredLessons.length / limit);
 
-    // 7. URL sinxronlash
     useEffect(() => {
         const params = new URLSearchParams();
         if (dayFilter) params.set('weekday', dayFilter);
@@ -96,7 +89,7 @@ export const StudentLessonsPage: React.FC = () => {
             <div className="max-w-md mx-auto space-y-5">
 
                 {/* Header Section */}
-                <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-6">
+                <div className="bg-white rounded-4xl shadow-sm border border-gray-100 p-6">
                     <div className="flex items-center gap-3 mb-6">
                         <div className="p-2.5 bg-green-50 text-green-600 rounded-2xl">
                             <CalendarDays size={24} />
@@ -122,7 +115,7 @@ export const StudentLessonsPage: React.FC = () => {
                                 <button
                                     key={item.dayName}
                                     onClick={() => { setDayFilter(isActive ? '' : item.dayName); setPage(1); }}
-                                    className={`flex-shrink-0 min-w-[70px] py-3 rounded-2xl border transition-all flex flex-col items-center
+                                    className={`shrink-0 min-w-17.5 py-3 rounded-2xl border transition-all flex flex-col items-center
                                         ${isActive ? 'bg-green-600 border-green-600 text-white shadow-lg shadow-green-100' : 'bg-white border-gray-100 text-gray-500'}`}
                                 >
                                     <span className="text-[10px] font-bold uppercase tracking-tighter opacity-70 mb-1">{item.dayName.slice(0, 3)}</span>
@@ -137,7 +130,7 @@ export const StudentLessonsPage: React.FC = () => {
                 <div className="space-y-4">
                     {isPending ? <div className="py-10"><PageLoader /></div> : pageItems.length > 0 ? (
                         pageItems.map((lesson: any) => (
-                            <div key={lesson.id} className="bg-white rounded-[2rem] p-5 shadow-sm border border-gray-50">
+                            <div key={lesson.id} className="bg-white rounded-4xl p-5 shadow-sm border border-gray-50">
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="space-y-1">
                                         <div className="flex items-center gap-2">
@@ -193,7 +186,7 @@ export const StudentLessonsPage: React.FC = () => {
                             </div>
                         ))
                     ) : (
-                        <div className="text-center py-20 bg-white rounded-[2rem] border border-dashed border-gray-200">
+                        <div className="text-center py-20 bg-white rounded-4xl border border-dashed border-gray-200">
                             <CalendarDays size={48} className="mx-auto text-gray-100 mb-4" />
                             <p className="text-gray-400 font-bold">Darslar topilmadi</p>
                         </div>

@@ -17,7 +17,7 @@ export const StudentMoreLessons: React.FC<StudentMoreLessonsProps> = ({ student 
     const [page, setPage] = useState<number>(1);
     const [limit, setLimit] = useState<number>(10);
 
-    // Add Lesson State
+   
     const [isCreateOpen, setIsCreateOpen] = useState<boolean>(false);
     const [createLessonTeacherId, setCreateLessonTeacherId] = useState<number>(0);
 
@@ -26,7 +26,6 @@ export const StudentMoreLessons: React.FC<StudentMoreLessonsProps> = ({ student 
 
     const totalPages = lessonsQuery.data?.meta?.totalPages || 0;
 
-    // Teacher Data for creation
     const teacherQuery = useGetTeacherById(createLessonTeacherId || undefined);
     const createTeacherCertificates = (teacherQuery.data as any)?.certificates || [];
 
