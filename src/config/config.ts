@@ -10,6 +10,6 @@ export const config = {
         : import.meta.env.VITE_FRONTEND_URL_SERVER,
 
     TELEGRAM_URL: isDevelopment
-        ? 'https://t.me/online_course_7390_bot'
-        : 'https://t.me/prod_online_7390_bot'
+        ? 'https://t.me/prod_online_7390_bot' :
+        'https://t.me/online_course_7390_bot'
 };
